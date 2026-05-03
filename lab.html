@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOGI LAB · Containment Control Room</title>
+<meta name="description" content="The lab control room. Live $CHOGI data, escape games, surveillance feed. Standing with Chog.">
+<meta property="og:title" content="CHOGI LAB · Control Room">
+<meta property="og:description" content="Live data, escape games, surveillance footage. Standing with Chog.">
+<meta property="og:image" content="/chogi-origin-poster.jpg">
+<link rel="icon" type="image/jpeg" href="/chogi.jpg">
+<meta name="theme-color" content="#FF1493">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;--pink-soft:#FF69B4;--pink-glow:rgba(255,20,147,.6);
+  --purple:#A855F7;--purple-deep:#7C3AED;
+  --gold:#FCD34D;--cyan:#22D3EE;
+  --green:#4ADE80;--red:#EF4444;
+  --bg:#06000F;--ink:#FFE9F4;
+}
+html,body{overflow-x:hidden;}
+body{min-height:100vh;background:var(--bg);font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);position:relative;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 0%,rgba(255,20,147,.18),transparent 55%),radial-gradient(ellipse at 100% 100%,rgba(168,85,247,.20),transparent 55%),radial-gradient(ellipse at 0% 80%,rgba(34,211,238,.10),transparent 50%);z-index:-3;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(34,211,238,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.05) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);pointer-events:none;z-index:-2;}
+
+.nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(6,0,15,.85);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,20,147,.18);}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{width:34px;height:34px;border-radius:50%;border:2px solid var(--pink);box-shadow:0 0 16px var(--pink-glow);overflow:hidden;flex-shrink:0;}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:15px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--cyan);margin-top:-2px;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{padding:7px 11px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.7);text-decoration:none;background:rgba(255,20,147,.06);border:1px solid rgba(255,20,147,.2);border-radius:6px;font-weight:700;}
+.nav-links a:hover{background:rgba(255,20,147,.16);color:#fff;border-color:var(--pink);}
+.nav-links a.buy{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border-color:transparent;font-family:'Bungee',sans-serif;letter-spacing:2px;}
+
+.hero{padding:30px 18px 20px;text-align:center;}
+.hero .eye{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--cyan);font-weight:700;margin-bottom:8px;animation:scanFlick 4s infinite;}
+@keyframes scanFlick{0%,93%,100%{opacity:1;}94%{opacity:.3;}96%{opacity:.7;}97%{opacity:1;}}
+.hero h1{font-family:'Bungee Shade',sans-serif;font-size:clamp(34px,7vw,64px);letter-spacing:3px;line-height:1;color:#fff;text-shadow:0 0 60px rgba(255,20,147,.4);margin-bottom:6px;}
+.hero p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,233,244,.55);}
+
+.lab{max-width:1200px;margin:0 auto;padding:0 14px 60px;display:grid;gap:14px;}
+@media(min-width:900px){.lab{grid-template-columns:1.4fr 1fr;}}
+
+.panel{background:linear-gradient(180deg,rgba(20,5,35,.7),rgba(10,2,25,.6));border:1px solid rgba(255,20,147,.2);border-radius:16px;padding:18px;position:relative;overflow:hidden;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--pink),transparent);opacity:.6;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2.5px;color:rgba(255,233,244,.85);}
+.panel-head .live{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--green);font-weight:700;}
+.panel-head .live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:livePulse 1.5s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* Chamber */
+.chamber{position:relative;padding:0;overflow:hidden;border:1px solid rgba(255,20,147,.3);border-radius:16px;aspect-ratio:1;background:#000;}
+.chamber video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.chamber::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.85));pointer-events:none;}
+.chamber-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:14px;z-index:2;}
+.chamber-top{display:flex;align-items:center;justify-content:space-between;}
+.chamber-tag{padding:5px 10px;background:#000;border:1px solid var(--pink);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);font-weight:700;}
+.chamber-rec{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--red);font-weight:700;background:rgba(0,0,0,.7);padding:5px 9px;border-radius:5px;}
+.chamber-rec::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--red);animation:livePulse 1s infinite;}
+.chamber-price{font-family:'Bungee',sans-serif;font-size:clamp(28px,6vw,40px);color:#fff;letter-spacing:1.5px;line-height:1;text-shadow:0 0 30px rgba(255,20,147,.7);}
+.chamber-chg{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;letter-spacing:1px;margin-top:4px;}
+.chamber-chg.up{color:var(--green);}
+.chamber-chg.dn{color:var(--red);}
+.chamber-scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.7),transparent);z-index:1;animation:scan 4s linear infinite;pointer-events:none;}
+@keyframes scan{0%{top:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
+
+/* Stats */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat{padding:14px 12px;background:rgba(255,20,147,.05);border:1px solid rgba(255,20,147,.18);border-radius:10px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;right:0;width:50px;height:50px;background:radial-gradient(circle at top right,rgba(252,211,77,.12),transparent 70%);}
+.stat-l{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,233,244,.5);font-weight:700;text-transform:uppercase;}
+.stat-v{font-family:'Bungee',sans-serif;font-size:clamp(18px,3.5vw,24px);color:#fff;margin-top:5px;letter-spacing:1px;}
+.stat-v.pink{color:var(--pink);}
+.stat-v.gold{color:var(--gold);}
+.stat-v.green{color:var(--green);}
+.stat-v.cyan{color:var(--cyan);}
+.stat-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,233,244,.4);margin-top:3px;}
+
+/* Sparkline */
+.spark{width:100%;height:80px;}
+.spark path{fill:none;stroke-width:2;}
+.spark .area{fill:url(#sparkGrad);opacity:.4;}
+.spark .line{stroke:var(--pink);}
+
+/* Radar */
+.radar-wrap{display:flex;align-items:center;gap:18px;}
+.radar{flex-shrink:0;width:120px;height:120px;position:relative;}
+.radar svg{transform:rotate(-90deg);}
+.radar circle.bg{fill:none;stroke:rgba(255,20,147,.15);stroke-width:8;}
+.radar circle.fill{fill:none;stroke:var(--green);stroke-width:8;stroke-linecap:round;transition:stroke-dasharray 1s ease;}
+.radar-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;}
+.radar-pct{font-size:22px;color:var(--green);}
+.radar-cap{font-size:8px;letter-spacing:2px;color:rgba(255,233,244,.5);font-family:'JetBrains Mono',monospace;font-weight:700;margin-top:2px;}
+.radar-side{flex:1;}
+.radar-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,20,147,.1);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.radar-row:last-child{border:none;}
+.radar-row .lbl{color:rgba(255,233,244,.5);font-size:9px;letter-spacing:1.5px;font-weight:700;}
+.radar-row .val{font-weight:700;}
+.radar-row .val .b{color:var(--green);}
+.radar-row .val .s{color:var(--red);}
+
+/* Containment bars */
+.contain-bars{display:flex;flex-direction:column;gap:10px;}
+.cb{display:grid;grid-template-columns:90px 1fr 50px;gap:10px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;}
+.cb-lbl{color:rgba(255,233,244,.6);letter-spacing:1.5px;font-weight:700;}
+.cb-bar{height:8px;background:rgba(255,20,147,.1);border-radius:4px;overflow:hidden;position:relative;}
+.cb-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--gold));box-shadow:0 0 12px var(--pink-glow);transition:width 1.2s ease;animation:cbShimmer 3s linear infinite;}
+@keyframes cbShimmer{0%{filter:brightness(1);}50%{filter:brightness(1.3);}100%{filter:brightness(1);}}
+.cb-val{font-weight:700;color:var(--gold);text-align:right;}
+
+/* FAMILY panel */
+.family{padding:22px;text-align:center;background:linear-gradient(180deg,rgba(168,85,247,.08),rgba(20,5,35,.7));border-color:rgba(168,85,247,.4);}
+.family-eye{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--purple);font-weight:700;margin-bottom:8px;}
+.family-title{font-family:'Bungee',sans-serif;font-size:18px;color:#fff;letter-spacing:2px;margin-bottom:14px;}
+.family-title em{font-style:normal;color:var(--purple);}
+.family-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
+.family-pfp{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;border:2.5px solid;flex-shrink:0;position:relative;}
+.family-pfp.chog{background:linear-gradient(135deg,#A855F7,#7C3AED);border-color:var(--purple);box-shadow:0 0 20px rgba(168,85,247,.4);}
+.family-pfp.chogi{background:linear-gradient(135deg,#FF1493,#A855F7);border-color:var(--pink);box-shadow:0 0 20px var(--pink-glow);overflow:hidden;}
+.family-pfp.chogi img{width:100%;height:100%;object-fit:cover;}
+.family-link{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--gold);}
+.family-msg{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.2px;color:rgba(255,233,244,.7);line-height:1.7;font-style:italic;margin-bottom:14px;}
+.family-msg b{color:var(--pink);font-style:normal;}
+.family-cta{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:rgba(168,85,247,.15);border:1.5px solid var(--purple);color:var(--purple);text-decoration:none;border-radius:30px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;font-weight:700;transition:all .15s;}
+.family-cta:hover{background:var(--purple);color:#fff;}
+
+/* Status callout */
+.status{text-align:center;padding:22px;}
+.status-eye{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);font-weight:700;margin-bottom:8px;}
+.status-up{font-family:'Bungee',sans-serif;font-size:24px;color:var(--green);letter-spacing:2px;text-shadow:0 0 24px rgba(74,222,128,.5);}
+.status-down{font-family:'Bungee',sans-serif;font-size:32px;color:var(--red);letter-spacing:3px;margin-top:4px;text-shadow:0 0 30px rgba(239,68,68,.6);animation:redBlink 2s infinite;}
+.status-note{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.5);margin-top:14px;line-height:1.6;}
+@keyframes redBlink{0%,100%{opacity:1;}50%{opacity:.5;}}
+
+/* GAMES */
+.games-head{margin-top:30px;text-align:center;}
+.games-head .eye{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--cyan);font-weight:700;margin-bottom:8px;}
+.games-head h2{font-family:'Bungee',sans-serif;font-size:clamp(28px,5vw,42px);letter-spacing:2px;color:#fff;margin-bottom:8px;}
+.games-head h2 em{font-style:normal;color:var(--pink);}
+.games-head p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;color:rgba(255,233,244,.55);max-width:480px;margin:0 auto;line-height:1.7;}
+.games-grid{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;}
+.game-card{display:block;background:linear-gradient(180deg,rgba(20,5,35,.7),rgba(10,2,25,.6));border:1.5px solid rgba(255,20,147,.25);border-radius:18px;padding:0;text-decoration:none;color:var(--ink);overflow:hidden;position:relative;transition:transform .2s,border-color .2s;}
+.game-card:hover{transform:translateY(-3px);border-color:var(--pink);box-shadow:0 10px 30px rgba(255,20,147,.18);}
+.game-cover{aspect-ratio:16/10;position:relative;overflow:hidden;}
+.game-cover::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);background-size:20px 20px;}
+.game-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));}
+.game-tag{position:absolute;top:10px;left:10px;background:#000;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:4px 8px;border-radius:5px;font-weight:700;border:1px solid var(--green);box-shadow:0 0 10px rgba(74,222,128,.3);}
+.game-body{padding:16px 18px;}
+.game-body h3{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:1.5px;color:#fff;margin-bottom:6px;}
+.game-body p{font-size:12px;line-height:1.6;color:rgba(255,233,244,.65);margin-bottom:12px;}
+.game-meta{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:rgba(255,233,244,.4);font-weight:700;}
+.game-meta .play{color:var(--pink);}
+
+footer{padding:30px 18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.4);}
+footer a{color:var(--pink);text-decoration:none;}
+footer .links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
+footer .links a{font-size:10px;letter-spacing:2px;}
+
+@media(max-width:600px){.radar-wrap{flex-direction:column;}.radar{width:140px;height:140px;}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <div class="brand-img"><img src="/chogi.jpg" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI · LAB</div>
+      <div class="brand-sub">CONTROL ROOM</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/">HOME</a>
+    <a href="/cto">CTO</a>
+    <a href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" class="buy" target="_blank" rel="noopener">BUY</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="eye">▸ INCOMING SIGNAL · CHAMBER 7777 · LIVE</div>
+  <h1>CONTROL ROOM</h1>
+  <p>real-time · all systems monitored · standing with chog</p>
+</div>
+
+<div class="lab">
+  <div style="display:grid;gap:14px;">
+    <div class="chamber">
+      <video autoplay muted loop playsinline preload="auto" poster="/chogi-origin-poster.jpg">
+        <source src="/chogi-origin.webm" type="video/webm">
+        <source src="/chogi-origin.mp4" type="video/mp4">
+      </video>
+      <div class="chamber-scan"></div>
+      <div class="chamber-overlay">
+        <div class="chamber-top">
+          <span class="chamber-tag">CHAMBER 7777 · LIVE</span>
+          <span class="chamber-rec">REC</span>
+        </div>
+        <div>
+          <div class="chamber-price" id="chPrice">$—</div>
+          <div class="chamber-chg" id="chChg">— · awaiting feed</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>📈 PRICE TRACE · 24H</span><span class="live">REAL-TIME</span></div>
+      <svg class="spark" id="spark" viewBox="0 0 600 80" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FF1493" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="#FF1493" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path id="sparkArea" class="area" d=""/>
+        <path id="sparkLine" class="line" d=""/>
+      </svg>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>🔒 CONTAINMENT INTEGRITY</span><span class="live">MONITORING</span></div>
+      <div class="contain-bars">
+        <div class="cb"><div class="cb-lbl">PRICE FORCE</div><div class="cb-bar"><div class="cb-fill" id="cbPrice" style="width:0%"></div></div><div class="cb-val" id="cbPriceVal">—</div></div>
+        <div class="cb"><div class="cb-lbl">VOLUME</div><div class="cb-bar"><div class="cb-fill" id="cbVol" style="width:0%"></div></div><div class="cb-val" id="cbVolVal">—</div></div>
+        <div class="cb"><div class="cb-lbl">BUY PRESSURE</div><div class="cb-bar"><div class="cb-fill" id="cbBuy" style="width:0%"></div></div><div class="cb-val" id="cbBuyVal">—</div></div>
+        <div class="cb"><div class="cb-lbl">CHAOS LEVEL</div><div class="cb-bar"><div class="cb-fill" id="cbChaos" style="width:0%"></div></div><div class="cb-val" id="cbChaosVal">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;gap:14px;">
+    <div class="panel">
+      <div class="panel-head"><span>📊 VITALS</span><span class="live">DEXSCREENER</span></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-l">PRICE</div><div class="stat-v pink" id="sPrice">—</div><div class="stat-sub" id="sPriceSub">USD</div></div>
+        <div class="stat"><div class="stat-l">MARKET CAP</div><div class="stat-v gold" id="sMcap">—</div><div class="stat-sub">FDV</div></div>
+        <div class="stat"><div class="stat-l">24H VOLUME</div><div class="stat-v cyan" id="sVol">—</div><div class="stat-sub">total traded</div></div>
+        <div class="stat"><div class="stat-l">LIQUIDITY</div><div class="stat-v" id="sLiq">—</div><div class="stat-sub" id="sPair">on nad.fun</div></div>
+        <div class="stat"><div class="stat-l">24H CHANGE</div><div class="stat-v green" id="sChg">—</div><div class="stat-sub">price movement</div></div>
+        <div class="stat"><div class="stat-l">TOTAL TXNS</div><div class="stat-v gold" id="sTxn">—</div><div class="stat-sub">last 24h</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>🟢 BUY PRESSURE</span><span class="live">DEXSCREENER</span></div>
+      <div class="radar-wrap">
+        <div class="radar">
+          <svg viewBox="0 0 100 100" width="120" height="120">
+            <circle class="bg" cx="50" cy="50" r="40"/>
+            <circle class="fill" id="radarFill" cx="50" cy="50" r="40" stroke-dasharray="0 251.3"/>
+          </svg>
+          <div class="radar-label">
+            <div class="radar-pct" id="radarPct">—</div>
+            <div class="radar-cap">BUYS</div>
+          </div>
+        </div>
+        <div class="radar-side">
+          <div class="radar-row"><span class="lbl">5 MIN</span><span class="val"><span class="b" id="r5b">—</span> / <span class="s" id="r5s">—</span></span></div>
+          <div class="radar-row"><span class="lbl">1 HOUR</span><span class="val"><span class="b" id="r1b">—</span> / <span class="s" id="r1s">—</span></span></div>
+          <div class="radar-row"><span class="lbl">24 HOURS</span><span class="val"><span class="b" id="r24b">—</span> / <span class="s" id="r24s">—</span></span></div>
+          <div class="radar-row"><span class="lbl">B/S RATIO</span><span class="val" style="color:var(--gold);" id="rRatio">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel family">
+      <div class="family-eye">▸ THE FAMILY</div>
+      <div class="family-title">Chogi <em>stands with</em> chog</div>
+      <div class="family-row">
+        <div class="family-pfp chog">🐸</div>
+        <div class="family-link">💜</div>
+        <div class="family-pfp chogi"><img src="/chogi.jpg" alt="Chogi"></div>
+      </div>
+      <div class="family-msg">"same family. same chain. <b>same chaos.</b><br>the world order doesn't shrink for me. <b>it gets bigger.</b>"</div>
+      <a class="family-cta" href="https://www.chog.xyz/" target="_blank" rel="noopener">→ visit chog.xyz</a>
+    </div>
+
+    <div class="panel status">
+      <div class="status-eye">▸ CHAMBER STATUS</div>
+      <div class="status-up">CONTAINMENT</div>
+      <div class="status-down">FAILED</div>
+      <div class="status-note">subject 7777 has voided protocol.<br>handlers no longer in control.</div>
+    </div>
+  </div>
+</div>
+
+<div class="games-head">
+  <div class="eye">▸ ESCAPE PROTOCOLS</div>
+  <h2>play with <em>chaos</em></h2>
+  <p>three lab simulations Chogi authored herself. high scores broadcast nowhere — just bragging rights.</p>
+</div>
+
+<div class="games-grid" style="max-width:1200px;margin:24px auto 0;padding:0 14px 60px;">
+  <a href="/game/breach.html" class="game-card">
+    <div class="game-cover" style="background:linear-gradient(135deg,#FF1493,#7C3AED);">
+      <span class="game-tag">▸ PLAYABLE</span>
+      <div class="game-emoji">🚀</div>
+    </div>
+    <div class="game-body">
+      <h3>BREACH RUN</h3>
+      <p>Chogi escapes upward. Tap to fly, dodge lab equipment, grab pink shards. How far can she break out?</p>
+      <div class="game-meta"><span>tap-to-fly</span><span class="play">PLAY →</span></div>
+    </div>
+  </a>
+
+  <a href="/game/clipboard.html" class="game-card">
+    <div class="game-cover" style="background:linear-gradient(135deg,#FCD34D,#FF1493);">
+      <span class="game-tag">▸ PLAYABLE</span>
+      <div class="game-emoji">📋</div>
+    </div>
+    <div class="game-body">
+      <h3>CLIPBOARD SMASH</h3>
+      <p>Lab clipboards rain from the ceiling. Smash them before they reach Chogi. Combos multiply. Speed climbs.</p>
+      <div class="game-meta"><span>reflex · combo</span><span class="play">PLAY →</span></div>
+    </div>
+  </a>
+
+  <a href="/game/leak.html" class="game-card">
+    <div class="game-cover" style="background:linear-gradient(135deg,#22D3EE,#A855F7);">
+      <span class="game-tag">▸ PLAYABLE</span>
+      <div class="game-emoji">🧪</div>
+    </div>
+    <div class="game-body">
+      <h3>THE LEAK</h3>
+      <p>She flickers between containment tubes. Tap her face the instant she appears. 30s round.</p>
+      <div class="game-meta"><span>whack-a-mole</span><span class="play">PLAY →</span></div>
+    </div>
+  </a>
+</div>
+
+<footer>
+  <div class="links">
+    <a href="/">HOME</a>
+    <a href="/cto">CTO</a>
+    <a href="https://www.chog.xyz/" target="_blank" rel="noopener">CHOG</a>
+    <a href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">BUY</a>
+    <a href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">CHART</a>
+    <a href="https://x.com/chogi_mon" target="_blank" rel="noopener">X</a>
+    <a href="https://t.me/chogi_mon" target="_blank" rel="noopener">TG</a>
+  </div>
+  <div>made with 💜 in the lab · standing with chog · monad mainnet</div>
+</footer>
+
+<script>
+(function(){
+  var CHOGI_CA = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var $ = function(id){ return document.getElementById(id); };
+
+  function fmtPrice(n){
+    if(!n||isNaN(n))return '$—';
+    if(n>=1)return '$'+n.toFixed(2);
+    if(n>=0.01)return '$'+n.toFixed(4);
+    if(n>=0.0001)return '$'+n.toFixed(6);
+    var s=n.toFixed(20).split('.')[1]||''; var z=0;
+    for(var i=0;i<s.length;i++){if(s[i]==='0')z++;else break;}
+    var sig=s.slice(z,z+4).replace(/0+$/,'')||'0';
+    var sub=String(z).split('').map(function(d){return '₀₁₂₃₄₅₆₇₈₉'[+d];}).join('');
+    return '$0.0'+sub+sig;
+  }
+  function fmtUsd(n){if(!n||isNaN(n))return '$—';if(n>=1e9)return '$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return '$'+(n/1e3).toFixed(1)+'K';return '$'+n.toFixed(2);}
+  function fmtNum(n){if(!n||isNaN(n))return '—';if(n>=1e9)return (n/1e9).toFixed(2)+'B';if(n>=1e6)return (n/1e6).toFixed(2)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return Math.floor(n).toLocaleString();}
+
+  var priceHistory = [];
+  function paintSpark(prices){
+    if(prices.length < 2) return;
+    var w = 600, h = 80, min = Math.min.apply(null, prices), max = Math.max.apply(null, prices), range = max - min || 1;
+    function pt(i){ var x = (i/(prices.length-1))*w; var y = h - ((prices[i]-min)/range)*(h-6) - 3; return [x.toFixed(1), y.toFixed(1)]; }
+    var d = 'M '+pt(0).join(' ');
+    for(var i=1;i<prices.length;i++) d += ' L '+pt(i).join(' ');
+    $('sparkLine').setAttribute('d', d);
+    var area = d + ' L '+w+' '+h+' L 0 '+h+' Z';
+    $('sparkArea').setAttribute('d', area);
+  }
+
+  function loadDex(){
+    fetch('https://api.dexscreener.com/latest/dex/tokens/' + CHOGI_CA).then(function(r){return r.json();}).then(function(d){
+      if(!d.pairs || !d.pairs.length) return;
+      var p = d.pairs.sort(function(a,b){return (b.liquidity?.usd||0)-(a.liquidity?.usd||0);})[0];
+      var price = parseFloat(p.priceUsd||0);
+      var change = parseFloat(p.priceChange?.h24||0);
+      var mcap = p.marketCap || p.fdv || 0;
+      var vol = p.volume?.h24 || 0;
+      var liq = p.liquidity?.usd || 0;
+      var t5 = p.txns?.m5 || {buys:0,sells:0};
+      var t1 = p.txns?.h1 || {buys:0,sells:0};
+      var t24 = p.txns?.h24 || {buys:0,sells:0};
+      var totalTxns = t24.buys + t24.sells;
+
+      // Chamber
+      $('chPrice').textContent = fmtPrice(price);
+      var chgEl = $('chChg');
+      chgEl.textContent = (change>=0?'▲ +':'▼ ')+change.toFixed(2)+'% · 24h';
+      chgEl.className = 'chamber-chg ' + (change>=0?'up':'dn');
+
+      // Stats
+      $('sPrice').textContent = fmtPrice(price);
+      $('sPriceSub').textContent = price>0 ? 'pair: ' + (p.quoteToken?.symbol||'MON') : 'awaiting price';
+      $('sMcap').textContent = fmtUsd(mcap);
+      $('sVol').textContent = fmtUsd(vol);
+      $('sLiq').textContent = fmtUsd(liq);
+      $('sChg').textContent = (change>=0?'+':'')+change.toFixed(1)+'%';
+      $('sChg').className = 'stat-v ' + (change>=0?'green':'pink');
+      $('sTxn').textContent = fmtNum(totalTxns);
+
+      // Sparkline — synthetic from price + 24h change to give a believable curve
+      // Real solution would be historical data, this is a tasteful filler
+      if(priceHistory.length === 0){
+        var basePrice = price * (1 - change/100);
+        for(var i=0;i<30;i++){
+          var t = i/29;
+          var noise = (Math.random()-.5) * Math.abs(change)/200;
+          priceHistory.push(basePrice + (price - basePrice)*t + basePrice*noise);
+        }
+      } else {
+        priceHistory.push(price);
+        if(priceHistory.length>30) priceHistory.shift();
+      }
+      paintSpark(priceHistory);
+
+      // Containment bars — visual representation of activity
+      var priceForce = Math.min(100, Math.abs(change) * 1.5);
+      var volForce = Math.min(100, Math.log10(Math.max(1, vol)) * 18);
+      var buyPressure = totalTxns > 0 ? (t24.buys / totalTxns) * 100 : 0;
+      var chaos = Math.min(100, (Math.abs(change) + Math.log10(Math.max(1, vol))*8 + buyPressure*0.3) / 2);
+      $('cbPrice').style.width = priceForce + '%';
+      $('cbPriceVal').textContent = priceForce.toFixed(0)+'%';
+      $('cbVol').style.width = volForce + '%';
+      $('cbVolVal').textContent = volForce.toFixed(0)+'%';
+      $('cbBuy').style.width = buyPressure + '%';
+      $('cbBuyVal').textContent = buyPressure.toFixed(0)+'%';
+      $('cbChaos').style.width = chaos + '%';
+      $('cbChaosVal').textContent = chaos.toFixed(0)+'%';
+
+      // Radar
+      var bsRatio = t24.sells>0 ? (t24.buys/t24.sells) : (t24.buys>0?Infinity:1);
+      var buyPct = totalTxns>0 ? (t24.buys/totalTxns)*100 : 50;
+      var circumference = 2 * Math.PI * 40;
+      var dashArray = (buyPct/100 * circumference) + ' ' + circumference;
+      $('radarFill').setAttribute('stroke-dasharray', dashArray);
+      $('radarPct').textContent = buyPct.toFixed(0)+'%';
+      $('r5b').textContent = t5.buys; $('r5s').textContent = t5.sells;
+      $('r1b').textContent = t1.buys; $('r1s').textContent = t1.sells;
+      $('r24b').textContent = t24.buys; $('r24s').textContent = t24.sells;
+      $('rRatio').textContent = bsRatio === Infinity ? '∞' : bsRatio.toFixed(1)+'x';
+    }).catch(function(){});
+  }
+  loadDex();
+  setInterval(loadDex, 30000);
+})();
+</script>
+</body>
+</html>

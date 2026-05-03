@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CLIPBOARD SMASH · Defend Chogi</title>
+<link rel="icon" type="image/jpeg" href="/chogi.jpg">
+<meta name="theme-color" content="#FCD34D">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--pink:#FF1493;--purple:#A855F7;--gold:#FCD34D;--green:#4ADE80;--red:#EF4444;--bg:#06000F;}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'JetBrains Mono',monospace;color:#FFE9F4;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+.wrap{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+.bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(6,0,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(252,211,77,.25);z-index:10;}
+.bar a{font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;color:rgba(252,211,77,.85);text-decoration:none;}
+.bar .title{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;color:#fff;}
+.bar .stats{display:flex;gap:12px;align-items:center;font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1px;}
+.bar .score{color:var(--gold);}
+.bar .combo{color:var(--pink);font-size:11px;}
+.bar .lives{color:var(--red);}
+
+.game{flex:1;position:relative;overflow:hidden;cursor:crosshair;}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(20,5,35,.92),rgba(6,0,15,.96));z-index:5;padding:20px;text-align:center;}
+.overlay h1{font-family:'Bungee',sans-serif;font-size:clamp(34px,9vw,56px);letter-spacing:3px;line-height:1;margin-bottom:10px;background:linear-gradient(180deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 30px rgba(252,211,77,.4);}
+.overlay .sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,233,244,.6);margin-bottom:24px;line-height:1.7;max-width:340px;}
+.overlay .sub b{color:var(--gold);}
+.overlay .btn{padding:14px 28px;background:linear-gradient(135deg,var(--gold),var(--pink));color:#000;border:none;font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;border-radius:12px;cursor:pointer;box-shadow:0 0 30px rgba(252,211,77,.4);font-weight:900;}
+.overlay .stats-row{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;justify-content:center;}
+.overlay .stat{padding:10px 14px;background:rgba(252,211,77,.1);border:1px solid rgba(252,211,77,.3);border-radius:10px;}
+.overlay .stat-l{font-size:9px;letter-spacing:2px;color:rgba(255,233,244,.5);}
+.overlay .stat-v{font-family:'Bungee',sans-serif;font-size:18px;color:var(--gold);margin-top:3px;}
+.overlay.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bar">
+    <a href="/lab.html">← LAB</a>
+    <div class="title">📋 CLIPBOARD SMASH</div>
+    <div class="stats">
+      <span class="combo" id="combo"></span>
+      <span class="score" id="score">0</span>
+      <span class="lives" id="lives">❤❤❤</span>
+    </div>
+  </div>
+
+  <div class="game" id="game">
+    <canvas id="cv"></canvas>
+
+    <div class="overlay" id="startScreen">
+      <h1>CLIPBOARD SMASH</h1>
+      <div class="sub">The handlers are reaching for Chogi.<br><b>Tap the clipboards before they reach her.</b><br>Chain hits for combos. Don't miss too many — she's tougher than she looks but not invincible.</div>
+      <button class="btn" id="startBtn">DEFEND CHOGI</button>
+    </div>
+
+    <div class="overlay hidden" id="endScreen">
+      <h1>SHE'S BACK IN</h1>
+      <div class="sub" id="endMsg">they got her this round</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-l">SCORE</div><div class="stat-v" id="endScore">0</div></div>
+        <div class="stat"><div class="stat-l">MAX COMBO</div><div class="stat-v" id="endCombo">0</div></div>
+        <div class="stat"><div class="stat-l">BEST</div><div class="stat-v" id="endBest">0</div></div>
+      </div>
+      <button class="btn" id="retryBtn">DEFEND AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var W, H, DPR = window.devicePixelRatio || 1;
+  function resize(){
+    var r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize);
+
+  var chogiImg = new Image();
+  chogiImg.src = '/chogi.jpg';
+
+  var state = 'start';
+  var clipboards, smashEffects, score, combo, maxCombo, lives, frame, spawnRate;
+  var chogiY = 0;
+  var best = parseInt(localStorage.getItem('chogi_smash_best') || '0', 10);
+
+  function reset(){
+    clipboards = [];
+    smashEffects = [];
+    score = 0;
+    combo = 0;
+    maxCombo = 0;
+    lives = 3;
+    frame = 0;
+    spawnRate = 70;
+  }
+
+  function spawnClipboard(){
+    var x = 30 + Math.random() * (W - 60);
+    var speed = 1.5 + Math.random() * 1.5 + Math.min(2, score / 100);
+    clipboards.push({
+      x: x, y: -40,
+      w: 36, h: 50,
+      vy: speed,
+      rot: (Math.random() - 0.5) * 0.5,
+      vrot: (Math.random() - 0.5) * 0.04,
+      smashed: false
+    });
+  }
+
+  function update(){
+    frame++;
+    spawnRate = Math.max(28, 70 - score / 6);
+    if(frame % Math.floor(spawnRate) === 0) spawnClipboard();
+
+    var chogiBottomLine = H - 100;
+
+    for(var i=clipboards.length-1;i>=0;i--){
+      var c = clipboards[i];
+      if(c.smashed){
+        c.y += c.vy * 2;
+        c.rot += c.vrot * 4;
+        c.vy *= 0.96;
+        if(c.y > H + 60) clipboards.splice(i,1);
+        continue;
+      }
+      c.y += c.vy;
+      c.rot += c.vrot;
+      // Hit Chogi (her zone is bottom of screen)
+      if(c.y > chogiBottomLine - 30){
+        clipboards.splice(i,1);
+        lives--;
+        combo = 0;
+        // Shake screen via flash
+        smashEffects.push({ kind:'damage', life: 30, maxLife: 30 });
+        if(lives <= 0){ return gameOver('caught by handlers'); }
+      }
+    }
+
+    // Effects fade
+    for(var j=smashEffects.length-1;j>=0;j--){
+      smashEffects[j].life--;
+      if(smashEffects[j].life <= 0) smashEffects.splice(j,1);
+    }
+
+    // UI
+    document.getElementById('score').textContent = score;
+    document.getElementById('combo').textContent = combo > 1 ? '×'+combo : '';
+    document.getElementById('lives').textContent = '❤'.repeat(lives) + '♡'.repeat(Math.max(0,3-lives));
+  }
+
+  function smashAt(x, y){
+    // Find topmost clipboard under tap (with generous hit radius)
+    for(var i=clipboards.length-1;i>=0;i--){
+      var c = clipboards[i];
+      if(c.smashed) continue;
+      if(x >= c.x - c.w/2 - 10 && x <= c.x + c.w/2 + 10 &&
+         y >= c.y - c.h/2 - 10 && y <= c.y + c.h/2 + 10){
+        c.smashed = true;
+        c.vy = -3;
+        c.vrot = (Math.random()-0.5) * 0.3;
+        combo++;
+        if(combo > maxCombo) maxCombo = combo;
+        var pts = 10 + Math.floor(combo / 2) * 5;
+        score += pts;
+        // Splash particles
+        for(var p=0;p<8;p++){
+          smashEffects.push({
+            kind:'particle',
+            x: c.x, y: c.y,
+            vx: (Math.random()-0.5) * 6,
+            vy: (Math.random()-0.5) * 6 - 2,
+            life: 25 + Math.random()*15,
+            maxLife: 40,
+            color: combo > 5 ? '#FCD34D' : '#FF1493',
+            r: 2 + Math.random() * 3
+          });
+        }
+        // Floating text
+        smashEffects.push({
+          kind:'text',
+          x: c.x, y: c.y,
+          text: '+' + pts + (combo > 1 ? ' ×'+combo : ''),
+          life: 40, maxLife: 40,
+          color: combo > 5 ? '#FCD34D' : '#fff'
+        });
+        return;
+      }
+    }
+    // Miss — break combo
+    combo = 0;
+  }
+
+  function update2(){
+    // particle physics
+    for(var i=smashEffects.length-1;i>=0;i--){
+      var e = smashEffects[i];
+      if(e.kind === 'particle'){
+        e.x += e.vx; e.y += e.vy; e.vy += 0.25; e.vx *= 0.96;
+      } else if(e.kind === 'text'){
+        e.y -= 1.2;
+      }
+    }
+  }
+
+  function draw(){
+    ctx.fillStyle = '#06000F';
+    ctx.fillRect(0,0,W,H);
+
+    // Background gradients
+    var g1 = ctx.createRadialGradient(W*0.5, H, 0, W*0.5, H, W*0.7);
+    g1.addColorStop(0, 'rgba(255,20,147,0.18)');
+    g1.addColorStop(1, 'rgba(255,20,147,0)');
+    ctx.fillStyle = g1; ctx.fillRect(0,0,W,H);
+
+    // Damage flash
+    var damage = smashEffects.filter(function(e){return e.kind==='damage';})[0];
+    if(damage){
+      ctx.fillStyle = 'rgba(239,68,68,'+(damage.life/damage.maxLife*0.4)+')';
+      ctx.fillRect(0,0,W,H);
+    }
+
+    // Grid
+    ctx.strokeStyle = 'rgba(34,211,238,0.06)';
+    ctx.lineWidth = 1;
+    for(var gy = 40; gy < H; gy += 50){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+    for(var gx = 0; gx < W; gx += 50){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+
+    // Clipboards
+    for(var i=0;i<clipboards.length;i++){
+      var c = clipboards[i];
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      ctx.rotate(c.rot);
+      // Clipboard body
+      ctx.fillStyle = c.smashed ? '#7C3AED' : '#A855F7';
+      ctx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+      // Clip metal piece
+      ctx.fillStyle = '#FCD34D';
+      ctx.fillRect(-8, -c.h/2 - 4, 16, 8);
+      // Paper lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 1;
+      for(var l = 0; l < 4; l++){
+        var ly = -c.h/2 + 12 + l * 8;
+        ctx.beginPath(); ctx.moveTo(-c.w/2 + 5, ly); ctx.lineTo(c.w/2 - 5, ly); ctx.stroke();
+      }
+      // Glow on edge
+      if(!c.smashed){
+        ctx.strokeStyle = '#FF1493';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-c.w/2, -c.h/2, c.w, c.h);
+      }
+      ctx.restore();
+    }
+
+    // Particles + texts
+    for(var p=0;p<smashEffects.length;p++){
+      var e = smashEffects[p];
+      if(e.kind === 'particle'){
+        ctx.globalAlpha = e.life / e.maxLife;
+        ctx.fillStyle = e.color;
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if(e.kind === 'text'){
+        ctx.globalAlpha = e.life / e.maxLife;
+        ctx.fillStyle = e.color;
+        ctx.font = '900 18px Bungee, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(e.text, e.x, e.y);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // Chogi at the bottom (defending)
+    var cy = H - 50;
+    chogiY += (cy - chogiY) * 0.1;
+    var size = 60 + (combo > 1 ? Math.sin(frame * 0.3) * 4 : 0);
+    ctx.save();
+    ctx.translate(W/2, chogiY);
+    // Glow
+    ctx.shadowColor = combo > 5 ? '#FCD34D' : '#FF1493';
+    ctx.shadowBlur = 28;
+    ctx.fillStyle = combo > 5 ? '#FCD34D' : '#FF1493';
+    ctx.beginPath(); ctx.arc(0, 0, size/2 + 3, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    // Image clip
+    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.clip();
+    if(chogiImg.complete) ctx.drawImage(chogiImg, -size/2, -size/2, size, size);
+    else { ctx.fillStyle = '#FFB6C1'; ctx.fillRect(-size/2,-size/2,size,size); }
+    ctx.restore();
+    // Outline
+    ctx.save();
+    ctx.translate(W/2, chogiY);
+    ctx.strokeStyle = '#FCD34D';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, size/2 + 1, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+
+  function loop(){
+    if(state === 'play'){
+      update();
+      update2();
+      draw();
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function start(){
+    resize();
+    reset();
+    chogiY = H - 50;
+    state = 'play';
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('endScreen').classList.add('hidden');
+    requestAnimationFrame(loop);
+  }
+
+  function gameOver(reason){
+    state = 'over';
+    if(score > best){
+      best = score;
+      localStorage.setItem('chogi_smash_best', String(best));
+      document.getElementById('endMsg').innerHTML = 'NEW BEST · <span style="color:#4ADE80;">'+reason+'</span>';
+    } else {
+      document.getElementById('endMsg').textContent = reason;
+    }
+    document.getElementById('endScore').textContent = score;
+    document.getElementById('endCombo').textContent = '×' + maxCombo;
+    document.getElementById('endBest').textContent = best;
+    document.getElementById('endScreen').classList.remove('hidden');
+  }
+
+  // Input
+  document.getElementById('game').addEventListener('pointerdown', function(e){
+    if(state !== 'play') return;
+    e.preventDefault();
+    var rect = cv.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    smashAt(x, y);
+  });
+
+  document.getElementById('startBtn').onclick = function(e){ e.stopPropagation(); start(); };
+  document.getElementById('retryBtn').onclick = function(e){ e.stopPropagation(); start(); };
+
+  resize();
+})();
+</script>
+</body>
+</html>

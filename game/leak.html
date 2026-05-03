@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>THE LEAK · Catch Chogi flickering</title>
+<link rel="icon" type="image/jpeg" href="/chogi.jpg">
+<meta name="theme-color" content="#22D3EE">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--pink:#FF1493;--purple:#A855F7;--gold:#FCD34D;--cyan:#22D3EE;--green:#4ADE80;--red:#EF4444;--bg:#06000F;}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'JetBrains Mono',monospace;color:#FFE9F4;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+.wrap{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+.bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(6,0,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(34,211,238,.25);z-index:10;}
+.bar a{font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;color:rgba(34,211,238,.85);text-decoration:none;}
+.bar .title{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;color:#fff;}
+.bar .stats{display:flex;gap:14px;font-family:'Bungee',sans-serif;font-size:13px;}
+.bar .score{color:var(--gold);}
+.bar .timer{color:var(--cyan);}
+.bar .timer.urgent{color:var(--red);animation:pulse 0.5s infinite;}
+@keyframes pulse{50%{opacity:.4;}}
+
+.game{flex:1;position:relative;overflow:hidden;}
+.bg-fx{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(34,211,238,0.12),transparent 60%),radial-gradient(ellipse at 30% 100%,rgba(255,20,147,0.15),transparent 50%);pointer-events:none;}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(34,211,238,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.06) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);pointer-events:none;}
+
+.tubes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:8px;padding:12px;}
+@media(max-width:480px){.tubes{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);}}
+
+.tube{position:relative;border-radius:14px;background:linear-gradient(180deg,rgba(168,85,247,.12),rgba(20,5,35,.6));border:1.5px solid rgba(34,211,238,.25);overflow:hidden;cursor:pointer;}
+.tube::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(34,211,238,.18),transparent 60%);pointer-events:none;}
+.tube::after{content:'';position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.7),transparent);animation:tubeScan 3s linear infinite;pointer-events:none;}
+@keyframes tubeScan{0%{top:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
+.tube-num{position:absolute;top:6px;left:8px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;color:rgba(34,211,238,.5);font-weight:700;z-index:2;}
+.tube-glow{position:absolute;inset:0;border-radius:14px;pointer-events:none;transition:box-shadow .15s,border-color .15s;}
+.tube.live .tube-glow{box-shadow:inset 0 0 30px rgba(255,20,147,.5),0 0 20px rgba(255,20,147,.4);border:2px solid var(--pink);}
+.tube.scientist .tube-glow{box-shadow:inset 0 0 30px rgba(168,85,247,.5),0 0 20px rgba(168,85,247,.4);border:2px solid var(--purple);}
+
+.subject{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);transition:transform .15s ease-out;width:65%;aspect-ratio:1;border-radius:50%;overflow:hidden;border:3px solid var(--pink);box-shadow:0 0 28px rgba(255,20,147,.6);z-index:3;}
+.subject img{width:100%;height:100%;object-fit:cover;}
+.subject.show{transform:translate(-50%,-50%) scale(1);}
+.subject.scientist{border-color:var(--purple);box-shadow:0 0 28px rgba(168,85,247,.6);background:linear-gradient(135deg,#A855F7,#7C3AED);}
+.subject.scientist .face{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;}
+
+.float-pts{position:absolute;font-family:'Bungee',sans-serif;font-size:18px;color:var(--gold);text-shadow:0 0 10px var(--gold);pointer-events:none;animation:floatUp .8s ease-out forwards;z-index:5;}
+@keyframes floatUp{0%{opacity:1;transform:translate(-50%,0);}100%{opacity:0;transform:translate(-50%,-40px);}}
+.float-miss{color:var(--red);text-shadow:0 0 10px var(--red);}
+
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(20,5,35,.92),rgba(6,0,15,.96));z-index:20;padding:20px;text-align:center;}
+.overlay h1{font-family:'Bungee',sans-serif;font-size:clamp(34px,9vw,56px);letter-spacing:3px;line-height:1;margin-bottom:10px;background:linear-gradient(180deg,#fff,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 30px rgba(34,211,238,.4);}
+.overlay .sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,233,244,.6);margin-bottom:24px;line-height:1.7;max-width:340px;}
+.overlay .sub b{color:var(--cyan);}
+.overlay .btn{padding:14px 28px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#000;border:none;font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;border-radius:12px;cursor:pointer;box-shadow:0 0 30px rgba(34,211,238,.4);font-weight:900;}
+.overlay .stats-row{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;justify-content:center;}
+.overlay .stat{padding:10px 14px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:10px;}
+.overlay .stat-l{font-size:9px;letter-spacing:2px;color:rgba(255,233,244,.5);}
+.overlay .stat-v{font-family:'Bungee',sans-serif;font-size:18px;color:var(--cyan);margin-top:3px;}
+.overlay.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bar">
+    <a href="/lab.html">← LAB</a>
+    <div class="title">🧪 THE LEAK</div>
+    <div class="stats">
+      <span class="score" id="score">0</span>
+      <span class="timer" id="timer">30s</span>
+    </div>
+  </div>
+
+  <div class="game" id="game">
+    <div class="bg-fx"></div>
+    <div class="bg-grid"></div>
+    <div class="tubes" id="tubes"></div>
+
+    <div class="overlay" id="startScreen">
+      <h1>THE LEAK</h1>
+      <div class="sub">Chogi flickers between containment tubes.<br><b>Tap her face the instant she appears.</b><br><br>Don't tap the scientists — that's a penalty.<br>30 seconds. Reflex only.</div>
+      <button class="btn" id="startBtn">START THE LEAK</button>
+    </div>
+
+    <div class="overlay hidden" id="endScreen">
+      <h1>BROADCAST ENDED</h1>
+      <div class="sub" id="endMsg">she's back in containment</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-l">SCORE</div><div class="stat-v" id="endScore">0</div></div>
+        <div class="stat"><div class="stat-l">CATCHES</div><div class="stat-v" id="endHits">0</div></div>
+        <div class="stat"><div class="stat-l">BEST</div><div class="stat-v" id="endBest">0</div></div>
+      </div>
+      <button class="btn" id="retryBtn">RUN AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TUBES = 9;
+  var tubesEl = document.getElementById('tubes');
+  var nodes = [];
+  for(var i=0;i<TUBES;i++){
+    var t = document.createElement('div');
+    t.className = 'tube';
+    t.dataset.idx = i;
+    t.innerHTML = '<div class="tube-num">T-'+String(i+1).padStart(2,'0')+'</div><div class="subject"></div><div class="tube-glow"></div>';
+    tubesEl.appendChild(t);
+    nodes.push(t);
+  }
+
+  var state = 'start';
+  var score, hits, timeLeft, currentLeak, leakTimer, leakDuration, scientistChance;
+  var best = parseInt(localStorage.getItem('chogi_leak_best') || '0', 10);
+
+  function reset(){
+    score = 0;
+    hits = 0;
+    timeLeft = 30;
+    currentLeak = -1;
+    leakDuration = 1100;
+    scientistChance = 0.18;
+    document.getElementById('score').textContent = '0';
+    document.getElementById('timer').textContent = '30s';
+    document.getElementById('timer').classList.remove('urgent');
+  }
+
+  function clearTubes(){
+    for(var i=0;i<nodes.length;i++){
+      nodes[i].classList.remove('live','scientist');
+      var s = nodes[i].querySelector('.subject');
+      s.classList.remove('show','scientist');
+      s.innerHTML = '';
+    }
+  }
+
+  function pickLeak(){
+    if(state !== 'play') return;
+    clearTubes();
+    var idx;
+    do { idx = Math.floor(Math.random() * TUBES); } while(idx === currentLeak && TUBES > 1);
+    currentLeak = idx;
+    var isScientist = Math.random() < scientistChance;
+    var tube = nodes[idx];
+    var subject = tube.querySelector('.subject');
+    if(isScientist){
+      tube.classList.add('scientist');
+      subject.classList.add('scientist');
+      subject.innerHTML = '<div class="face">👨‍🔬</div>';
+    } else {
+      tube.classList.add('live');
+      subject.innerHTML = '<img src="/chogi.jpg" alt="">';
+    }
+    requestAnimationFrame(function(){ subject.classList.add('show'); });
+
+    // Difficulty scaling
+    leakDuration = Math.max(450, 1100 - (30 - timeLeft) * 22);
+    scientistChance = Math.min(0.32, 0.18 + (30 - timeLeft) * 0.005);
+
+    leakTimer = setTimeout(function(){
+      if(!isScientist && state === 'play'){
+        // Missed Chogi — slight penalty
+        floatPts(idx, 'MISS', true);
+      }
+      pickLeak();
+    }, leakDuration);
+  }
+
+  function floatPts(idx, text, miss){
+    var tube = nodes[idx];
+    var rect = tube.getBoundingClientRect();
+    var gameRect = document.getElementById('game').getBoundingClientRect();
+    var fp = document.createElement('div');
+    fp.className = 'float-pts' + (miss ? ' float-miss' : '');
+    fp.textContent = text;
+    fp.style.left = (rect.left - gameRect.left + rect.width/2) + 'px';
+    fp.style.top = (rect.top - gameRect.top + rect.height/2) + 'px';
+    document.getElementById('game').appendChild(fp);
+    setTimeout(function(){ fp.remove(); }, 850);
+  }
+
+  function tapTube(idx){
+    if(state !== 'play') return;
+    var tube = nodes[idx];
+    if(tube.classList.contains('live')){
+      // Hit Chogi
+      var pts = Math.max(10, Math.floor(20 * (leakDuration / 1100)));
+      score += pts;
+      hits++;
+      // Bonus time
+      if(hits % 5 === 0){ timeLeft = Math.min(45, timeLeft + 1); }
+      floatPts(idx, '+'+pts, false);
+      document.getElementById('score').textContent = score;
+      // Move on instantly
+      clearTimeout(leakTimer);
+      pickLeak();
+    } else if(tube.classList.contains('scientist')){
+      // Penalty — tapped a scientist
+      score = Math.max(0, score - 15);
+      timeLeft = Math.max(0, timeLeft - 2);
+      floatPts(idx, '-15', true);
+      document.getElementById('score').textContent = score;
+      document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
+      clearTimeout(leakTimer);
+      pickLeak();
+    }
+    // tapped empty tube — no-op
+  }
+
+  // Wire taps
+  for(var i=0;i<nodes.length;i++){
+    (function(idx){
+      nodes[idx].addEventListener('pointerdown', function(e){
+        e.preventDefault();
+        tapTube(idx);
+      });
+    })(i);
+  }
+
+  var tickTimer = null;
+  function startTick(){
+    var lastTick = Date.now();
+    tickTimer = setInterval(function(){
+      if(state !== 'play') return;
+      var now = Date.now();
+      var dt = (now - lastTick) / 1000;
+      lastTick = now;
+      timeLeft -= dt;
+      if(timeLeft <= 0){
+        timeLeft = 0;
+        endRound();
+        return;
+      }
+      var t = Math.ceil(timeLeft);
+      document.getElementById('timer').textContent = t + 's';
+      if(t <= 5) document.getElementById('timer').classList.add('urgent');
+      else document.getElementById('timer').classList.remove('urgent');
+    }, 100);
+  }
+
+  function start(){
+    reset();
+    state = 'play';
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('endScreen').classList.add('hidden');
+    pickLeak();
+    if(tickTimer) clearInterval(tickTimer);
+    startTick();
+  }
+
+  function endRound(){
+    state = 'over';
+    if(tickTimer) clearInterval(tickTimer);
+    if(leakTimer) clearTimeout(leakTimer);
+    clearTubes();
+    if(score > best){
+      best = score;
+      localStorage.setItem('chogi_leak_best', String(best));
+      document.getElementById('endMsg').innerHTML = 'NEW BEST · <span style="color:#4ADE80;">she escaped harder this time</span>';
+    } else {
+      document.getElementById('endMsg').textContent = 'she\'s back in containment';
+    }
+    document.getElementById('endScore').textContent = score;
+    document.getElementById('endHits').textContent = hits;
+    document.getElementById('endBest').textContent = best;
+    document.getElementById('endScreen').classList.remove('hidden');
+  }
+
+  document.getElementById('startBtn').onclick = function(e){ e.stopPropagation(); start(); };
+  document.getElementById('retryBtn').onclick = function(e){ e.stopPropagation(); start(); };
+})();
+</script>
+</body>
+</html>
