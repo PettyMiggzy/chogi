@@ -82,8 +82,8 @@ To wire up `chogi.xyz`:
 ## 🤝 Team
 
 - **Chogi** — CTO · Containment Breacher · [@chogi_mon](https://x.com/chogi_mon)
-- **King Petty** — Frontend / Partner · [@Monshi_Monpad](https://x.com/Monshi_Monpad)
-- **Monshi** — Pack ally · [monshi.xyz](https://monshi-fafo.vercel.app/)
+- **Chog** — Big brother · OG mascot · [chog.xyz](https://www.chog.xyz/)
+- **King Petty** — Builder · [@Monshi_Monpad](https://x.com/Monshi_Monpad)
 
 ---
 
