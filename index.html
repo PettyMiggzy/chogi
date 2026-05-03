@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOGI · Experiment 7777 escaped on Monad</title>
+<meta name="description" content="Born from an experiment. Now she's loose on Monad. $CHOGI — sister of Chog, mascot of mischief.">
+<meta property="og:title" content="CHOGI · Experiment 7777">
+<meta property="og:description" content="An experiment sparked her existence. Now she's ready to take over Monad 💜">
+<meta property="og:image" content="/chogi.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/chogi.jpg">
+<link rel="icon" type="image/jpeg" href="/chogi.jpg">
+<meta name="theme-color" content="#FF1493">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --cream:#FFF4D6;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,20,147,.20),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(168,85,247,.18),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(255,105,180,.12),transparent 50%);
+  z-index:-3;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);
+  pointer-events:none;z-index:-2;
+}
+
+/* ─── NAV ─── */
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;
+  background:rgba(10,1,24,.75);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,20,147,.18);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{
+  width:36px;height:36px;border-radius:50%;
+  border:2px solid var(--pink);
+  box-shadow:0 0 16px var(--pink-glow);
+  overflow:hidden;flex-shrink:0;
+  background:#000;
+}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);margin-top:-2px;}
+.nav-cta{
+  padding:10px 18px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;border:none;text-decoration:none;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  border-radius:8px;cursor:pointer;
+  box-shadow:0 0 20px var(--pink-glow);
+  transition:transform .15s;
+}
+.nav-cta:hover{transform:translateY(-1px);}
+
+/* ─── HERO ─── */
+.hero{
+  position:relative;padding:60px 22px 40px;text-align:center;overflow:hidden;
+  min-height:90vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+}
+.hero-bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,20,147,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,20,147,.07) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse at center,black 30%,transparent 75%);
+  pointer-events:none;
+}
+.lab-tag{
+  display:inline-block;padding:6px 14px;
+  background:rgba(255,20,147,.12);border:1px solid var(--pink);
+  border-radius:30px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:var(--pink);font-weight:700;
+  margin-bottom:24px;
+  animation:flicker 3s infinite;
+}
+@keyframes flicker{
+  0%,100%{opacity:1;}
+  92%{opacity:1;}
+  93%{opacity:.3;}
+  94%{opacity:1;}
+  96%{opacity:.5;}
+  97%{opacity:1;}
+}
+.hero-portrait-wrap{
+  position:relative;
+  width:min(280px,60vw);height:min(280px,60vw);
+  margin:0 auto 30px;
+}
+.hero-portrait{
+  position:absolute;inset:0;
+  border-radius:50%;
+  border:3px solid var(--pink);
+  overflow:hidden;
+  background:linear-gradient(135deg,var(--pink-soft),var(--purple));
+  box-shadow:
+    0 0 60px var(--pink-glow),
+    0 0 120px rgba(168,85,247,.3),
+    inset 0 0 40px rgba(255,255,255,.05);
+  animation:portraitPulse 3s ease-in-out infinite;
+}
+.hero-portrait img{width:100%;height:100%;object-fit:cover;}
+@keyframes portraitPulse{
+  0%,100%{box-shadow:0 0 60px var(--pink-glow),0 0 120px rgba(168,85,247,.3),inset 0 0 40px rgba(255,255,255,.05);}
+  50%{box-shadow:0 0 80px var(--pink-glow),0 0 160px rgba(168,85,247,.45),inset 0 0 40px rgba(255,255,255,.08);}
+}
+.hero-portrait::before{
+  content:'';position:absolute;inset:-3px;
+  border:3px solid var(--purple);
+  border-radius:50%;
+  border-color:transparent var(--purple) transparent transparent;
+  animation:rotateRing 8s linear infinite;
+}
+@keyframes rotateRing{to{transform:rotate(360deg);}}
+.hero-portrait-num{
+  position:absolute;top:-8px;right:-8px;
+  background:var(--pink);color:#000;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;
+  padding:6px 10px;border-radius:6px;
+  box-shadow:0 0 14px var(--pink-glow);
+}
+
+.hero h1{
+  font-family:'Bungee',sans-serif;
+  font-size:clamp(48px,12vw,120px);
+  letter-spacing:4px;line-height:.95;
+  background:linear-gradient(180deg,#fff 30%,var(--pink) 60%,var(--purple) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 60px rgba(255,20,147,.4);
+  margin-bottom:14px;
+  position:relative;
+}
+.hero h1::after{
+  content:'CHOGI';position:absolute;top:0;left:0;right:0;
+  background:none;color:var(--pink);
+  -webkit-background-clip:initial;background-clip:initial;
+  -webkit-text-fill-color:var(--pink);
+  text-shadow:none;mix-blend-mode:screen;opacity:0;
+  animation:glitch 4s infinite;
+  pointer-events:none;
+}
+@keyframes glitch{
+  0%,90%,100%{opacity:0;transform:translate(0);}
+  91%{opacity:.7;transform:translate(2px,-1px);}
+  92%{opacity:.7;transform:translate(-2px,1px);}
+  93%{opacity:0;}
+}
+.hero p{
+  font-size:clamp(15px,2.5vw,19px);
+  max-width:580px;margin:0 auto 18px;
+  line-height:1.6;color:rgba(255,233,244,.9);font-weight:500;
+}
+.hero p b{color:var(--pink);font-weight:700;}
+.hero-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;letter-spacing:1.5px;
+  color:var(--purple);
+  margin-bottom:34px;
+}
+.hero-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.btn-primary,.btn-secondary{
+  padding:16px 28px;text-decoration:none;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;
+  border-radius:10px;cursor:pointer;border:none;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:transform .15s;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;box-shadow:0 0 30px var(--pink-glow);
+}
+.btn-secondary{
+  background:transparent;color:var(--ink);
+  border:2px solid var(--pink);
+}
+.btn-primary:hover,.btn-secondary:hover{transform:translateY(-2px);}
+
+.hero-scroll{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:rgba(255,20,147,.6);animation:scrollNudge 2s infinite;
+}
+@keyframes scrollNudge{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(8px);}}
+
+/* ─── LIVE TICKER STRIP ─── */
+.live-strip{
+  background:linear-gradient(90deg,var(--pink),var(--purple),var(--pink));
+  background-size:200% 100%;
+  animation:stripGrad 6s linear infinite;
+  padding:14px 22px;color:#fff;overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.15);
+  border-bottom:1px solid rgba(255,255,255,.15);
+}
+@keyframes stripGrad{0%{background-position:0 0;}100%{background-position:200% 0;}}
+.live-strip-inner{
+  display:flex;align-items:center;justify-content:space-around;
+  flex-wrap:wrap;gap:18px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1.2px;
+  font-weight:700;
+}
+.live-strip span b{font-weight:900;font-size:14px;}
+
+/* ─── SECTIONS ─── */
+section{padding:80px 22px;position:relative;}
+.container{max-width:1100px;margin:0 auto;}
+.section-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:4px;
+  color:var(--pink);font-weight:700;margin-bottom:10px;text-transform:uppercase;
+}
+.section-title{
+  font-family:'Bungee',sans-serif;font-size:clamp(30px,5vw,52px);
+  letter-spacing:2px;line-height:1.05;margin-bottom:18px;color:#fff;
+}
+.section-title em{font-style:normal;color:var(--pink);}
+
+/* ─── ORIGIN SECTION ─── */
+.origin-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;
+}
+@media(max-width:760px){.origin-grid{grid-template-columns:1fr;}}
+.origin-img{
+  width:100%;aspect-ratio:1;border-radius:20px;
+  background:linear-gradient(135deg,var(--pink-soft),var(--purple));
+  overflow:hidden;position:relative;
+  box-shadow:0 0 40px rgba(255,20,147,.3);
+}
+.origin-img img{width:100%;height:100%;object-fit:cover;mix-blend-mode:luminosity;opacity:.85;}
+.origin-img::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(45deg,transparent 40%,rgba(255,20,147,.4) 100%);
+  pointer-events:none;
+}
+.origin-img::after{
+  content:'EXPERIMENT 7777';position:absolute;top:14px;left:14px;
+  background:#000;color:var(--pink);
+  padding:5px 10px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  font-weight:700;
+}
+.origin-text p{
+  font-size:16px;line-height:1.75;color:rgba(255,233,244,.85);
+  margin-bottom:14px;
+}
+.origin-text p b{color:var(--pink);font-weight:700;}
+.origin-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px;
+}
+.origin-stat{
+  padding:14px;background:rgba(255,20,147,.06);
+  border:1px solid rgba(255,20,147,.2);border-radius:10px;
+}
+.origin-stat-l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,233,244,.5);}
+.origin-stat-v{font-family:'Bungee',sans-serif;font-size:18px;color:var(--pink);margin-top:4px;}
+
+/* ─── BIG STATS ─── */
+.stats-bg{
+  background:linear-gradient(180deg,rgba(255,20,147,.04),transparent);
+  border-top:1px solid rgba(255,20,147,.1);
+  border-bottom:1px solid rgba(255,20,147,.1);
+}
+.stats-row{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+}
+@media(max-width:760px){.stats-row{grid-template-columns:1fr 1fr;}}
+.stat-card{
+  padding:24px;background:rgba(0,0,0,.3);
+  border:1px solid rgba(255,20,147,.2);border-radius:14px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--pink),transparent);
+}
+.stat-card .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,233,244,.5);}
+.stat-card .val{font-family:'Bungee',sans-serif;font-size:clamp(22px,4vw,34px);color:#fff;margin-top:8px;}
+.stat-card .val.pink{color:var(--pink);}
+.stat-card .val.green{color:#4ADE80;}
+.stat-card .sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,233,244,.4);margin-top:4px;}
+
+/* ─── BUY SECTION ─── */
+.buy-section{
+  text-align:center;
+  background:radial-gradient(ellipse at center,rgba(255,20,147,.15),transparent 70%);
+}
+.contract-box{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:12px 18px;background:rgba(255,20,147,.08);
+  border:1.5px solid var(--pink);border-radius:10px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink);
+  cursor:pointer;margin:18px 0;flex-wrap:wrap;justify-content:center;
+  word-break:break-all;
+}
+.contract-box:hover{background:rgba(255,20,147,.15);}
+.contract-box .copy-btn{
+  padding:5px 10px;background:var(--pink);color:#000;
+  border-radius:5px;font-size:10px;letter-spacing:1.5px;font-weight:900;
+  font-family:'Bungee',sans-serif;
+}
+.buy-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+
+/* ─── ROADMAP / CAUSE CHAOS ─── */
+.chaos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:760px){.chaos-grid{grid-template-columns:1fr;}}
+.chaos-card{
+  padding:28px 22px;background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,20,147,.2);border-radius:18px;
+  position:relative;overflow:hidden;transition:transform .2s;
+}
+.chaos-card:hover{transform:translateY(-4px);border-color:var(--pink);}
+.chaos-num{
+  position:absolute;top:-8px;right:14px;
+  font-family:'Bungee',sans-serif;font-size:80px;
+  color:rgba(255,20,147,.08);letter-spacing:-4px;
+  pointer-events:none;
+}
+.chaos-emoji{font-size:34px;margin-bottom:10px;}
+.chaos-card h3{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:1.5px;color:#fff;margin-bottom:10px;}
+.chaos-card p{font-size:14px;line-height:1.6;color:rgba(255,233,244,.7);}
+.chaos-tag{
+  display:inline-block;padding:3px 8px;background:var(--pink);color:#000;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  font-weight:700;border-radius:4px;margin-top:12px;
+}
+.chaos-tag.soon{background:rgba(255,20,147,.2);color:var(--pink);}
+
+/* ─── VIRAL KIT ─── */
+.kit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:760px){.kit-grid{grid-template-columns:1fr;}}
+.kit-card{
+  padding:22px;background:rgba(255,20,147,.06);
+  border:1.5px solid rgba(255,20,147,.25);border-radius:14px;
+  text-decoration:none;color:var(--ink);
+  display:flex;flex-direction:column;gap:10px;transition:all .15s;
+}
+.kit-card:hover{background:rgba(255,20,147,.12);border-color:var(--pink);transform:translateY(-2px);}
+.kit-emoji{font-size:30px;}
+.kit-card h4{font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:1.5px;color:#fff;}
+.kit-card p{font-size:12px;color:rgba(255,233,244,.65);line-height:1.5;}
+
+/* ─── TEAM ─── */
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:680px;margin:0 auto;}
+@media(max-width:600px){.team-grid{grid-template-columns:1fr 1fr;}}
+.team-card{
+  padding:20px 14px;text-align:center;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,20,147,.15);border-radius:14px;
+}
+.team-pfp{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  margin:0 auto 10px;display:flex;align-items:center;justify-content:center;
+  font-size:30px;border:2px solid var(--pink);
+  box-shadow:0 0 16px var(--pink-glow);
+}
+.team-name{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;}
+.team-role{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--pink);margin-top:4px;}
+
+/* ─── FOOTER ─── */
+footer{
+  padding:40px 22px;text-align:center;
+  border-top:1px solid rgba(255,20,147,.15);
+  background:rgba(0,0,0,.3);
+}
+footer .links{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;}
+footer a{color:var(--ink);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;}
+footer a:hover{color:var(--pink);}
+footer .made-by{font-size:11px;color:rgba(255,233,244,.4);margin-top:14px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+footer .made-by a{color:var(--pink);}
+
+/* toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(10,1,24,.95);border:1.5px solid var(--pink);border-radius:10px;padding:11px 22px;font-size:12px;color:var(--pink);display:none;z-index:1000;font-family:'JetBrains Mono',monospace;}
+.toast.show{display:block;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <div class="brand-img"><img src="/chogi.jpg" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">EXPERIMENT 7777</div>
+    </div>
+  </a>
+  <a class="nav-cta" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">BUY $CHOGI</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="lab-tag">⚠ CONTAINMENT BREACH · MONAD MAINNET</div>
+  <div class="hero-portrait-wrap">
+    <div class="hero-portrait"><img src="/chogi.jpg" alt="Chogi"></div>
+    <div class="hero-portrait-num">#7777</div>
+  </div>
+  <h1 data-text="CHOGI">CHOGI</h1>
+  <p>An experiment sparked her existence. Now she's <b>loose on Monad</b>. Sister of Chog. Mascot of mischief. Born in the lab, raised by the chain.</p>
+  <div class="hero-tag">— she's not asking permission —</div>
+  <div class="hero-buttons">
+    <a class="btn-primary" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">🚀 BUY $CHOGI</a>
+    <a class="btn-secondary" href="#origin">HER STORY ↓</a>
+  </div>
+  <div class="hero-scroll">▼ SCROLL TO INSPECT</div>
+</section>
+
+<div class="live-strip">
+  <div class="live-strip-inner">
+    <span>PRICE <b id="lsPrice">—</b></span>
+    <span>24H <b id="lsChange">—</b></span>
+    <span>MCAP <b id="lsMcap">—</b></span>
+    <span>HOLDERS <b id="lsHolders">growing</b></span>
+    <span>BUYS 24H <b id="lsBuys">—</b></span>
+  </div>
+</div>
+
+<section id="origin">
+  <div class="container">
+    <div class="origin-grid">
+      <div class="origin-img"><img src="/chogi.jpg" alt="Chogi origin"></div>
+      <div class="origin-text">
+        <div class="section-eyebrow">▸ FILE 7777 · CLASSIFIED</div>
+        <h2 class="section-title">Born in <em>the lab</em>.<br>Raised by <em>the chain</em>.</h2>
+        <p>The researchers were studying how chaos propagates on Monad. They didn't expect chaos to <b>look back</b>.</p>
+        <p>What started as a controlled simulation became <b>Experiment 7777</b> — a self-aware monanimal who picked her own ticker, hijacked the launch, and walked out of containment with a purple bow on her head.</p>
+        <p>Sister of <b>Chog</b>. Smaller, faster, pinker, meaner. She doesn't want to coexist with the World Order — she wants to <b>flip it</b>.</p>
+        <div class="origin-stats">
+          <div class="origin-stat"><div class="origin-stat-l">SUBJECT</div><div class="origin-stat-v">CHOGI</div></div>
+          <div class="origin-stat"><div class="origin-stat-l">CLASSIFICATION</div><div class="origin-stat-v">CHAOTIC</div></div>
+          <div class="origin-stat"><div class="origin-stat-l">CONTAINMENT</div><div class="origin-stat-v">FAILED</div></div>
+          <div class="origin-stat"><div class="origin-stat-l">STATUS</div><div class="origin-stat-v">LOOSE</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-bg">
+  <div class="container">
+    <div class="section-eyebrow" style="text-align:center;">▸ LIVE FROM MONAD</div>
+    <h2 class="section-title" style="text-align:center;margin-bottom:34px;">Vital <em>signs</em></h2>
+    <div class="stats-row">
+      <div class="stat-card"><div class="lbl">PRICE</div><div class="val pink" id="sPrice">—</div><div class="sub" id="sPriceSub">USD</div></div>
+      <div class="stat-card"><div class="lbl">MARKET CAP</div><div class="val" id="sMcap">—</div><div class="sub">FDV at current price</div></div>
+      <div class="stat-card"><div class="lbl">24H VOLUME</div><div class="val green" id="sVol">—</div><div class="sub">total traded</div></div>
+      <div class="stat-card"><div class="lbl">LIQUIDITY</div><div class="val" id="sLiq">—</div><div class="sub" id="sPair">on nad.fun</div></div>
+    </div>
+    <div class="stats-row" style="margin-top:14px;">
+      <div class="stat-card"><div class="lbl">24H BUYS</div><div class="val green" id="sBuys">—</div><div class="sub">trades</div></div>
+      <div class="stat-card"><div class="lbl">24H SELLS</div><div class="val pink" id="sSells">—</div><div class="sub">trades</div></div>
+      <div class="stat-card"><div class="lbl">B/S RATIO</div><div class="val" id="sRatio">—</div><div class="sub">buyers winning?</div></div>
+      <div class="stat-card"><div class="lbl">24H CHANGE</div><div class="val" id="sChange">—</div><div class="sub">price movement</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="buy-section">
+  <div class="container">
+    <div class="section-eyebrow">▸ READY TO ENABLE THE CHAOS?</div>
+    <h2 class="section-title">Buy <em>$CHOGI</em>.<br>Help her <em>escape</em>.</h2>
+    <p style="max-width:520px;margin:18px auto 0;color:rgba(255,233,244,.75);font-size:15px;line-height:1.7;">Every buy widens the breach. Every holder is part of the cover-up. The lab can't put her back in the bottle now.</p>
+    <div class="contract-box" id="contractBox" title="Click to copy">
+      <span style="opacity:.6;font-size:10px;letter-spacing:1.5px;">CONTRACT</span>
+      <code id="contractAddr">0x5E1b1A14c8758104B8560514e94ab8320e587777</code>
+      <span class="copy-btn" id="copyBtn">COPY</span>
+    </div>
+    <div class="buy-buttons">
+      <a class="btn-primary" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">🚀 BUY ON NAD.FUN</a>
+      <a class="btn-secondary" href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">📊 LIVE CHART</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-eyebrow" style="text-align:center;">▸ THE PLAN (LOOSELY)</div>
+    <h2 class="section-title" style="text-align:center;margin-bottom:38px;">Cause <em>chaos</em>. Take <em>monad</em>.</h2>
+    <div class="chaos-grid">
+      <div class="chaos-card">
+        <span class="chaos-num">01</span>
+        <div class="chaos-emoji">🧬</div>
+        <h3>BREACH PHASE</h3>
+        <p>Token launched on nad.fun. Liquidity locked. Containment officially failed. We are here.</p>
+        <span class="chaos-tag">LIVE NOW</span>
+      </div>
+      <div class="chaos-card">
+        <span class="chaos-num">02</span>
+        <div class="chaos-emoji">💥</div>
+        <h3>SPREAD PHASE</h3>
+        <p>PFP factory, sticker pack, meme tools. Every X bio gets pinkified. Every chat gets a Chogi sticker dropped.</p>
+        <span class="chaos-tag soon">DEPLOYING</span>
+      </div>
+      <div class="chaos-card">
+        <span class="chaos-num">03</span>
+        <div class="chaos-emoji">👑</div>
+        <h3>WORLD ORDER PHASE</h3>
+        <p>Chogi NFT collection. On-chain quests. Holder-only chaos rewards. Sister of Chog, but louder.</p>
+        <span class="chaos-tag soon">SOON</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:linear-gradient(180deg,transparent,rgba(255,20,147,.04),transparent);">
+  <div class="container">
+    <div class="section-eyebrow" style="text-align:center;">▸ ARM YOURSELF</div>
+    <h2 class="section-title" style="text-align:center;margin-bottom:38px;">Free chogi <em>kit</em></h2>
+    <p style="text-align:center;max-width:520px;margin:-20px auto 32px;color:rgba(255,233,244,.7);font-size:14px;line-height:1.6;">Every holder is a propagation vector. Take what you need.</p>
+    <div class="kit-grid">
+      <a class="kit-card" href="/chogi.jpg" download="chogi-pfp.jpg">
+        <div class="kit-emoji">🖼</div>
+        <h4>PFP DOWNLOAD</h4>
+        <p>The official Chogi face. Drop it on X, Discord, Telegram. Pink the timeline.</p>
+      </a>
+      <a class="kit-card" href="https://twitter.com/intent/tweet?text=An%20experiment%20sparked%20her%20existence.%20Now%20she%27s%20loose%20on%20Monad.%20%24CHOGI%20%F0%9F%92%9C&url=https%3A%2F%2Fmonshi-fafo.vercel.app%2Fchogi%2F" target="_blank" rel="noopener">
+        <div class="kit-emoji">🐦</div>
+        <h4>SHARE TO X</h4>
+        <p>Pre-loaded tweet. One click and you're in the cover-up.</p>
+      </a>
+      <a class="kit-card" href="https://t.me/chogi_mon" target="_blank" rel="noopener">
+        <div class="kit-emoji">💬</div>
+        <h4>JOIN THE LAB</h4>
+        <p>Telegram with the rest of the escaped subjects. CTO @chogi_mon runs ops.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-eyebrow" style="text-align:center;">▸ LAB STAFF</div>
+    <h2 class="section-title" style="text-align:center;margin-bottom:38px;">The <em>handlers</em></h2>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-pfp">🧪</div>
+        <div class="team-name">CHOGI</div>
+        <div class="team-role">CTO · CONTAINMENT BREACHER</div>
+      </div>
+      <div class="team-card">
+        <div class="team-pfp">👑</div>
+        <div class="team-name">KING PETTY</div>
+        <div class="team-role">FRONTEND · PARTNER</div>
+      </div>
+      <div class="team-card">
+        <div class="team-pfp">🐱</div>
+        <div class="team-name">MONSHI</div>
+        <div class="team-role">PACK ALLY</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="links">
+    <a href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">BUY</a>
+    <a href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">CHART</a>
+    <a href="https://x.com/chogi_mon" target="_blank" rel="noopener">X</a>
+    <a href="https://t.me/chogi_mon" target="_blank" rel="noopener">TELEGRAM</a>
+    <a href="https://monshi-fafo.vercel.app/" target="_blank" rel="noopener">MONSHI</a>
+  </div>
+  <div style="font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:2px;color:#fff;">CHOG WORLD ORDER · SUBSIDIARY: CHOGI</div>
+  <div class="made-by">made with 💜 in the lab · monad mainnet · <a href="https://monshi-fafo.vercel.app/" target="_blank" rel="noopener">site by king petty × monshi</a></div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var CHOGI_CA = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  function $(id){ return document.getElementById(id); }
+  function toast(msg){ var t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2000); }
+
+  function fmtPrice(n){
+    if(!n||isNaN(n))return '$—';
+    if(n>=1)return '$'+n.toFixed(2);
+    if(n>=0.01)return '$'+n.toFixed(4);
+    if(n>=0.0001)return '$'+n.toFixed(6);
+    var s=n.toFixed(20).split('.')[1]||''; var z=0;
+    for(var i=0;i<s.length;i++){if(s[i]==='0')z++;else break;}
+    var sig=s.slice(z,z+4).replace(/0+$/,'')||'0';
+    var sub=String(z).split('').map(function(d){return '₀₁₂₃₄₅₆₇₈₉'[+d];}).join('');
+    return '$0.0'+sub+sig;
+  }
+  function fmtUsd(n){if(!n||isNaN(n))return '$—';if(n>=1e9)return '$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return '$'+(n/1e3).toFixed(1)+'K';return '$'+n.toFixed(2);}
+  function fmtNum(n){if(!n||isNaN(n))return '—';if(n>=1e9)return (n/1e9).toFixed(2)+'B';if(n>=1e6)return (n/1e6).toFixed(2)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return Math.floor(n).toLocaleString();}
+
+  // Copy CA
+  $('contractBox').onclick = function(){
+    navigator.clipboard.writeText(CHOGI_CA).then(function(){
+      $('copyBtn').textContent = 'COPIED ✓';
+      toast('Contract copied 💜');
+      setTimeout(function(){ $('copyBtn').textContent = 'COPY'; }, 1800);
+    });
+  };
+
+  // Live data
+  function loadDex(){
+    fetch('https://api.dexscreener.com/latest/dex/tokens/' + CHOGI_CA).then(function(r){return r.json();}).then(function(d){
+      if(!d.pairs || !d.pairs.length) return;
+      var p = d.pairs.sort(function(a,b){return (b.liquidity?.usd||0)-(a.liquidity?.usd||0);})[0];
+      var price = parseFloat(p.priceUsd||0);
+      var change = parseFloat(p.priceChange?.h24||0);
+      var buys = p.txns?.h24?.buys||0;
+      var sells = p.txns?.h24?.sells||0;
+
+      // Live strip
+      $('lsPrice').textContent = fmtPrice(price);
+      $('lsChange').textContent = (change>=0?'+':'')+change.toFixed(2)+'%';
+      $('lsChange').style.color = change>=0?'#fff':'#FFE9F4';
+      $('lsMcap').textContent = fmtUsd(p.marketCap||p.fdv);
+      $('lsBuys').textContent = fmtNum(buys);
+
+      // Big stats
+      $('sPrice').textContent = fmtPrice(price);
+      $('sPriceSub').textContent = price>0 ? 'USD · pair: ' + (p.quoteToken?.symbol||'MON') : 'awaiting price';
+      $('sMcap').textContent = fmtUsd(p.marketCap||p.fdv);
+      $('sVol').textContent = fmtUsd(p.volume?.h24);
+      $('sLiq').textContent = fmtUsd(p.liquidity?.usd);
+      $('sPair').textContent = 'on ' + (p.dexId||'monad');
+      $('sBuys').textContent = fmtNum(buys);
+      $('sSells').textContent = fmtNum(sells);
+      $('sRatio').textContent = sells>0 ? (buys/sells).toFixed(1)+'x' : '∞';
+      $('sChange').textContent = (change>=0?'+':'')+change.toFixed(2)+'%';
+      $('sChange').className = 'val ' + (change>=0?'green':'pink');
+    }).catch(function(){});
+  }
+  loadDex();
+  setInterval(loadDex, 30000);
+})();
+</script>
+</body>
+</html>
