@@ -8,14 +8,14 @@ The official site for **$CHOGI** — sister of Chog, mascot of mischief, born in
 
 ## 🌐 Live
 
-**Site:** https://chogi.xyz *(coming soon)*
+**Site:** https://chogi.xyz
 **Token:** `0x5E1b1A14c8758104B8560514e94ab8320e587777`
 **Buy:** [nad.fun](https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777)
 **Chart:** [DexScreener](https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d)
 
 **Socials**
 - 𝕏 [@chogi_mon](https://x.com/chogi_mon)
-- Telegram: [t.me/chogi_mon](https://t.me/chogi_mon)
+- Telegram: [t.me/chogicto](https://t.me/chogicto)
 
 ---
 
