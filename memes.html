@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THE VAULT · CHOGI memes · containment leaks</title>
+<meta name="description" content="Memes, lore drops, family moments, and lab footage. The Chogi vault.">
+<meta property="og:title" content="THE VAULT · $CHOGI memes & leaks">
+<meta property="og:description" content="Containment leaks. Memes from the lab. Drop your own.">
+<meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://chogi.xyz/memes">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://chogi.xyz/og-banner.jpg">
+<link rel="icon" type="image/png" href="/chogi.png">
+<meta name="theme-color" content="#FF1493">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;
+  --gold:#FCD34D;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-3;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,20,147,.18),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(168,85,247,.15),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(255,105,180,.10),transparent 50%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);
+}
+
+/* nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:rgba(10,1,24,.78);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,20,147,.18);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{
+  width:36px;height:36px;border-radius:50%;border:2px solid var(--pink);
+  box-shadow:0 0 16px var(--pink-glow);overflow:hidden;flex-shrink:0;background:#000;
+}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);margin-top:-2px;}
+.back{
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  text-decoration:none;color:#fff;
+  padding:9px 14px;border:1.5px solid rgba(255,255,255,.18);border-radius:8px;
+  transition:all .15s;
+}
+.back:hover{border-color:var(--pink);box-shadow:0 0 14px var(--pink-glow);}
+
+/* hero */
+.hero{max-width:760px;margin:36px auto 14px;padding:0 18px;text-align:center;}
+.hero h1{
+  font-family:'Bungee',sans-serif;font-size:clamp(40px,10vw,76px);
+  letter-spacing:3px;line-height:.95;
+  background:linear-gradient(135deg,var(--pink) 0%,var(--purple) 50%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 22px var(--pink-glow));margin-bottom:12px;
+}
+.hero p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;color:rgba(255,233,244,.6);}
+
+/* filters */
+.filters{
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+  max-width:760px;margin:0 auto 22px;padding:0 18px;
+}
+.fpill{
+  padding:9px 14px;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  background:rgba(255,20,147,.06);border:1.5px solid rgba(255,20,147,.25);
+  color:rgba(255,233,244,.85);border-radius:9px;cursor:pointer;
+  transition:all .15s;
+}
+.fpill:hover{border-color:var(--pink);color:#fff;}
+.fpill.active{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border-color:transparent;box-shadow:0 0 16px var(--pink-glow);}
+.fpill .count{opacity:.55;font-size:9px;margin-left:5px;}
+
+/* grid (masonry via columns) */
+.grid{
+  max-width:1300px;margin:0 auto;padding:0 14px 60px;
+  column-count:2;column-gap:12px;
+}
+@media(min-width:640px){.grid{column-count:3;}}
+@media(min-width:960px){.grid{column-count:4;}}
+@media(min-width:1280px){.grid{column-count:5;}}
+
+.tile{
+  display:block;break-inside:avoid;margin-bottom:12px;
+  border-radius:14px;overflow:hidden;cursor:pointer;
+  border:1.5px solid rgba(255,20,147,.2);background:rgba(10,1,24,.6);
+  transition:transform .15s,border-color .15s,box-shadow .15s;
+  position:relative;
+}
+.tile:hover{transform:translateY(-2px);border-color:var(--pink);box-shadow:0 8px 24px rgba(255,20,147,.22);}
+.tile img,.tile video{width:100%;height:auto;display:block;}
+.tile .badge{
+  position:absolute;top:10px;left:10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.8px;font-weight:700;
+  padding:4px 8px;background:rgba(10,1,24,.75);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.15);border-radius:6px;
+}
+.tile .badge.meme{color:var(--gold);border-color:rgba(252,211,77,.45);}
+.tile .badge.lore{color:#22D3EE;border-color:rgba(34,211,238,.45);}
+.tile .badge.family{color:var(--pink);border-color:rgba(255,20,147,.45);}
+.tile .badge.action{color:#A78BFA;border-color:rgba(167,139,250,.45);}
+.tile .badge.video{color:#FF4500;border-color:rgba(255,69,0,.45);}
+.tile .badge.pfp{color:#fff;border-color:rgba(255,255,255,.35);}
+.tile .play{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.tile .play span{
+  width:54px;height:54px;border-radius:50%;
+  background:rgba(10,1,24,.7);backdrop-filter:blur(8px);
+  border:2px solid var(--pink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;
+  box-shadow:0 0 22px var(--pink-glow);
+}
+
+/* lightbox */
+.lb{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+  padding:14px;
+}
+.lb.show{display:flex;}
+.lb-inner{
+  max-width:min(96vw,1100px);max-height:88vh;
+  display:flex;flex-direction:column;gap:14px;align-items:center;
+}
+.lb-media{
+  max-width:100%;max-height:72vh;
+  border-radius:14px;border:1.5px solid var(--pink);
+  box-shadow:0 0 38px var(--pink-glow);
+  background:#000;
+}
+.lb-media img,.lb-media video{
+  display:block;max-width:100%;max-height:72vh;
+  border-radius:12px;
+}
+.lb-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.lb-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:11px 16px;background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,20,147,.4);border-radius:10px;
+  color:#fff;text-decoration:none;cursor:pointer;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  transition:all .15s;
+}
+.lb-btn:hover{border-color:var(--pink);box-shadow:0 0 14px var(--pink-glow);}
+.lb-btn.primary{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;}
+.lb-close{
+  position:absolute;top:12px;right:14px;
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(10,1,24,.7);backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,255,255,.2);color:#fff;
+  font-size:22px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.lb-close:hover{border-color:var(--pink);}
+
+/* footer cta */
+.cta{
+  max-width:760px;margin:30px auto 0;padding:24px 18px 50px;text-align:center;
+}
+.cta h3{font-family:'Bungee',sans-serif;font-size:22px;letter-spacing:2.5px;color:#fff;margin-bottom:10px;}
+.cta p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.8px;color:rgba(255,233,244,.55);margin-bottom:18px;}
+.cta-btn{
+  display:inline-block;padding:14px 28px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;text-decoration:none;border-radius:11px;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:3px;
+  box-shadow:0 0 22px var(--pink-glow);
+}
+
+footer{
+  text-align:center;padding:28px 18px 40px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+  color:rgba(255,233,244,.45);
+}
+footer a{color:var(--pink);text-decoration:none;}
+.credit-pill{
+  display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+  padding:9px 18px;background:linear-gradient(135deg,rgba(255,20,147,.14),rgba(252,211,77,.14));
+  border:1.5px solid rgba(255,20,147,.45);border-radius:30px;
+  text-decoration:none;color:#fff;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+}
+
+/* toast */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(60px);
+  padding:12px 22px;background:rgba(10,1,24,.95);
+  border:1.5px solid var(--pink);border-radius:10px;color:#fff;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  box-shadow:0 0 22px var(--pink-glow);
+  opacity:0;transition:all .25s;z-index:300;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">THE VAULT</div>
+    </div>
+  </a>
+  <a href="/" class="back">← HOME</a>
+</nav>
+
+<section class="hero">
+  <h1>THE VAULT</h1>
+  <p>CONTAINMENT LEAKS · MEMES · LORE · LAB FOOTAGE</p>
+</section>
+
+<div class="filters" id="filters">
+  <button class="fpill active" data-cat="all">ALL <span class="count" id="cnt-all"></span></button>
+  <button class="fpill" data-cat="meme">MEMES <span class="count" id="cnt-meme"></span></button>
+  <button class="fpill" data-cat="lore">LORE <span class="count" id="cnt-lore"></span></button>
+  <button class="fpill" data-cat="family">FAMILY <span class="count" id="cnt-family"></span></button>
+  <button class="fpill" data-cat="action">ACTION <span class="count" id="cnt-action"></span></button>
+  <button class="fpill" data-cat="video">VIDEOS <span class="count" id="cnt-video"></span></button>
+  <button class="fpill" data-cat="pfp">PFPS <span class="count" id="cnt-pfp"></span></button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<section class="cta">
+  <h3>DROP YOURS</h3>
+  <p>Made a banger Chogi meme? Send it to the lab.</p>
+  <a class="cta-btn" href="https://t.me/chogicto" target="_blank" rel="noopener">📢 SUBMIT TO TG</a>
+</section>
+
+<footer>
+  <div>standing with chog · monad mainnet · all art is community-shareable</div>
+  <div style="margin-top:6px;">
+    <a href="/">HOME</a> ·
+    <a href="/lab">LAB</a> ·
+    <a href="/burn">BURN</a> ·
+    <a href="https://x.com/chogicto" target="_blank" rel="noopener">X</a> ·
+    <a href="https://t.me/chogicto" target="_blank" rel="noopener">TG</a>
+  </div>
+  <a href="https://x.com/miggzyonbase" target="_blank" rel="noopener" class="credit-pill">
+    <span style="font-size:14px;">👑</span>
+    <span>A KING PETTY BUILD</span>
+  </a>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb">
+  <button class="lb-close" id="lbClose">×</button>
+  <div class="lb-inner">
+    <div class="lb-media" id="lbMedia"></div>
+    <div class="lb-actions">
+      <a class="lb-btn primary" id="lbDownload" download>⬇ DOWNLOAD</a>
+      <a class="lb-btn" id="lbShareX" target="_blank" rel="noopener">𝕏 SHARE</a>
+      <a class="lb-btn" id="lbShareTG" target="_blank" rel="noopener">📢 TG</a>
+      <button class="lb-btn" id="lbCopy">📋 COPY LINK</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ─── ASSET MANIFEST ───
+  // each: src, type, cat, label
+  var ASSETS = [
+    // MEMES (text-overlay style, share-ready)
+    { src:'/memes/meme-buy-dip.jpg',         type:'image', cat:'meme',   label:'When you buy the dip and it actually works' },
+    { src:'/memes/meme-pump-marker.jpg',     type:'image', cat:'meme',   label:'PUMP $CHOGI' },
+    { src:'/memes/meme-my-turn.jpg',         type:'image', cat:'meme',   label:'MY TURN' },
+    { src:'/memes/meme-money-box.jpg',       type:'image', cat:'meme',   label:'Money in the box' },
+
+    // LORE (lab origin / experiment 7777 storyline)
+    { src:'/memes/lore-ticker-breach.jpg',   type:'image', cat:'lore',   label:'Ticker selected: $CHOGI' },
+    { src:'/memes/lore-cto-install.jpg',     type:'image', cat:'lore',   label:'Official CTO installation' },
+    { src:'/memes/lore-dome-scientists.jpg', type:'image', cat:'lore',   label:'The dome · scientists scrambling' },
+    { src:'/memes/lore-monad-chamber.jpg',   type:'image', cat:'lore',   label:'Experiment Chogi · containment chamber' },
+    { src:'/memes/lore-tube-sleeping.jpg',   type:'image', cat:'lore',   label:'Subject 7777 · in the tube' },
+
+    // FAMILY (Chogi + Chog scenes)
+    { src:'/memes/family-monad-city.jpg',    type:'image', cat:'family', label:'Walking Monad City together' },
+    { src:'/memes/family-vortex.jpg',        type:'image', cat:'family', label:'Through the cosmic vortex' },
+    { src:'/memes/family-space-chains.jpg',  type:'image', cat:'family', label:'Breaking the chains in orbit' },
+
+    // ACTION
+    { src:'/memes/action-stadium.jpg',       type:'image', cat:'action', label:'Stadium starting line' },
+    { src:'/memes/action-pool-sharks.jpg',   type:'image', cat:'action', label:'Pool · sharks circling' },
+
+    // PFPS
+    { src:'/memes/pfp-chogi-purple.jpg',     type:'image', cat:'pfp',    label:'Chogi PFP · purple bg' },
+
+    // VIDEOS (always show in VIDEOS filter and ALL)
+    { src:'/memes/video-lab-origin.mp4',     poster:'/memes/video-lab-origin-poster.jpg', type:'video', cat:'video', label:'Lab origin · Chog watches from the porthole' },
+    { src:'/memes/video-buy-bot.mp4',        poster:'/memes/video-buy-bot-poster.jpg',    type:'video', cat:'video', label:'Buy bot · money rain' },
+    { src:'/memes/video-chogi-buy.mp4',      poster:'/memes/video-chogi-buy-poster.jpg',  type:'video', cat:'video', label:'Chogi buy · with Chog' },
+    { src:'/memes/video-chog-crowd.mp4',     poster:'/memes/video-chog-crowd-poster.jpg', type:'video', cat:'video', label:'Chogi running with the chog crowd' },
+  ];
+
+  var $ = function(s){return document.querySelector(s);};
+  var grid    = $('#grid');
+  var lb      = $('#lb');
+  var lbMedia = $('#lbMedia');
+  var lbDl    = $('#lbDownload');
+  var lbX     = $('#lbShareX');
+  var lbTG    = $('#lbShareTG');
+  var lbCopy  = $('#lbCopy');
+  var lbClose = $('#lbClose');
+  var toast   = $('#toast');
+
+  // ─── render tiles ───
+  function render(cat){
+    grid.innerHTML = '';
+    ASSETS.forEach(function(a){
+      if(cat!=='all' && a.cat!==cat) return;
+      var tile = document.createElement('a');
+      tile.className = 'tile';
+      tile.href = '#';
+      tile.setAttribute('data-src', a.src);
+      tile.setAttribute('data-type', a.type);
+      tile.setAttribute('data-label', a.label);
+      tile.innerHTML =
+        '<span class="badge '+a.cat+'">'+a.cat.toUpperCase()+'</span>' +
+        (a.type==='image'
+          ? '<img src="'+a.src+'" alt="'+a.label+'" loading="lazy">'
+          : '<img src="'+a.poster+'" alt="'+a.label+'" loading="lazy"><div class="play"><span>▶</span></div>');
+      tile.addEventListener('click', function(e){
+        e.preventDefault();
+        openLB(a);
+      });
+      grid.appendChild(tile);
+    });
+  }
+
+  // ─── filter pills ───
+  function setupFilters(){
+    var counts = {all:ASSETS.length};
+    ASSETS.forEach(function(a){counts[a.cat]=(counts[a.cat]||0)+1;});
+    Object.keys(counts).forEach(function(k){
+      var el = document.getElementById('cnt-'+k);
+      if(el) el.textContent = '· '+counts[k];
+    });
+    document.querySelectorAll('.fpill').forEach(function(p){
+      p.addEventListener('click', function(){
+        document.querySelectorAll('.fpill').forEach(function(x){x.classList.remove('active');});
+        p.classList.add('active');
+        render(p.getAttribute('data-cat'));
+      });
+    });
+  }
+
+  // ─── lightbox ───
+  function openLB(a){
+    lbMedia.innerHTML = '';
+    if(a.type==='image'){
+      var img = document.createElement('img');
+      img.src = a.src; img.alt = a.label;
+      lbMedia.appendChild(img);
+    } else {
+      var v = document.createElement('video');
+      v.src = a.src; v.controls = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+      v.poster = a.poster || '';
+      lbMedia.appendChild(v);
+    }
+    var fullURL = location.origin + a.src;
+    var shareText = '$CHOGI · ' + a.label + '\n\nchogi.xyz/memes';
+    lbDl.href = a.src;
+    lbDl.download = a.src.split('/').pop();
+    lbX.href  = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(fullURL);
+    lbTG.href = 'https://t.me/share/url?url=' + encodeURIComponent(fullURL) + '&text=' + encodeURIComponent(shareText);
+    lbCopy.onclick = function(){
+      navigator.clipboard.writeText(fullURL).then(function(){
+        showToast('LINK COPIED');
+      });
+    };
+    lb.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLB(){
+    lb.classList.remove('show');
+    lbMedia.innerHTML = '';   // stop video playback
+    document.body.style.overflow = '';
+  }
+  lbClose.addEventListener('click', closeLB);
+  lb.addEventListener('click', function(e){ if(e.target===lb) closeLB(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeLB(); });
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ toast.classList.remove('show'); }, 1600);
+  }
+
+  // ─── init ───
+  setupFilters();
+  render('all');
+})();
+</script>
+
+</body>
+</html>
