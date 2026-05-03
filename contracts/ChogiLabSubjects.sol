@@ -61,6 +61,15 @@ contract ChogiLabSubjects {
         10_000_000   * 1e18
     ];
 
+    // tier index → max supply (0 = unlimited). Top 3 tiers capped for scarcity.
+    uint256[5] public tierMaxSupply = [
+        0,      // COMMON     — unlimited
+        0,      // UNCOMMON   — unlimited
+        777,    // RARE       — capped
+        77,     // EPIC       — capped
+        7       // LEGENDARY  — capped (1/1 territory)
+    ];
+
     // tokenId → owner / tier
     mapping(uint256 => address) private _ownerOf;
     mapping(uint256 => uint8)   public  tierOf;
@@ -95,6 +104,8 @@ contract ChogiLabSubjects {
     error InvalidRecipient();
     error TokenNotFound();
     error UnsafeRecipient();
+    error TierSoldOut();
+    error CannotIncreaseCap();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -110,6 +121,9 @@ contract ChogiLabSubjects {
     function mintByBurning(uint8 tier) external returns (uint256 tokenId) {
         if (!mintEnabled)        revert MintDisabled();
         if (tier > TIER_LEGENDARY) revert InvalidTier();
+
+        uint256 cap = tierMaxSupply[tier];
+        if (cap > 0 && mintedAt[tier] >= cap) revert TierSoldOut();
 
         uint256 cost = tierBurnCost[tier];
 
@@ -154,10 +168,15 @@ contract ChogiLabSubjects {
         return _operatorApprovals[o][operator];
     }
 
-    function tierStats() external view returns (uint256[5] memory counts, uint256[5] memory costs) {
+    function tierStats() external view returns (
+        uint256[5] memory counts,
+        uint256[5] memory costs,
+        uint256[5] memory caps
+    ) {
         for (uint8 i = 0; i < 5; i++) {
             counts[i] = mintedAt[i];
             costs[i]  = tierBurnCost[i];
+            caps[i]   = tierMaxSupply[i];
         }
     }
 
@@ -228,6 +247,21 @@ contract ChogiLabSubjects {
         emit TierCostUpdated(tier, cost);
     }
 
+    /// Reduce a tier's cap. Cannot raise an existing cap or remove one.
+    function reduceTierCap(uint8 tier, uint256 newCap) external onlyOwner {
+        if (tier > TIER_LEGENDARY) revert InvalidTier();
+        uint256 cap = tierMaxSupply[tier];
+        if (cap > 0 && newCap > cap) revert CannotIncreaseCap();
+        if (newCap < mintedAt[tier]) revert CannotIncreaseCap();
+        tierMaxSupply[tier] = newCap;
+    }
+
+    /// ERC-5192 — marketplaces query this to detect soulbound tokens.
+    function locked(uint256 tokenId) external view returns (bool) {
+        if (_ownerOf[tokenId] == address(0)) revert TokenNotFound();
+        return soulbound;
+    }
+
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert InvalidRecipient();
         emit OwnershipTransferred(owner, newOwner);
@@ -238,7 +272,8 @@ contract ChogiLabSubjects {
     function supportsInterface(bytes4 iid) external pure returns (bool) {
         return iid == 0x01ffc9a7   // ERC-165
             || iid == 0x80ac58cd   // ERC-721
-            || iid == 0x5b5e139f;  // ERC-721 Metadata
+            || iid == 0x5b5e139f   // ERC-721 Metadata
+            || iid == 0xb45a3c0e;  // ERC-5192 (soulbound)
     }
 
     // ─── Internal ────────────────────────────────────────────────

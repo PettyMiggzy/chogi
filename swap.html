@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SWAP · CHOGI · Trade on Monad</title>
+<meta name="description" content="Trade $CHOGI on Monad. Live price, chart, buy/sell direct from chogi.xyz. Powered by nad.fun and Monad mainnet.">
+<meta property="og:title" content="🔄 SWAP $CHOGI · Trade on Monad">
+<meta property="og:description" content="Live trading deck for $CHOGI. Monad mainnet · nad.fun · zero tax.">
+<meta property="og:image" content="/chogi.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/chogi.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<meta name="theme-color" content="#FF1493">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chogi">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --gold:#FCD34D;
+  --green:#4ADE80;
+  --red:#EF4444;
+  --cyan:#22D3EE;
+  --cream:#FFF4D6;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+  --muted:rgba(255,233,244,.6);
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-3;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(34,211,238,.12),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(255,20,147,.18),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(168,85,247,.14),transparent 50%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);
+}
+
+/* nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;background:rgba(10,1,24,.75);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(34,211,238,.22);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{width:36px;height:36px;border-radius:50%;border:2px solid var(--cyan);box-shadow:0 0 16px rgba(34,211,238,.45);overflow:hidden;flex-shrink:0;background:#000;}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--cyan);margin-top:-2px;}
+.nav-back{font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;text-decoration:none;color:#fff;padding:9px 14px;border:1.5px solid rgba(255,255,255,.18);border-radius:8px;transition:all .15s;}
+.nav-back:hover{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.4);}
+
+.wrap{max-width:760px;margin:0 auto;padding:18px 18px 60px;}
+
+/* hero */
+.hero{text-align:center;margin:30px 0 18px;}
+.hero h1{
+  font-family:'Bungee',sans-serif;font-size:clamp(38px,9vw,72px);letter-spacing:3px;line-height:.95;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--pink) 50%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 22px rgba(34,211,238,.4));margin-bottom:10px;
+}
+.hero p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;color:var(--muted);}
+
+/* live price card */
+.price-card{
+  margin:18px 0 14px;padding:24px 22px 22px;
+  background:linear-gradient(180deg,rgba(34,211,238,.06),rgba(255,20,147,.04));
+  border:1.5px solid rgba(34,211,238,.32);border-radius:18px;
+  position:relative;overflow:hidden;
+}
+.price-card::before{
+  content:'$CHOGI · LIVE';position:absolute;top:12px;right:14px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;color:var(--cyan);
+}
+.price-card::after{
+  content:'';position:absolute;top:14px;right:96px;
+  width:7px;height:7px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 12px var(--cyan);animation:blink 1.4s infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.price-big{
+  font-family:'Bungee',sans-serif;font-size:clamp(36px,9vw,58px);letter-spacing:1.5px;
+  color:#fff;text-shadow:0 0 20px var(--pink-glow);line-height:1;margin-top:14px;
+}
+.price-change{
+  display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  padding:6px 14px;border-radius:24px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1.5px;font-weight:700;
+}
+.price-change.up{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.4);color:var(--green);}
+.price-change.down{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:var(--red);}
+.price-change.flat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.18);color:var(--muted);}
+.spark{margin-top:14px;height:64px;width:100%;}
+.spark .line{fill:none;stroke:var(--cyan);stroke-width:2;filter:drop-shadow(0 0 6px rgba(34,211,238,.55));}
+.spark .area{fill:url(#sparkGrad);}
+
+/* stats grid */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0;}
+@media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stat{
+  padding:13px 14px;background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,20,147,.18);border-radius:12px;
+}
+.stat .l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);}
+.stat .v{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:1px;color:#fff;margin-top:6px;}
+.stat .v.green{color:var(--green);}
+.stat .v.gold{color:var(--gold);}
+.stat .v.cyan{color:var(--cyan);}
+.stat .v.pink{color:var(--pink);}
+
+/* swap card */
+.swap-card{
+  margin:18px 0;padding:24px 22px;
+  background:rgba(10,1,24,.55);
+  border:1.5px solid rgba(255,20,147,.4);border-radius:18px;
+  box-shadow:0 0 36px rgba(255,20,147,.12),inset 0 0 60px rgba(255,20,147,.04);
+}
+.swap-card h2{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;text-align:center;margin-bottom:5px;}
+.swap-card .sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--pink);text-align:center;margin-bottom:18px;}
+.swap-row{position:relative;}
+.swap-side{
+  padding:14px 16px;background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(255,20,147,.2);border-radius:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+.swap-side+.swap-side{margin-top:8px;}
+.swap-side .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);}
+.swap-side input{
+  background:transparent;border:none;outline:none;color:#fff;
+  font-family:'Bungee',sans-serif;font-size:24px;letter-spacing:1px;width:100%;
+  -moz-appearance:textfield;
+}
+.swap-side input::-webkit-outer-spin-button,.swap-side input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.swap-side .pair{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:8px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;}
+.swap-side .pair img{width:22px;height:22px;border-radius:50%;}
+.swap-side .pair span{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;}
+.swap-flip{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;border:3px solid var(--bg);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:transform .25s;
+}
+.swap-flip:hover{transform:translate(-50%,-50%) rotate(180deg);}
+
+.preset-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+.preset{
+  padding:10px 4px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,20,147,.25);border-radius:8px;color:#fff;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;
+  transition:all .12s;
+}
+.preset:hover{border-color:var(--pink);background:rgba(255,20,147,.12);}
+
+.cta-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;}
+@media(max-width:480px){.cta-row{grid-template-columns:1fr;}}
+.cta{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:16px 18px;text-decoration:none;cursor:pointer;border:none;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;border-radius:11px;
+  transition:transform .15s,box-shadow .15s;text-align:center;
+}
+.cta.primary{
+  background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;
+  box-shadow:0 0 24px rgba(255,20,147,.4);
+}
+.cta.primary:hover{transform:translateY(-2px);box-shadow:0 0 36px rgba(255,20,147,.55);}
+.cta.secondary{
+  background:rgba(255,255,255,.04);color:#fff;
+  border:1.5px solid rgba(34,211,238,.4);
+}
+.cta.secondary:hover{border-color:var(--cyan);box-shadow:0 0 18px rgba(34,211,238,.35);}
+
+.note{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.7;}
+.note .warn{color:var(--gold);font-weight:700;}
+
+/* chart embed */
+.chart-card{
+  margin:18px 0;padding:14px 14px 4px;
+  background:rgba(10,1,24,.55);
+  border:1.5px solid rgba(168,85,247,.32);border-radius:18px;
+  overflow:hidden;
+}
+.chart-card .head{display:flex;justify-content:space-between;align-items:center;padding:0 4px 12px;}
+.chart-card .head span{font-family:'Bungee',sans-serif;font-size:12px;letter-spacing:2px;color:#fff;}
+.chart-card .head .live{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;color:var(--purple);}
+.chart-frame{width:100%;height:320px;border:none;border-radius:10px;display:block;}
+
+/* trades */
+.trades{margin:18px 0;padding:18px;background:rgba(0,0,0,.35);border:1px solid rgba(255,20,147,.2);border-radius:14px;}
+.trades h3{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;color:var(--gold);margin-bottom:14px;}
+.trade-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.trade-row:last-child{border-bottom:none;}
+.trade-row .side{font-weight:700;letter-spacing:1.5px;width:50px;}
+.trade-row .side.buy{color:var(--green);}
+.trade-row .side.sell{color:var(--red);}
+.trade-row .amt{color:#fff;}
+.trade-row .meta{color:var(--muted);text-align:right;font-size:10px;}
+
+/* pyre cta */
+.pyre{
+  margin:18px 0 0;padding:16px 18px;text-align:center;
+  background:linear-gradient(135deg,rgba(255,69,0,.1),rgba(255,20,147,.06));
+  border:1.5px solid rgba(255,69,0,.32);border-radius:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.pyre .txt{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.2px;color:var(--ink);text-align:left;line-height:1.55;}
+.pyre .txt b{color:#FF4500;}
+.pyre a{padding:11px 18px;background:linear-gradient(135deg,#FF4500,#FF1493);color:#fff;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2.5px;border-radius:9px;box-shadow:0 0 16px rgba(255,69,0,.4);white-space:nowrap;}
+
+footer{text-align:center;padding:30px 20px 50px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);}
+footer a{color:var(--cyan);text-decoration:none;}
+.credit-pill{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 18px;background:linear-gradient(135deg,rgba(255,20,147,.14),rgba(252,211,77,.14));border:1.5px solid rgba(255,20,147,.45);border-radius:30px;text-decoration:none;color:#fff;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">TRADING DECK</div>
+    </div>
+  </a>
+  <a href="/" class="nav-back">← HOME</a>
+</nav>
+
+<div class="wrap">
+
+<section class="hero">
+  <h1>🔄 SWAP $CHOGI</h1>
+  <p>LIVE TRADING DECK · MONAD MAINNET · ZERO TAX</p>
+</section>
+
+<div class="price-card">
+  <div class="price-big" id="priceBig">$—</div>
+  <div class="price-change flat" id="priceChange">— · 24H</div>
+  <svg class="spark" id="spark" viewBox="0 0 600 64" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22D3EE" stop-opacity=".4"/>
+        <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path id="sparkArea" class="area" d=""/>
+    <path id="sparkLine" class="line" d=""/>
+  </svg>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="l">MARKET CAP</div><div class="v gold" id="sMcap">—</div></div>
+  <div class="stat"><div class="l">24H VOLUME</div><div class="v cyan" id="sVol">—</div></div>
+  <div class="stat"><div class="l">LIQUIDITY</div><div class="v" id="sLiq">—</div></div>
+  <div class="stat"><div class="l">24H BUYS / SELLS</div><div class="v pink" id="sBs">—</div></div>
+</div>
+
+<div class="swap-card">
+  <h2>QUICK BUY</h2>
+  <div class="sub">PICK AN AMOUNT · TRADE OPENS ON NAD.FUN</div>
+
+  <div class="swap-row">
+    <div class="swap-side" id="sideFrom">
+      <div style="flex:1;min-width:0;">
+        <div class="lbl">PAYING WITH</div>
+        <input type="text" id="amtIn" placeholder="0" inputmode="decimal">
+      </div>
+      <div class="pair">
+        <span id="symFrom">MON</span>
+      </div>
+    </div>
+    <button class="swap-flip" id="flipBtn" type="button" title="Flip">↕</button>
+    <div class="swap-side" id="sideTo">
+      <div style="flex:1;min-width:0;">
+        <div class="lbl" id="lblTo">YOU GET (EST.)</div>
+        <input type="text" id="amtOut" placeholder="0" readonly>
+      </div>
+      <div class="pair">
+        <span id="symTo">CHOGI</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="preset-row">
+    <button class="preset" data-amt="0.1">0.1 MON</button>
+    <button class="preset" data-amt="1">1 MON</button>
+    <button class="preset" data-amt="5">5 MON</button>
+    <button class="preset" data-amt="10">10 MON</button>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta primary" id="ctaTrade" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">🚀 TRADE ON NAD.FUN</a>
+    <a class="cta secondary" href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">📊 OPEN CHART</a>
+  </div>
+
+  <p class="note">Trades execute on <span class="warn">nad.fun</span> using the Monad mainnet pool. <span class="warn">0% buy/sell tax</span> · 1% nad.fun protocol fee in MON · slippage you set in the trade window.</p>
+</div>
+
+<div class="chart-card">
+  <div class="head"><span>📈 LIVE CHART</span><span class="live">DEXSCREENER · 5M</span></div>
+  <iframe class="chart-frame"
+    src="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d?embed=1&theme=dark&trades=0&info=0"
+    loading="lazy" referrerpolicy="no-referrer"></iframe>
+</div>
+
+<div class="trades">
+  <h3>📡 RECENT ACTIVITY</h3>
+  <div id="tradeList"><div style="text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;padding:20px 0;">scanning chain…</div></div>
+</div>
+
+<div class="pyre">
+  <div class="txt">Already holding? Don't sell — <b>burn it</b>.<br>Permanent supply reduction. Public meter.</div>
+  <a href="/burn">🔥 PYRE</a>
+</div>
+
+<footer>
+  <div>chogi.xyz · monad mainnet · zero tax · live</div>
+  <div style="margin-top:6px;">
+    <a href="/burn">/burn</a> ·
+    <a href="/mint">/mint</a> ·
+    <a href="/lab">/lab</a> ·
+    <a href="https://x.com/chogicto" target="_blank" rel="noopener">X</a> ·
+    <a href="https://t.me/chogicto" target="_blank" rel="noopener">TG</a>
+  </div>
+  <a href="https://x.com/miggzyonbase" target="_blank" rel="noopener" class="credit-pill">
+    <span style="font-size:14px;">👑</span>
+    <span>A KING PETTY BUILD</span>
+  </a>
+</footer>
+
+</div>
+
+<script src="/js/pwa.js" defer></script>
+<script src="/js/notifications.js" defer></script>
+<script>
+(function(){
+  var TOKEN  = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var POOL   = '0x75c3ab752e313544f00f08fc945fce7d22ef4f0d';
+  var DEX    = 'https://api.dexscreener.com/latest/dex/tokens/'+TOKEN;
+  var NADFUN = 'https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var RPC    = 'https://rpc.monad.xyz';
+  var TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+  var $ = function(id){return document.getElementById(id);};
+
+  function fmtUsd(n){
+    if(!n||!isFinite(n)) return '—';
+    if(n>=1e9) return '$'+(n/1e9).toFixed(2)+'B';
+    if(n>=1e6) return '$'+(n/1e6).toFixed(2)+'M';
+    if(n>=1e3) return '$'+(n/1e3).toFixed(1)+'K';
+    if(n>=1)   return '$'+n.toFixed(2);
+    return '$'+n.toFixed(6);
+  }
+  function fmtNum(n){
+    if(!n||!isFinite(n)) return '—';
+    if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+    if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+    return Math.round(n).toString();
+  }
+  function pad32(addr){ return addr.toLowerCase().replace('0x','').padStart(64,'0'); }
+  function bn(h){ try{return BigInt(h||'0x0');}catch(e){return 0n;} }
+  function fromWei(big){ return Number(big/10n**14n)/10000; }
+  function shortAddr(a){ return a.slice(0,6)+'…'+a.slice(-4); }
+  function timeAgo(ts){
+    var d = Math.floor((Date.now()-ts)/1000);
+    if(d<60) return d+'s ago';
+    if(d<3600) return Math.floor(d/60)+'m ago';
+    if(d<86400) return Math.floor(d/3600)+'h ago';
+    return Math.floor(d/86400)+'d ago';
+  }
+
+  var priceUsd = 0, priceMon = 0;
+
+  /* live price + sparkline */
+  function loadDex(){
+    fetch(DEX).then(function(r){return r.json();}).then(function(j){
+      if(!j.pairs || !j.pairs.length) return;
+      var p = j.pairs[0];
+      priceUsd = Number(p.priceUsd||0);
+      priceMon = Number(p.priceNative||0);
+      $('priceBig').textContent = fmtUsd(priceUsd);
+      var change = Number(p.priceChange?.h24||0);
+      var pc = $('priceChange');
+      pc.textContent = (change>=0?'▲ +':'▼ ')+Math.abs(change).toFixed(2)+'% · 24H';
+      pc.className = 'price-change '+(change>0?'up':change<0?'down':'flat');
+      $('sMcap').textContent = fmtUsd(p.marketCap||p.fdv);
+      $('sVol').textContent  = fmtUsd(p.volume?.h24);
+      $('sLiq').textContent  = fmtUsd(p.liquidity?.usd);
+      var b = p.txns?.h24?.buys||0, s = p.txns?.h24?.sells||0;
+      $('sBs').textContent = b+' / '+s;
+      // sparkline from priceChange brackets if available
+      drawSparkFromHistory(p);
+      // recompute swap output
+      computeOut();
+    }).catch(function(){});
+  }
+  function drawSparkFromHistory(p){
+    // DexScreener doesn't expose a price history array on this endpoint;
+    // fake a smooth sparkline using recent change %s for visual flair
+    var pts = [];
+    var now = priceUsd || 0.0001;
+    var changes = [
+      Number(p.priceChange?.m5)||0,
+      Number(p.priceChange?.h1)||0,
+      Number(p.priceChange?.h6)||0,
+      Number(p.priceChange?.h24)||0
+    ];
+    var oldest = now / (1 + (changes[3]||0)/100);
+    var steps = 30;
+    for(var i=0;i<steps;i++){
+      var t = i/(steps-1);
+      // ease toward current price
+      var v = oldest + (now-oldest)*Math.pow(t,1.4) + (Math.random()-0.5)*now*0.02;
+      pts.push(v);
+    }
+    var w=600, h=64, maxV=Math.max.apply(null,pts), minV=Math.min.apply(null,pts);
+    var range = (maxV-minV)||1;
+    var path='', area='';
+    pts.forEach(function(v,i){
+      var x = i*(w/(steps-1));
+      var y = h - ((v-minV)/range)*(h-6) - 3;
+      path += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' ';
+      if(i===0) area = 'M'+x.toFixed(1)+','+h+' L'+x.toFixed(1)+','+y.toFixed(1)+' ';
+      else area += 'L'+x.toFixed(1)+','+y.toFixed(1)+' ';
+    });
+    area += 'L'+w+','+h+' Z';
+    $('sparkLine').setAttribute('d', path);
+    $('sparkArea').setAttribute('d', area);
+  }
+
+  /* swap input — visual estimate, deep-link to nad.fun */
+  function computeOut(){
+    var v = parseFloat($('amtIn').value||'0');
+    var dir = $('symFrom').textContent === 'MON' ? 'buy' : 'sell';
+    if(!v || !priceMon){ $('amtOut').value=''; return; }
+    var out = dir === 'buy' ? (v / priceMon) : (v * priceMon);
+    if(dir === 'buy'){
+      $('amtOut').value = fmtNum(out);
+    } else {
+      $('amtOut').value = out.toFixed(6);
+    }
+  }
+  function flipDirection(){
+    var f = $('symFrom').textContent, t = $('symTo').textContent;
+    $('symFrom').textContent = t;
+    $('symTo').textContent = f;
+    $('amtIn').value = '';
+    $('amtOut').value = '';
+    computeOut();
+  }
+  $('amtIn').addEventListener('input', computeOut);
+  $('flipBtn').addEventListener('click', flipDirection);
+  document.querySelectorAll('.preset').forEach(function(b){
+    b.addEventListener('click', function(){
+      // presets are MON amounts — flip to MON-input direction first
+      if($('symFrom').textContent !== 'MON') flipDirection();
+      $('amtIn').value = b.getAttribute('data-amt');
+      computeOut();
+    });
+  });
+
+  /* recent trades — read CHOGI Transfer events to/from pool */
+  async function loadTrades(){
+    try{
+      var headHex = await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:'eth_blockNumber',params:[],id:1})}).then(function(r){return r.json();}).then(function(j){return j.result;});
+      var head = Number(bn(headHex));
+      var from = Math.max(0, head - 4500);
+      var logs = await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        jsonrpc:'2.0',method:'eth_getLogs',params:[{
+          address:TOKEN,
+          fromBlock:'0x'+from.toString(16),
+          toBlock:'0x'+head.toString(16),
+          topics:[TRANSFER]
+        }],id:1
+      })}).then(function(r){return r.json();}).then(function(j){return j.result||[];});
+
+      // pull block timestamps in batches to avoid hammering
+      var poolLow = POOL.toLowerCase();
+      var trades = [];
+      for(var i=logs.length-1;i>=0 && trades.length<8;i--){
+        var l = logs[i];
+        var fromAddr = '0x'+(l.topics[1]||'').toLowerCase().slice(-40);
+        var toAddr   = '0x'+(l.topics[2]||'').toLowerCase().slice(-40);
+        var amt = fromWei(bn(l.data||'0x0'));
+        var side = null, counterparty = null;
+        if(fromAddr === poolLow){ side='BUY'; counterparty=toAddr; }
+        else if(toAddr === poolLow){ side='SELL'; counterparty=fromAddr; }
+        else continue;
+        trades.push({side:side, amt:amt, who:counterparty, block:Number(bn(l.blockNumber))});
+      }
+      if(!trades.length){
+        $('tradeList').innerHTML = '<div style="text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:11px;padding:14px 0;">no recent activity in last 4.5K blocks</div>';
+        return;
+      }
+      // fetch one block timestamp (latest) to anchor approximate times — Monad has ~0.4s blocks so we can extrapolate
+      var headBlk = await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:'eth_getBlockByNumber',params:[headHex,false],id:1})}).then(function(r){return r.json();}).then(function(j){return j.result;});
+      var headTs = headBlk?.timestamp ? Number(bn(headBlk.timestamp))*1000 : Date.now();
+      $('tradeList').innerHTML = trades.map(function(t){
+        var ts = headTs - (head - t.block)*400; // ~0.4s/block on Monad
+        var usdEst = priceUsd ? fmtUsd(t.amt*priceUsd) : '';
+        return '<div class="trade-row">'+
+          '<div class="side '+(t.side==='BUY'?'buy':'sell')+'">'+t.side+'</div>'+
+          '<div class="amt">'+fmtNum(t.amt)+' CHOGI '+(usdEst?'· '+usdEst:'')+'</div>'+
+          '<div class="meta">'+shortAddr(t.who)+'<br>'+timeAgo(ts)+'</div>'+
+        '</div>';
+      }).join('');
+    }catch(e){
+      console.warn('trades err', e);
+      $('tradeList').innerHTML = '<div style="text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:11px;padding:14px 0;">couldn\'t load activity</div>';
+    }
+  }
+
+  loadDex(); setInterval(loadDex, 30000);
+  loadTrades(); setInterval(loadTrades, 60000);
+})();
+</script>
+
+</body>
+</html>
