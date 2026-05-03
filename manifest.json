@@ -24,6 +24,13 @@
   ],
   "shortcuts": [
     {
+      "name": "🔁 Swap",
+      "short_name": "Swap",
+      "description": "Buy or sell $CHOGI · every trade burns",
+      "url": "/swap",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "🧬 Mint",
       "short_name": "Mint",
       "description": "Burn $CHOGI to mint a Lab Subject",
@@ -35,13 +42,6 @@
       "short_name": "Burn",
       "description": "Send $CHOGI to the void",
       "url": "/burn",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "🧪 Lab",
-      "short_name": "Lab",
-      "description": "Real-time control room",
-      "url": "/lab",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]

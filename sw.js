@@ -16,6 +16,7 @@ const PRECACHE_URLS = [
   '/burn.html',
   '/mint.html',
   '/swap.html',
+  '/swap.html',
   '/family.html',
   '/badge.html',
   '/slots.html',
