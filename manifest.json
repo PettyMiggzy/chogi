@@ -24,6 +24,13 @@
   ],
   "shortcuts": [
     {
+      "name": "🧬 Mint",
+      "short_name": "Mint",
+      "description": "Burn $CHOGI to mint a Lab Subject",
+      "url": "/mint",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "🔥 Burn",
       "short_name": "Burn",
       "description": "Send $CHOGI to the void",
@@ -35,13 +42,6 @@
       "short_name": "Lab",
       "description": "Real-time control room",
       "url": "/lab",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "📊 Chart",
-      "short_name": "Chart",
-      "description": "Live $CHOGI chart",
-      "url": "https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
