@@ -7,10 +7,14 @@
 <meta name="description" content="Subject 7777 has been officially promoted. The experiment now runs the experiment. $CHOGI on Monad.">
 <meta property="og:title" content="CHOGI · CTO of the Lab">
 <meta property="og:description" content="The experiment now runs the experiment. Subject 7777 promoted to CTO. 💜">
-<meta property="og:image" content="/chogi.jpg">
+<meta property="og:image" content="/chogi-origin-poster.jpg">
 <meta property="og:url" content="https://chogi.xyz/cto">
+<meta property="og:video" content="/chogi-origin.mp4">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1080">
+<meta property="og:video:height" content="1080">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="/chogi.jpg">
+<meta name="twitter:image" content="/chogi-origin-poster.jpg">
 <meta name="twitter:title" content="CHOGI · CTO of the Lab">
 <meta name="twitter:description" content="The experiment now runs the experiment. Subject 7777 promoted to CTO. 💜">
 <link rel="icon" type="image/jpeg" href="/chogi.jpg">
@@ -117,56 +121,64 @@ body::after{
 .stamp::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:blink 1.5s infinite;}
 @keyframes blink{50%{opacity:.3;}}
 
-.portrait-frame{
+/* ─── video hero ─── */
+.video-frame{
   position:relative;
-  width:min(280px,68vw);height:min(280px,68vw);
+  width:min(560px,92vw);
   margin:14px auto 30px;
+  animation:videoReveal .9s ease-out;
 }
-.portrait{
-  position:absolute;inset:0;
-  border-radius:50%;
-  border:4px solid var(--gold);
+@keyframes videoReveal{from{opacity:0;transform:scale(.85) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.video-shell{
+  position:relative;
+  border-radius:20px;
   overflow:hidden;
+  border:3px solid var(--pink);
   box-shadow:
-    0 0 0 4px rgba(0,0,0,.5),
-    0 0 0 8px var(--pink),
+    0 0 0 4px rgba(0,0,0,.6),
+    0 0 0 7px var(--gold),
     0 0 80px var(--pink-glow),
     0 0 160px rgba(168,85,247,.4);
-  animation:portraitReveal .8s ease-out;
 }
-@keyframes portraitReveal{from{opacity:0;transform:scale(.7) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0);}}
-.portrait img{width:100%;height:100%;object-fit:cover;}
-.portrait-frame::before{
-  content:'';position:absolute;inset:-20px;
+.video-shell video{
+  width:100%;height:auto;display:block;
+}
+.video-frame::before{
+  content:'';position:absolute;inset:-22px;
   border:2px dashed var(--gold);
-  border-radius:50%;
-  animation:rotateRing 18s linear infinite;
-  opacity:.5;
+  border-radius:24px;
+  animation:rotateFrame 30s linear infinite;
+  opacity:.4;
+  pointer-events:none;
 }
-@keyframes rotateRing{to{transform:rotate(360deg);}}
-.portrait-badge{
-  position:absolute;top:6px;right:-4px;
+@keyframes rotateFrame{to{transform:rotate(360deg);}}
+.video-badge{
+  position:absolute;top:-12px;right:14px;
   background:var(--gold);color:#000;
   font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;
   padding:7px 12px;border-radius:8px;
-  box-shadow:0 4px 14px rgba(0,0,0,.4);
-  transform:rotate(8deg);
-  z-index:2;
-  animation:badgeStamp .5s .8s backwards;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);
+  transform:rotate(8deg);z-index:2;
+  animation:badgeStamp .5s 1s backwards;
 }
 @keyframes badgeStamp{from{opacity:0;transform:rotate(20deg) scale(2);}to{opacity:1;transform:rotate(8deg) scale(1);}}
-.portrait-rank{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(50%);
+.video-rank{
+  position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
   background:#000;color:var(--gold);
   border:2px solid var(--gold);
-  padding:8px 22px;border-radius:8px;
+  padding:9px 22px;border-radius:8px;
   font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:3px;
   white-space:nowrap;
-  box-shadow:0 0 24px rgba(252,211,77,.4);
-  z-index:2;
-  animation:rankSlide .6s 1s backwards;
+  box-shadow:0 0 24px rgba(252,211,77,.5);z-index:2;
+  animation:rankSlide .6s 1.2s backwards;
 }
-@keyframes rankSlide{from{opacity:0;transform:translateX(-50%) translateY(80%);}to{opacity:1;transform:translateX(-50%) translateY(50%);}}
+@keyframes rankSlide{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.video-caption{
+  margin-top:30px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:2.5px;color:rgba(252,211,77,.75);
+  font-weight:700;text-transform:uppercase;
+}
 
 .promo-title{
   font-family:'Bungee Shade',sans-serif;
@@ -352,11 +364,17 @@ body::after{
   <div class="banner">📜 OFFICIAL ANNOUNCEMENT</div>
   <div class="stamp">CONTAINMENT REPORT · DECLASSIFIED</div>
 
-  <div class="portrait-frame">
-    <div class="portrait"><img src="/chogi.jpg" alt="Chogi"></div>
-    <div class="portrait-badge">PROMOTED</div>
-    <div class="portrait-rank">CHIEF · TECH · OFFICER</div>
+  <div class="video-frame">
+    <div class="video-shell">
+      <video autoplay muted loop playsinline preload="auto" poster="/chogi-origin-poster.jpg">
+        <source src="/chogi-origin.webm" type="video/webm">
+        <source src="/chogi-origin.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="video-badge">PROMOTED</div>
+    <div class="video-rank">CHIEF · TECH · OFFICER</div>
   </div>
+  <div class="video-caption">▸ surveillance footage · containment chamber 7777</div>
 
   <div class="promo-title">SHE'S IN</div>
   <h1 class="promo-name">CHARGE</h1>

@@ -252,18 +252,14 @@ section{padding:80px 22px;position:relative;}
   overflow:hidden;position:relative;
   box-shadow:0 0 40px rgba(255,20,147,.3);
 }
-.origin-img img{width:100%;height:100%;object-fit:cover;mix-blend-mode:luminosity;opacity:.85;}
-.origin-img::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(45deg,transparent 40%,rgba(255,20,147,.4) 100%);
-  pointer-events:none;
-}
+.origin-img video{width:100%;height:100%;object-fit:cover;display:block;}
+.origin-img img{width:100%;height:100%;object-fit:cover;display:block;}
 .origin-img::after{
   content:'EXPERIMENT 7777';position:absolute;top:14px;left:14px;
   background:#000;color:var(--pink);
   padding:5px 10px;border-radius:6px;
   font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
-  font-weight:700;
+  font-weight:700;z-index:2;
 }
 .origin-text p{
   font-size:16px;line-height:1.75;color:rgba(255,233,244,.85);
@@ -442,7 +438,12 @@ footer .made-by a{color:var(--pink);}
 <section id="origin">
   <div class="container">
     <div class="origin-grid">
-      <div class="origin-img"><img src="/chogi.jpg" alt="Chogi origin"></div>
+      <div class="origin-img">
+        <video autoplay muted loop playsinline preload="metadata" poster="/chogi-origin-poster.jpg">
+          <source src="/chogi-origin.webm" type="video/webm">
+          <source src="/chogi-origin.mp4" type="video/mp4">
+        </video>
+      </div>
       <div class="origin-text">
         <div class="section-eyebrow">▸ FILE 7777 · CLASSIFIED</div>
         <h2 class="section-title">Born in <em>the lab</em>.<br>Raised by <em>the chain</em>.</h2>
