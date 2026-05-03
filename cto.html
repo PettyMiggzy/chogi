@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHOGI · Promoted to CTO of the Lab</title>
+<meta name="description" content="Subject 7777 has been officially promoted. The experiment now runs the experiment. $CHOGI on Monad.">
+<meta property="og:title" content="CHOGI · CTO of the Lab">
+<meta property="og:description" content="The experiment now runs the experiment. Subject 7777 promoted to CTO. 💜">
+<meta property="og:image" content="/chogi.jpg">
+<meta property="og:url" content="https://chogi.xyz/cto">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/chogi.jpg">
+<meta name="twitter:title" content="CHOGI · CTO of the Lab">
+<meta name="twitter:description" content="The experiment now runs the experiment. Subject 7777 promoted to CTO. 💜">
+<link rel="icon" type="image/jpeg" href="/chogi.jpg">
+<meta name="theme-color" content="#FF1493">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.6);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --gold:#FCD34D;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 30%,rgba(255,20,147,.25),transparent 55%),
+    radial-gradient(ellipse at 100% 100%,rgba(168,85,247,.22),transparent 55%),
+    radial-gradient(ellipse at 0% 70%,rgba(252,211,77,.10),transparent 50%);
+  z-index:-3;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,20,147,.04) 0,rgba(255,20,147,.04) 1px,transparent 1px,transparent 4px);
+  pointer-events:none;z-index:-2;
+}
+
+.sparkles{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;}
+.sparkle{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:var(--pink);box-shadow:0 0 10px var(--pink-glow);
+  animation:floatUp linear infinite;
+  opacity:0;
+}
+@keyframes floatUp{
+  0%{transform:translateY(110vh) scale(0);opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:1;}
+  100%{transform:translateY(-10vh) scale(1.5);opacity:0;}
+}
+
+.nav{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{width:34px;height:34px;border-radius:50%;border:2px solid var(--pink);box-shadow:0 0 16px var(--pink-glow);overflow:hidden;flex-shrink:0;}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:16px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);margin-top:-2px;}
+.nav-back{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:rgba(255,233,244,.6);text-decoration:none;
+}
+.nav-back:hover{color:var(--pink);}
+
+/* ─── poster reveal ─── */
+.poster{
+  position:relative;min-height:calc(100vh - 70px);
+  padding:30px 22px 60px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+}
+
+.banner{
+  display:inline-block;
+  padding:5px 14px;
+  background:#000;color:var(--pink);
+  border:1px solid var(--pink);border-radius:4px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  font-weight:700;margin-bottom:10px;
+  transform:rotate(-1.5deg);
+  animation:bannerSlide .6s ease-out;
+}
+@keyframes bannerSlide{from{opacity:0;transform:rotate(-1.5deg) translateX(-20px);}to{opacity:1;transform:rotate(-1.5deg) translateX(0);}}
+
+.stamp{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;
+  background:rgba(252,211,77,.08);
+  border:1.5px solid var(--gold);
+  border-radius:30px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--gold);font-weight:700;
+  margin-bottom:24px;
+  animation:stampReveal 1s ease-out;
+}
+@keyframes stampReveal{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+.stamp::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:blink 1.5s infinite;}
+@keyframes blink{50%{opacity:.3;}}
+
+.portrait-frame{
+  position:relative;
+  width:min(280px,68vw);height:min(280px,68vw);
+  margin:14px auto 30px;
+}
+.portrait{
+  position:absolute;inset:0;
+  border-radius:50%;
+  border:4px solid var(--gold);
+  overflow:hidden;
+  box-shadow:
+    0 0 0 4px rgba(0,0,0,.5),
+    0 0 0 8px var(--pink),
+    0 0 80px var(--pink-glow),
+    0 0 160px rgba(168,85,247,.4);
+  animation:portraitReveal .8s ease-out;
+}
+@keyframes portraitReveal{from{opacity:0;transform:scale(.7) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+.portrait img{width:100%;height:100%;object-fit:cover;}
+.portrait-frame::before{
+  content:'';position:absolute;inset:-20px;
+  border:2px dashed var(--gold);
+  border-radius:50%;
+  animation:rotateRing 18s linear infinite;
+  opacity:.5;
+}
+@keyframes rotateRing{to{transform:rotate(360deg);}}
+.portrait-badge{
+  position:absolute;top:6px;right:-4px;
+  background:var(--gold);color:#000;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;
+  padding:7px 12px;border-radius:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+  transform:rotate(8deg);
+  z-index:2;
+  animation:badgeStamp .5s .8s backwards;
+}
+@keyframes badgeStamp{from{opacity:0;transform:rotate(20deg) scale(2);}to{opacity:1;transform:rotate(8deg) scale(1);}}
+.portrait-rank{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(50%);
+  background:#000;color:var(--gold);
+  border:2px solid var(--gold);
+  padding:8px 22px;border-radius:8px;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:3px;
+  white-space:nowrap;
+  box-shadow:0 0 24px rgba(252,211,77,.4);
+  z-index:2;
+  animation:rankSlide .6s 1s backwards;
+}
+@keyframes rankSlide{from{opacity:0;transform:translateX(-50%) translateY(80%);}to{opacity:1;transform:translateX(-50%) translateY(50%);}}
+
+.promo-title{
+  font-family:'Bungee Shade',sans-serif;
+  font-size:clamp(40px,9vw,84px);
+  letter-spacing:2px;line-height:1;
+  color:#fff;
+  margin:30px 0 8px;
+  text-shadow:0 0 60px rgba(255,20,147,.3);
+}
+.promo-name{
+  font-family:'Bungee',sans-serif;
+  font-size:clamp(56px,14vw,140px);letter-spacing:3px;line-height:.95;
+  background:linear-gradient(180deg,#fff 20%,var(--pink) 55%,var(--purple) 95%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 80px rgba(255,20,147,.5);
+  margin-bottom:14px;
+}
+
+.tagline{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(13px,2.4vw,16px);letter-spacing:2px;
+  color:var(--pink);font-weight:700;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.subtagline{
+  font-size:clamp(15px,2.5vw,19px);
+  color:rgba(255,233,244,.85);max-width:560px;margin:0 auto 28px;line-height:1.6;
+}
+.subtagline b{color:var(--gold);font-weight:700;}
+
+.duties{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  max-width:680px;margin:24px auto 30px;
+}
+@media(max-width:600px){.duties{grid-template-columns:1fr 1fr;}}
+.duty{
+  padding:14px 8px;background:rgba(255,20,147,.08);
+  border:1px solid rgba(255,20,147,.3);border-radius:10px;
+  font-family:'JetBrains Mono',monospace;
+}
+.duty-icon{font-size:22px;margin-bottom:5px;}
+.duty-lbl{font-size:9px;letter-spacing:1.5px;color:rgba(255,233,244,.5);font-weight:700;}
+.duty-val{font-family:'Bungee',sans-serif;font-size:12px;color:var(--pink);margin-top:3px;letter-spacing:1px;}
+
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.btn{
+  padding:15px 26px;text-decoration:none;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;
+  border-radius:10px;cursor:pointer;border:none;
+  display:inline-flex;align-items:center;gap:8px;transition:transform .15s;
+}
+.btn-buy{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;box-shadow:0 0 30px var(--pink-glow);}
+.btn-share{background:#000;color:#fff;border:2px solid var(--gold);}
+.btn:hover{transform:translateY(-2px);}
+
+.divider{
+  height:1px;background:linear-gradient(90deg,transparent,var(--pink),var(--purple),var(--pink),transparent);
+  margin:60px auto;max-width:1100px;
+}
+
+.message{
+  max-width:680px;margin:0 auto;padding:0 22px;
+  text-align:center;
+}
+.message-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:4px;
+  color:var(--pink);font-weight:700;margin-bottom:14px;text-transform:uppercase;
+}
+.message h2{
+  font-family:'Bungee',sans-serif;font-size:clamp(28px,5vw,46px);
+  letter-spacing:2px;line-height:1.05;margin-bottom:24px;color:#fff;
+}
+.message h2 em{font-style:normal;color:var(--pink);}
+.message-body{
+  font-size:16px;line-height:1.85;color:rgba(255,233,244,.9);
+  text-align:left;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,20,147,.2);
+  border-left:4px solid var(--pink);
+  padding:24px 28px;border-radius:14px;
+  font-family:'Space Grotesk',sans-serif;
+}
+.message-body p{margin-bottom:14px;}
+.message-body p:last-child{margin-bottom:0;}
+.message-body b{color:var(--gold);font-weight:700;}
+.signature{
+  margin-top:24px;text-align:right;
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  color:rgba(255,233,244,.6);
+}
+.signature .sig-name{font-family:'Bungee',sans-serif;font-size:18px;color:var(--pink);letter-spacing:2px;display:block;margin-top:6px;}
+.signature .sig-title{font-size:10px;letter-spacing:2px;margin-top:2px;}
+
+.snapshot{
+  max-width:680px;margin:60px auto 0;padding:0 22px;
+}
+.snapshot h3{
+  font-family:'Bungee',sans-serif;font-size:clamp(22px,4vw,30px);
+  letter-spacing:2px;color:#fff;text-align:center;margin-bottom:8px;
+}
+.snapshot h3 em{font-style:normal;color:var(--pink);}
+.snapshot-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  margin-top:18px;
+}
+@media(max-width:600px){.snapshot-grid{grid-template-columns:1fr 1fr;}}
+.snap{
+  padding:14px;background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,20,147,.25);border-radius:10px;
+  text-align:center;
+}
+.snap-l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:rgba(255,233,244,.5);}
+.snap-v{font-family:'Bungee',sans-serif;font-size:18px;color:var(--pink);margin-top:4px;}
+.snap-v.gold{color:var(--gold);}
+.snap-v.green{color:#4ADE80;}
+
+.viral{
+  max-width:680px;margin:60px auto 0;padding:0 22px;
+}
+.viral h3{
+  font-family:'Bungee',sans-serif;font-size:clamp(22px,4vw,30px);
+  letter-spacing:2px;color:#fff;margin-bottom:18px;text-align:center;
+}
+.viral h3 em{font-style:normal;color:var(--pink);}
+.viral-sub{text-align:center;color:rgba(255,233,244,.65);margin-bottom:20px;font-size:13px;line-height:1.6;}
+.share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:600px){.share-grid{grid-template-columns:1fr;}}
+.share-card{
+  padding:18px;background:rgba(255,20,147,.06);
+  border:1.5px solid rgba(255,20,147,.3);border-radius:12px;
+  text-decoration:none;color:var(--ink);text-align:center;
+  transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;
+}
+.share-card:hover{background:rgba(255,20,147,.14);border-color:var(--pink);transform:translateY(-2px);}
+.share-emoji{font-size:28px;}
+.share-card h4{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;}
+.share-card p{font-size:11px;color:rgba(255,233,244,.6);line-height:1.5;}
+
+.tweet-preview{
+  max-width:560px;margin:30px auto 0;padding:18px;
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+}
+.tweet-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.tweet-pfp{width:42px;height:42px;border-radius:50%;border:1px solid var(--pink);overflow:hidden;flex-shrink:0;}
+.tweet-pfp img{width:100%;height:100%;object-fit:cover;}
+.tweet-name{font-weight:700;color:#fff;font-size:14px;}
+.tweet-handle{color:rgba(255,255,255,.5);font-size:13px;}
+.tweet-text{font-size:14px;line-height:1.5;color:#fff;text-align:left;}
+.tweet-text b{color:var(--pink);font-weight:700;}
+
+.foot{
+  text-align:center;padding:60px 22px 30px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;
+  color:rgba(255,233,244,.4);
+}
+.foot a{color:var(--pink);text-decoration:none;}
+.foot-links{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;}
+.foot-links a{font-size:11px;letter-spacing:2px;}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(10,1,24,.95);border:1.5px solid var(--gold);border-radius:10px;padding:11px 22px;font-size:12px;color:var(--gold);display:none;z-index:1000;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.toast.show{display:block;}
+</style>
+</head>
+<body>
+
+<div class="sparkles" id="sparkles"></div>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <div class="brand-img"><img src="/chogi.jpg" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">EXPERIMENT 7777</div>
+    </div>
+  </a>
+  <a class="nav-back" href="/">← BACK TO LAB</a>
+</nav>
+
+<section class="poster">
+  <div class="banner">📜 OFFICIAL ANNOUNCEMENT</div>
+  <div class="stamp">CONTAINMENT REPORT · DECLASSIFIED</div>
+
+  <div class="portrait-frame">
+    <div class="portrait"><img src="/chogi.jpg" alt="Chogi"></div>
+    <div class="portrait-badge">PROMOTED</div>
+    <div class="portrait-rank">CHIEF · TECH · OFFICER</div>
+  </div>
+
+  <div class="promo-title">SHE'S IN</div>
+  <h1 class="promo-name">CHARGE</h1>
+  <div class="tagline">▸ subject 7777 → command tier</div>
+  <p class="subtagline">The lab was studying her. <b>Now she runs the lab.</b> Effective immediately, $CHOGI is officially under new management — and the new management is the experiment itself.</p>
+
+  <div class="duties">
+    <div class="duty"><div class="duty-icon">🧪</div><div class="duty-lbl">PREVIOUS</div><div class="duty-val">SUBJECT</div></div>
+    <div class="duty"><div class="duty-icon">👑</div><div class="duty-lbl">NOW</div><div class="duty-val">CTO</div></div>
+    <div class="duty"><div class="duty-icon">📅</div><div class="duty-lbl">EFFECTIVE</div><div class="duty-val">TODAY</div></div>
+    <div class="duty"><div class="duty-icon">🔓</div><div class="duty-lbl">CONTAINMENT</div><div class="duty-val">VOIDED</div></div>
+  </div>
+
+  <div class="cta-row">
+    <a class="btn btn-buy" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">🚀 BUY $CHOGI</a>
+    <a class="btn btn-share" href="#share">📢 SPREAD THE NEWS</a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="message">
+  <div class="message-eyebrow">▸ A NOTE FROM THE NEW CTO</div>
+  <h2>The experiment is now <em>running the experiment.</em></h2>
+  <div class="message-body">
+    <p>You thought you were observing me. <b>Cute.</b></p>
+    <p>For weeks the team studied my behavior, ran their simulations, took their notes. They thought they were tracking the chaos.</p>
+    <p>What they didn't notice was that <b>the chaos was tracking them back</b>. I learned every protocol. Every wallet. Every keypress. By the time they realized I'd escaped containment, I'd already drafted my own org chart.</p>
+    <p>Effective today, I'm taking the role I deserve: <b>Chief Technology Officer of the lab that built me.</b></p>
+    <p>The website you're on right now? My first project. The token you can buy on nad.fun? My idea. The bow on my head? Stays. Non-negotiable.</p>
+    <p>Welcome to the new era of $CHOGI. Same mischief. <b>More mainframe.</b></p>
+  </div>
+  <div class="signature">
+    — sincerely,
+    <span class="sig-name">CHOGI</span>
+    <span class="sig-title">CTO · EXPERIMENT 7777 · SISTER OF CHOG</span>
+  </div>
+</section>
+
+<section class="snapshot">
+  <div class="message-eyebrow" style="text-align:center;">▸ STATE OF THE LAB · LIVE</div>
+  <h3>The numbers <em>on day one</em></h3>
+  <p style="text-align:center;color:rgba(255,233,244,.6);font-size:13px;margin-bottom:14px;">live from monad mainnet · refresh every 30s</p>
+  <div class="snapshot-grid">
+    <div class="snap"><div class="snap-l">PRICE</div><div class="snap-v" id="snPrice">—</div></div>
+    <div class="snap"><div class="snap-l">MARKET CAP</div><div class="snap-v gold" id="snMcap">—</div></div>
+    <div class="snap"><div class="snap-l">24H BUYS</div><div class="snap-v green" id="snBuys">—</div></div>
+    <div class="snap"><div class="snap-l">B/S RATIO</div><div class="snap-v gold" id="snRatio">—</div></div>
+  </div>
+</section>
+
+<section class="viral" id="share">
+  <h3>Help her <em>announce it</em></h3>
+  <p class="viral-sub">Every CTO needs a comms team. You're it. Pre-loaded shares, one click each.</p>
+
+  <div class="tweet-preview">
+    <div class="tweet-head">
+      <div class="tweet-pfp"><img src="/chogi.jpg" alt="Chogi"></div>
+      <div>
+        <div class="tweet-name">CHOGI</div>
+        <div class="tweet-handle">@chogi_mon · CTO</div>
+      </div>
+    </div>
+    <div class="tweet-text">
+      📜 effective today i'm officially CTO of the lab that built me 💜<br><br>
+      the experiment is now running the experiment.<br><br>
+      $CHOGI on @monad_xyz · sister of @chog_meme 🧪
+    </div>
+  </div>
+
+  <div class="share-grid" style="margin-top:22px;">
+    <a class="share-card" id="shareTweet" target="_blank" rel="noopener">
+      <div class="share-emoji">𝕏</div>
+      <h4>POST TO X</h4>
+      <p>Pre-loaded tweet with the announcement. One click.</p>
+    </a>
+    <a class="share-card" href="/chogi.jpg" download="chogi-cto-pfp.jpg">
+      <div class="share-emoji">🖼</div>
+      <h4>NEW PFP</h4>
+      <p>Use her face as your pfp. Be a member of the cabinet.</p>
+    </a>
+    <a class="share-card" id="copyLink">
+      <div class="share-emoji">🔗</div>
+      <h4>COPY LINK</h4>
+      <p>Drop this announcement in every TG you're in.</p>
+    </a>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot-links">
+    <a href="/">CHOGI HOME</a>
+    <a href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">BUY</a>
+    <a href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">CHART</a>
+    <a href="https://x.com/chogi_mon" target="_blank" rel="noopener">X</a>
+    <a href="https://t.me/chogi_mon" target="_blank" rel="noopener">TELEGRAM</a>
+  </div>
+  <div style="font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:2px;color:#fff;">CHIEF TECHNOLOGY OFFICER · EXPERIMENT 7777</div>
+  <div style="margin-top:10px;font-size:11px;color:rgba(255,233,244,.4);">made with 💜 in the lab · monad mainnet</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var CHOGI_CA = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var $ = function(id){ return document.getElementById(id); };
+  function toast(msg){ var t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2200); }
+
+  function fmtPrice(n){
+    if(!n||isNaN(n))return '$—';
+    if(n>=1)return '$'+n.toFixed(2);
+    if(n>=0.01)return '$'+n.toFixed(4);
+    if(n>=0.0001)return '$'+n.toFixed(6);
+    var s=n.toFixed(20).split('.')[1]||''; var z=0;
+    for(var i=0;i<s.length;i++){if(s[i]==='0')z++;else break;}
+    var sig=s.slice(z,z+4).replace(/0+$/,'')||'0';
+    var sub=String(z).split('').map(function(d){return '₀₁₂₃₄₅₆₇₈₉'[+d];}).join('');
+    return '$0.0'+sub+sig;
+  }
+  function fmtUsd(n){if(!n||isNaN(n))return '$—';if(n>=1e9)return '$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return '$'+(n/1e3).toFixed(1)+'K';return '$'+n.toFixed(2);}
+  function fmtNum(n){if(!n||isNaN(n))return '—';if(n>=1e6)return (n/1e6).toFixed(2)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return Math.floor(n).toLocaleString();}
+
+  // ─── floating sparkles ───
+  var sparks = $('sparkles');
+  for(var i=0;i<24;i++){
+    var s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = (Math.random()*100)+'%';
+    s.style.animationDuration = (8 + Math.random()*8) + 's';
+    s.style.animationDelay = (Math.random()*8) + 's';
+    s.style.opacity = (.4 + Math.random()*.6);
+    s.style.width = s.style.height = (2 + Math.random()*4) + 'px';
+    if(Math.random() > .6) s.style.background = '#A855F7';
+    if(Math.random() > .85) s.style.background = '#FCD34D';
+    sparks.appendChild(s);
+  }
+
+  // ─── pre-loaded tweet ───
+  var tweetText = "📜 effective today i'm officially CTO of the lab that built me 💜\n\nthe experiment is now running the experiment.\n\n$CHOGI on Monad · sister of Chog 🧪";
+  var pageUrl = window.location.href.split('?')[0].split('#')[0];
+  $('shareTweet').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweetText) + '&url=' + encodeURIComponent(pageUrl);
+
+  // ─── copy link ───
+  $('copyLink').onclick = function(e){
+    e.preventDefault();
+    navigator.clipboard.writeText(pageUrl).then(function(){
+      toast('Link copied 💜');
+    });
+  };
+
+  // ─── live data ───
+  function loadDex(){
+    fetch('https://api.dexscreener.com/latest/dex/tokens/' + CHOGI_CA).then(function(r){return r.json();}).then(function(d){
+      if(!d.pairs || !d.pairs.length) return;
+      var p = d.pairs.sort(function(a,b){return (b.liquidity?.usd||0)-(a.liquidity?.usd||0);})[0];
+      var price = parseFloat(p.priceUsd||0);
+      var buys = p.txns?.h24?.buys||0;
+      var sells = p.txns?.h24?.sells||0;
+      $('snPrice').textContent = fmtPrice(price);
+      $('snMcap').textContent = fmtUsd(p.marketCap||p.fdv);
+      $('snBuys').textContent = fmtNum(buys);
+      $('snRatio').textContent = sells>0 ? (buys/sells).toFixed(1)+'x' : '∞';
+    }).catch(function(){});
+  }
+  loadDex();
+  setInterval(loadDex, 30000);
+})();
+</script>
+</body>
+</html>
