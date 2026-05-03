@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Chogi">
 <meta name="mobile-web-app-capable" content="yes">
 <title>LAB BADGE · Get your $CHOGI tier card</title>
-<meta name="description" content="Connect your wallet, get a downloadable lab employee badge with your $CHOGI tier. Subject, Assistant, Researcher, Director, or CTO.">
+<meta name="description" content="Connect your wallet, get a downloadable lab employee badge with your $CHOGI tier. 8 ranks from Subject to CTO Cabinet.">
 <meta property="og:title" content="LAB BADGE · Your $CHOGI tier card">
 <meta property="og:description" content="Connect wallet → get a personalized lab badge with your tier. Shareable. Downloadable.">
 <meta property="og:image" content="https://chogi.xyz/chogi.png">
@@ -75,7 +75,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .tier-item.subject .tier-label{color:#94A3B8;}
 .tier-item.assistant .tier-label{color:var(--cyan);}
 .tier-item.researcher .tier-label{color:var(--green);}
+.tier-item.senior .tier-label{color:#A7F3D0;}
+.tier-item.protocol .tier-label{color:var(--purple);}
 .tier-item.director .tier-label{color:var(--pink);}
+.tier-item.chief .tier-label{color:#FB923C;}
 .tier-item.cto .tier-label{color:var(--gold);}
 
 footer{padding:30px 18px 60px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.4);}
@@ -140,10 +143,13 @@ footer .links a:hover{color:var(--pink);}
   <div class="tier-info">
     <h3>🏷 TIER STRUCTURE</h3>
     <div class="tier-list">
-      <div class="tier-item subject"><span class="tier-emoji">🧪</span><span class="tier-label">SUBJECT</span><span class="tier-req">< 100K $CHOGI</span></div>
+      <div class="tier-item subject"><span class="tier-emoji">🧪</span><span class="tier-label">SUBJECT</span><span class="tier-req">< 100K</span></div>
       <div class="tier-item assistant"><span class="tier-emoji">🥽</span><span class="tier-label">ASSISTANT</span><span class="tier-req">100K – 1M</span></div>
-      <div class="tier-item researcher"><span class="tier-emoji">🔬</span><span class="tier-label">RESEARCHER</span><span class="tier-req">1M – 10M</span></div>
-      <div class="tier-item director"><span class="tier-emoji">📋</span><span class="tier-label">DIRECTOR</span><span class="tier-req">10M – 100M</span></div>
+      <div class="tier-item researcher"><span class="tier-emoji">🔬</span><span class="tier-label">RESEARCHER</span><span class="tier-req">1M – 5M</span></div>
+      <div class="tier-item senior"><span class="tier-emoji">⚗️</span><span class="tier-label">SENIOR RESEARCHER</span><span class="tier-req">5M – 10M</span></div>
+      <div class="tier-item protocol"><span class="tier-emoji">🧫</span><span class="tier-label">PROTOCOL LEAD</span><span class="tier-req">10M – 25M</span></div>
+      <div class="tier-item director"><span class="tier-emoji">📋</span><span class="tier-label">DIRECTOR</span><span class="tier-req">25M – 50M</span></div>
+      <div class="tier-item chief"><span class="tier-emoji">🧠</span><span class="tier-label">CHIEF SCIENTIST</span><span class="tier-req">50M – 100M</span></div>
       <div class="tier-item cto"><span class="tier-emoji">👑</span><span class="tier-label">CTO CABINET</span><span class="tier-req">100M+ $CHOGI</span></div>
     </div>
   </div>
@@ -177,13 +183,16 @@ footer .links a:hover{color:var(--pink);}
   chogiImg.crossOrigin = 'anonymous';
   chogiImg.src = '/chogi.png';
 
-  // Tier definitions
+  // Tier definitions — 8 ranks, lab employee progression
   var TIERS = [
-    { min: 100000000, name: 'CTO CABINET', emoji: '👑', color: '#FCD34D', sub: 'CHIEF TECHNOLOGY · CABINET MEMBER', clearance: 'OMEGA' },
-    { min: 10000000,  name: 'DIRECTOR',     emoji: '📋', color: '#FF1493', sub: 'DEPARTMENT HEAD · LAB AUTHORITY',    clearance: 'TIER A' },
-    { min: 1000000,   name: 'RESEARCHER',  emoji: '🔬', color: '#4ADE80', sub: 'PROTOCOL ANALYST · FIELD OPS',        clearance: 'TIER B' },
-    { min: 100000,    name: 'ASSISTANT',   emoji: '🥽', color: '#22D3EE', sub: 'JUNIOR HANDLER · CHAMBER STAFF',      clearance: 'TIER C' },
-    { min: 0,         name: 'SUBJECT',     emoji: '🧪', color: '#94A3B8', sub: 'EXPERIMENT POOL · CONTAINMENT',       clearance: 'TIER D' }
+    { min: 100000000, name: 'CTO CABINET',       emoji: '👑', color: '#FCD34D', sub: 'CHIEF TECHNOLOGY · CABINET MEMBER',  clearance: 'OMEGA'    },
+    { min: 50000000,  name: 'CHIEF SCIENTIST',   emoji: '🧠', color: '#FB923C', sub: 'EXECUTIVE PROTOCOL · OMEGA WING',     clearance: 'OMEGA-1'  },
+    { min: 25000000,  name: 'DIRECTOR',          emoji: '📋', color: '#FF1493', sub: 'DEPARTMENT HEAD · LAB AUTHORITY',     clearance: 'TIER A+'  },
+    { min: 10000000,  name: 'PROTOCOL LEAD',     emoji: '🧫', color: '#A855F7', sub: 'TEAM LEAD · CONTAINMENT OFFICER',     clearance: 'TIER A'   },
+    { min: 5000000,   name: 'SENIOR RESEARCHER', emoji: '⚗️',  color: '#A7F3D0', sub: 'SENIOR ANALYST · FIELD OPERATIONS',   clearance: 'TIER B+'  },
+    { min: 1000000,   name: 'RESEARCHER',        emoji: '🔬', color: '#4ADE80', sub: 'PROTOCOL ANALYST · FIELD OPS',         clearance: 'TIER B'   },
+    { min: 100000,    name: 'ASSISTANT',         emoji: '🥽', color: '#22D3EE', sub: 'JUNIOR HANDLER · CHAMBER STAFF',       clearance: 'TIER C'   },
+    { min: 0,         name: 'SUBJECT',           emoji: '🧪', color: '#94A3B8', sub: 'EXPERIMENT POOL · CONTAINMENT',        clearance: 'TIER D'   }
   ];
 
   function getTier(balance){
