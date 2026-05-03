@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BURN · CHOGI · Send to the Void</title>
+<meta name="description" content="Burn $CHOGI. Send tokens to the dead address. Permanent. Tracked live.">
+<meta property="og:title" content="🔥 BURN $CHOGI · The Incinerator">
+<meta property="og:description" content="Send $CHOGI to the void. Live on-chain burn meter. Permanent supply reduction.">
+<meta property="og:image" content="/chogi.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/chogi.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<meta name="theme-color" content="#FF1493">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --gold:#FCD34D;
+  --cream:#FFF4D6;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+  --fire:#FF4500;
+  --fire-glow:rgba(255,69,0,.55);
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,69,0,.16),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(255,20,147,.18),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(168,85,247,.14),transparent 50%);
+  z-index:-3;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);
+  pointer-events:none;z-index:-2;
+}
+
+/* nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;background:rgba(10,1,24,.75);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,69,0,.28);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{
+  width:36px;height:36px;border-radius:50%;
+  border:2px solid var(--fire);
+  box-shadow:0 0 16px var(--fire-glow);
+  overflow:hidden;flex-shrink:0;background:#000;
+}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--fire);margin-top:-2px;}
+.nav-back{
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  text-decoration:none;color:#fff;
+  padding:9px 14px;border:1.5px solid rgba(255,255,255,.18);border-radius:8px;
+  transition:all .15s;
+}
+.nav-back:hover{border-color:var(--fire);box-shadow:0 0 14px var(--fire-glow);}
+
+/* hero */
+.hero{
+  max-width:720px;margin:40px auto 18px;padding:0 22px;text-align:center;
+}
+.hero h1{
+  font-family:'Bungee',sans-serif;font-size:clamp(38px,9vw,72px);
+  letter-spacing:3px;line-height:.95;
+  background:linear-gradient(135deg,var(--fire) 0%,var(--pink) 50%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 22px var(--fire-glow));
+  margin-bottom:14px;
+}
+.hero h1 .flame{display:inline-block;animation:flicker 1.2s infinite alternate;}
+@keyframes flicker{from{transform:rotate(-2deg) scale(1);}to{transform:rotate(3deg) scale(1.06);}}
+.hero p{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;
+  color:rgba(255,233,244,.65);margin-top:6px;
+}
+
+/* meter card */
+.meter{
+  max-width:720px;margin:24px auto;padding:24px 22px 20px;
+  background:linear-gradient(180deg,rgba(255,69,0,.08),rgba(255,20,147,.05));
+  border:1.5px solid rgba(255,69,0,.35);border-radius:18px;
+  position:relative;overflow:hidden;
+}
+.meter::before{
+  content:'BURN METER · LIVE';position:absolute;top:10px;right:14px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;
+  color:var(--fire);
+}
+.meter::after{
+  content:'';position:absolute;top:14px;right:118px;
+  width:7px;height:7px;border-radius:50%;background:var(--fire);
+  box-shadow:0 0 12px var(--fire);animation:blink 1.4s infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.meter-amt{
+  font-family:'Bungee',sans-serif;font-size:clamp(32px,8vw,52px);letter-spacing:2px;
+  color:var(--fire);text-shadow:0 0 18px var(--fire-glow);line-height:1;
+  margin-top:18px;
+}
+.meter-amt::after{content:' CHOGI';font-size:.4em;color:var(--ink);letter-spacing:3px;margin-left:8px;}
+.meter-pct{
+  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:2px;
+  color:var(--gold);margin-top:8px;
+}
+.meter-bar-wrap{
+  margin-top:16px;height:10px;background:rgba(255,255,255,.06);
+  border-radius:6px;overflow:hidden;border:1px solid rgba(255,69,0,.18);
+}
+.meter-bar{
+  height:100%;width:0;
+  background:linear-gradient(90deg,var(--fire),var(--pink),var(--gold));
+  box-shadow:0 0 14px var(--fire-glow);
+  transition:width 1s ease;
+}
+.meter-foot{
+  display:flex;justify-content:space-between;margin-top:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+  color:rgba(255,233,244,.5);
+}
+
+/* incinerator card */
+.card{
+  max-width:560px;margin:32px auto;padding:28px 22px 26px;
+  background:rgba(10,1,24,.55);
+  border:1.5px solid rgba(255,69,0,.4);border-radius:20px;
+  box-shadow:0 0 40px rgba(255,69,0,.12),inset 0 0 60px rgba(255,69,0,.04);
+}
+.card h2{
+  font-family:'Bungee',sans-serif;font-size:22px;letter-spacing:2.5px;
+  color:#fff;text-align:center;margin-bottom:6px;
+}
+.card .sub{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--fire);text-align:center;margin-bottom:22px;
+}
+
+/* connect / wallet status */
+.connect-btn{
+  display:block;width:100%;padding:18px;
+  background:linear-gradient(135deg,var(--fire),var(--pink));
+  color:#fff;border:none;cursor:pointer;
+  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:3px;
+  border-radius:12px;box-shadow:0 0 24px var(--fire-glow);
+  transition:transform .15s,box-shadow .15s;
+}
+.connect-btn:hover{transform:translateY(-2px);box-shadow:0 0 36px var(--fire-glow);}
+.connect-btn:disabled{opacity:.55;cursor:not-allowed;}
+
+.wallet-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 14px;background:rgba(255,69,0,.06);
+  border:1px solid rgba(255,69,0,.22);border-radius:10px;margin-bottom:18px;
+}
+.wallet-row .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.5);}
+.wallet-row .val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink);font-weight:700;}
+.wallet-row .bal{
+  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:1.5px;color:var(--gold);
+}
+
+/* amount */
+.amount-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.amount-row input{
+  flex:1;padding:14px 16px;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(255,69,0,.32);border-radius:10px;
+  color:#fff;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;
+  outline:none;
+}
+.amount-row input:focus{border-color:var(--fire);box-shadow:0 0 14px var(--fire-glow);}
+.amount-row .unit{
+  font-family:'Bungee',sans-serif;font-size:12px;letter-spacing:2px;color:var(--fire);
+  padding:0 4px;
+}
+
+.presets{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:22px;}
+.preset{
+  padding:10px 4px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,69,0,.25);border-radius:8px;color:#fff;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;
+  transition:all .12s;
+}
+.preset:hover{border-color:var(--fire);background:rgba(255,69,0,.12);}
+.preset.active{border-color:var(--fire);background:rgba(255,69,0,.18);color:var(--fire);}
+
+.burn-btn{
+  display:block;width:100%;padding:20px;
+  background:linear-gradient(135deg,var(--fire) 0%,#ff1493 50%,var(--purple) 100%);
+  color:#fff;border:none;cursor:pointer;
+  font-family:'Bungee',sans-serif;font-size:16px;letter-spacing:4px;
+  border-radius:14px;
+  box-shadow:0 0 28px var(--fire-glow),inset 0 0 20px rgba(255,255,255,.1);
+  transition:transform .15s,box-shadow .15s;
+  margin-top:6px;
+}
+.burn-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 44px var(--fire-glow);}
+.burn-btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.4);}
+
+.note{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  color:rgba(255,233,244,.45);text-align:center;margin-top:14px;line-height:1.6;
+}
+.note .warn{color:var(--fire);}
+
+/* status / tx */
+.status{
+  margin-top:18px;padding:14px;border-radius:10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;
+  border:1px solid;display:none;
+}
+.status.show{display:block;}
+.status.info{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.4);color:var(--purple);}
+.status.success{background:rgba(252,211,77,.08);border-color:rgba(252,211,77,.45);color:var(--gold);}
+.status.error{background:rgba(255,69,0,.1);border-color:rgba(255,69,0,.45);color:var(--fire);}
+.status a{color:inherit;text-decoration:underline;word-break:break-all;}
+
+/* share */
+.share{
+  max-width:560px;margin:14px auto 50px;padding:0 22px;text-align:center;
+}
+.share p{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:rgba(255,233,244,.5);margin-bottom:12px;
+}
+.share-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.share-btn{
+  padding:11px 18px;background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(255,69,0,.4);border-radius:10px;
+  color:#fff;text-decoration:none;cursor:pointer;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  transition:all .15s;
+}
+.share-btn:hover{border-color:var(--fire);box-shadow:0 0 14px var(--fire-glow);}
+
+/* footer */
+footer{
+  text-align:center;padding:30px 20px 50px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+  color:rgba(255,233,244,.45);
+}
+footer a{color:var(--fire);text-decoration:none;}
+.credit-pill{
+  display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+  padding:9px 18px;background:linear-gradient(135deg,rgba(255,20,147,.14),rgba(252,211,77,.14));
+  border:1.5px solid rgba(255,20,147,.45);border-radius:30px;
+  text-decoration:none;color:#fff;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  transition:all .2s;
+}
+.credit-pill:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(252,211,77,.4);}
+
+/* floating embers (decorative) */
+.ember{
+  position:fixed;width:6px;height:6px;border-radius:50%;
+  background:radial-gradient(circle,var(--fire),transparent);
+  pointer-events:none;z-index:-1;opacity:.7;
+  animation:rise linear infinite;
+}
+@keyframes rise{
+  0%{transform:translateY(0) translateX(0);opacity:0;}
+  10%{opacity:.7;}
+  90%{opacity:.5;}
+  100%{transform:translateY(-100vh) translateX(40px);opacity:0;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">EXPERIMENT 7777</div>
+    </div>
+  </a>
+  <a href="/" class="nav-back">← HOME</a>
+</nav>
+
+<section class="hero">
+  <h1><span class="flame">🔥</span> THE INCINERATOR</h1>
+  <p>SEND $CHOGI TO THE VOID · PERMANENT · TRACKED ON-CHAIN</p>
+</section>
+
+<div class="meter" data-burn-meter>
+  <div class="meter-amt"><span data-burn-amount>—</span></div>
+  <div class="meter-pct">BURNED · <span data-burn-pct>—</span> OF SUPPLY · <span data-burn-supply>—</span> TOTAL</div>
+  <div class="meter-bar-wrap"><div class="meter-bar" data-burn-bar></div></div>
+  <div class="meter-foot">
+    <span>0%</span>
+    <span>UPDATES EVERY 30s</span>
+    <span>100%</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>FEED THE FLAMES</h2>
+  <div class="sub">SEND CHOGI → 0x...dead</div>
+
+  <div id="connectStage">
+    <button class="connect-btn" id="connectBtn">CONNECT WALLET</button>
+    <p class="note">Burns are permanent. Tokens sent here can never be recovered.<br>Network: <span class="warn">Monad mainnet</span></p>
+  </div>
+
+  <div id="burnStage" style="display:none;">
+    <div class="wallet-row">
+      <div>
+        <div class="lbl">CONNECTED</div>
+        <div class="val" id="walletAddr">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="lbl">YOUR BAG</div>
+        <div class="bal" id="walletBal">— CHOGI</div>
+      </div>
+    </div>
+
+    <div class="amount-row">
+      <input type="text" id="amountInput" placeholder="Amount to burn" inputmode="decimal">
+      <span class="unit">CHOGI</span>
+    </div>
+
+    <div class="presets">
+      <button class="preset" data-preset="1000">1K</button>
+      <button class="preset" data-preset="10000">10K</button>
+      <button class="preset" data-preset="100000">100K</button>
+      <button class="preset" data-preset="1000000">1M</button>
+      <button class="preset" data-preset="MAX">MAX</button>
+    </div>
+
+    <button class="burn-btn" id="burnBtn">🔥 BURN</button>
+
+    <div class="status" id="status"></div>
+
+    <p class="note">Burns are permanent. Tokens sent to <span class="warn">0x…dead</span> cannot be recovered.</p>
+  </div>
+</div>
+
+<div class="share">
+  <p>BURNED SOMETHING? RALLY THE LAB.</p>
+  <div class="share-row">
+    <a class="share-btn" id="shareTG" target="_blank" rel="noopener">📢 SHARE TO TG</a>
+    <a class="share-btn" id="shareX" target="_blank" rel="noopener">𝕏 POST ON X</a>
+    <button class="share-btn" id="copyLink">📋 COPY LINK</button>
+  </div>
+</div>
+
+<footer>
+  <div>standing with chog · monad mainnet · the fire is permanent</div>
+  <div style="margin-top:6px;">
+    <a href="https://x.com/chogicto" target="_blank" rel="noopener">X</a> ·
+    <a href="https://t.me/chogicto" target="_blank" rel="noopener">TG</a> ·
+    <a href="https://chogi.xyz" style="color:var(--ink);">chogi.xyz</a>
+  </div>
+  <a href="https://x.com/miggzyonbase" target="_blank" rel="noopener" class="credit-pill">
+    <span style="font-size:14px;">👑</span>
+    <span>A KING PETTY BUILD</span>
+  </a>
+</footer>
+
+<script src="/js/burn-meter.js"></script>
+
+<script>
+(function(){
+  var TOKEN     = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var DEAD      = '0x000000000000000000000000000000000000dead';
+  var CHAIN_HEX = '0x8f';                      // Monad mainnet 143
+  var CHAIN_ID  = 143;
+  var RPC       = 'https://rpc.monad.xyz';
+  var EXPLORER  = 'https://monadexplorer.com/tx/';
+  var DEC       = 18;
+  var ONE       = 10n**18n;
+
+  var $ = function(id){return document.getElementById(id);};
+  var account = null;
+
+  /* number helpers */
+  function parseAmt(str){
+    str = String(str||'').trim().replace(/[, _]/g,'');
+    if(!str || isNaN(Number(str))) return 0n;
+    var parts = str.split('.');
+    var whole = BigInt(parts[0]||'0');
+    var frac  = (parts[1]||'').slice(0,DEC).padEnd(DEC,'0');
+    return whole*ONE + BigInt(frac||'0');
+  }
+  function fmtBal(big){
+    var n = Number(big/10n**14n)/10000;
+    if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toFixed(2);
+  }
+  function pad32(hex){ return hex.toLowerCase().replace('0x','').padStart(64,'0'); }
+  function toHexUint(big){ return '0x'+big.toString(16); }
+
+  /* RPC fallback (read-only) for balance pre-connect */
+  function rpcCall(data){
+    return fetch(RPC,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',params:[{to:TOKEN,data:data},'latest'],id:1})
+    }).then(function(r){return r.json();}).then(function(j){return BigInt(j.result||'0x0');});
+  }
+
+  /* status helper */
+  function status(kind, html){
+    var el = $('status');
+    el.className = 'status show '+kind;
+    el.innerHTML = html;
+  }
+  function clearStatus(){ var el=$('status'); el.className='status'; el.innerHTML=''; }
+
+  /* connect */
+  async function connect(){
+    if(!window.ethereum){
+      alert('No wallet detected. Install MetaMask, Rabby, or open this in a wallet browser.');
+      return;
+    }
+    try{
+      var accounts = await window.ethereum.request({method:'eth_requestAccounts'});
+      account = accounts[0];
+
+      // ensure correct chain
+      var chain = await window.ethereum.request({method:'eth_chainId'});
+      if(chain !== CHAIN_HEX){
+        try{
+          await window.ethereum.request({
+            method:'wallet_switchEthereumChain',
+            params:[{chainId:CHAIN_HEX}]
+          });
+        }catch(e){
+          if(e.code===4902){
+            await window.ethereum.request({
+              method:'wallet_addEthereumChain',
+              params:[{
+                chainId:CHAIN_HEX,
+                chainName:'Monad',
+                nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+                rpcUrls:[RPC],
+                blockExplorerUrls:['https://monadexplorer.com']
+              }]
+            });
+          } else { throw e; }
+        }
+      }
+
+      $('connectStage').style.display='none';
+      $('burnStage').style.display='block';
+      $('walletAddr').textContent = account.slice(0,6)+'…'+account.slice(-4);
+      refreshBalance();
+    }catch(e){
+      console.error(e);
+      alert(e.message||'Connect failed');
+    }
+  }
+
+  async function refreshBalance(){
+    if(!account) return;
+    try{
+      var bal = await rpcCall('0x70a08231'+pad32(account));
+      $('walletBal').textContent = fmtBal(bal)+' CHOGI';
+      $('walletBal').dataset.raw = bal.toString();
+    }catch(e){ console.warn('balance err',e); }
+  }
+
+  /* presets */
+  document.querySelectorAll('.preset').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.preset').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      var p = btn.getAttribute('data-preset');
+      if(p==='MAX'){
+        var raw = $('walletBal').dataset.raw||'0';
+        var human = Number(BigInt(raw)/10n**14n)/10000;
+        $('amountInput').value = human.toString();
+      } else {
+        $('amountInput').value = Number(p).toLocaleString('en-US');
+      }
+    });
+  });
+
+  /* burn */
+  async function burn(){
+    if(!account){ alert('Connect first.'); return; }
+    var raw = parseAmt($('amountInput').value);
+    if(raw <= 0n){ status('error','Enter an amount above 0.'); return; }
+
+    var have = BigInt($('walletBal').dataset.raw||'0');
+    if(raw > have){ status('error','Amount exceeds your balance.'); return; }
+
+    // build transfer(address,uint256) calldata
+    var data = '0xa9059cbb' + pad32(DEAD) + raw.toString(16).padStart(64,'0');
+
+    try{
+      status('info','Confirm in wallet…');
+      $('burnBtn').disabled = true;
+
+      var txHash = await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from:account,to:TOKEN,data:data,value:'0x0'}]
+      });
+
+      status('info','🔥 Burning… <a href="'+EXPLORER+txHash+'" target="_blank" rel="noopener">'+txHash.slice(0,10)+'…'+txHash.slice(-6)+'</a>');
+
+      // poll for confirmation
+      var receipt = null, attempts = 0;
+      while(!receipt && attempts < 60){
+        await new Promise(function(r){setTimeout(r,2000);});
+        try{
+          var res = await fetch(RPC,{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({jsonrpc:'2.0',method:'eth_getTransactionReceipt',params:[txHash],id:1})
+          }).then(function(r){return r.json();});
+          receipt = res.result;
+        }catch(e){}
+        attempts++;
+      }
+
+      if(receipt && receipt.status==='0x1'){
+        var human = Number(raw/10n**14n)/10000;
+        status('success','✅ BURNED '+human.toLocaleString('en-US')+' CHOGI · gone forever · <a href="'+EXPLORER+txHash+'" target="_blank" rel="noopener">view tx</a>');
+        // refresh meter + balance
+        if(window.ChogiBurnMeter) window.ChogiBurnMeter.refresh();
+        refreshBalance();
+        // build share text
+        var shareText = '🔥 Just burned '+human.toLocaleString('en-US')+' $CHOGI · gone forever · standing with the lab\n\nchogi.xyz/burn';
+        $('shareTG').href = 'https://t.me/share/url?url='+encodeURIComponent('https://chogi.xyz/burn')+'&text='+encodeURIComponent(shareText);
+        $('shareX').href  = 'https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText);
+      } else {
+        status('error','Transaction failed or timed out. <a href="'+EXPLORER+txHash+'" target="_blank" rel="noopener">view on explorer</a>');
+      }
+    }catch(e){
+      console.error(e);
+      var msg = (e && e.message) ? e.message : 'Transaction rejected';
+      status('error', msg);
+    } finally {
+      $('burnBtn').disabled = false;
+    }
+  }
+
+  $('connectBtn').addEventListener('click', connect);
+  $('burnBtn').addEventListener('click', burn);
+
+  /* default share copy (pre-burn) */
+  var defaultShare = '🔥 Burning $CHOGI to the void · permanent supply reduction · standing with the lab\n\nchogi.xyz/burn';
+  $('shareTG').href = 'https://t.me/share/url?url='+encodeURIComponent('https://chogi.xyz/burn')+'&text='+encodeURIComponent(defaultShare);
+  $('shareX').href  = 'https://twitter.com/intent/tweet?text='+encodeURIComponent(defaultShare);
+  $('copyLink').addEventListener('click', function(){
+    navigator.clipboard.writeText('https://chogi.xyz/burn').then(function(){
+      $('copyLink').textContent='✓ COPIED';
+      setTimeout(function(){$('copyLink').textContent='📋 COPY LINK';},1500);
+    });
+  });
+
+  /* embers */
+  function spawnEmber(){
+    var e = document.createElement('div');
+    e.className='ember';
+    e.style.left = Math.random()*100+'vw';
+    e.style.bottom = '-10px';
+    e.style.animationDuration = (4+Math.random()*5)+'s';
+    document.body.appendChild(e);
+    setTimeout(function(){e.remove();}, 9000);
+  }
+  setInterval(spawnEmber, 700);
+})();
+</script>
+
+</body>
+</html>

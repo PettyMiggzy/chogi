@@ -406,6 +406,7 @@ footer .made-by a{color:var(--pink);}
     </div>
   </a>
   <div style="display:flex;gap:8px;align-items:center;">
+    <a href="/burn" style="padding:9px 14px;background:rgba(255,69,0,.12);border:1.5px solid #FF4500;color:#FF4500;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🔥 BURN</a>
     <a href="/lab" style="padding:9px 14px;background:rgba(34,211,238,.1);border:1.5px solid #22D3EE;color:#22D3EE;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🧪 LAB</a>
     <a class="nav-cta" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">BUY $CHOGI</a>
   </div>
@@ -482,6 +483,35 @@ footer .made-by a{color:var(--pink);}
     </div>
   </div>
 </section>
+
+<section style="padding:30px 22px;">
+  <div class="container" style="max-width:760px;">
+    <div class="section-eyebrow" style="text-align:center;">▸ THE INCINERATOR · LIVE</div>
+    <h2 class="section-title" style="text-align:center;margin-bottom:24px;">Tokens <em>burned</em> · gone <em>forever</em>.</h2>
+    <div data-burn-meter style="position:relative;padding:26px 22px 22px;background:linear-gradient(180deg,rgba(255,69,0,.08),rgba(255,20,147,.04));border:1.5px solid rgba(255,69,0,.35);border-radius:18px;overflow:hidden;">
+      <div style="position:absolute;top:12px;right:14px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;color:#FF4500;display:flex;align-items:center;gap:6px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#FF4500;box-shadow:0 0 12px #FF4500;animation:burnBlink 1.4s infinite;"></span>
+        BURN METER · LIVE
+      </div>
+      <div style="font-family:'Bungee',sans-serif;font-size:clamp(30px,7vw,48px);letter-spacing:2px;color:#FF4500;text-shadow:0 0 18px rgba(255,69,0,.55);line-height:1;margin-top:14px;">
+        🔥 <span data-burn-amount>—</span> <span style="font-size:.4em;color:#FFE9F4;letter-spacing:3px;">CHOGI</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:2px;color:#FCD34D;margin-top:8px;">
+        <span data-burn-pct>—</span> OF <span data-burn-supply>—</span> SUPPLY · PERMANENT
+      </div>
+      <div style="margin-top:14px;height:8px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;border:1px solid rgba(255,69,0,.18);">
+        <div data-burn-bar style="height:100%;width:0;background:linear-gradient(90deg,#FF4500,#FF1493,#FCD34D);box-shadow:0 0 14px rgba(255,69,0,.55);transition:width 1s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.5);">
+          UPDATES EVERY 30s · MONAD MAINNET
+        </div>
+        <a href="/burn" style="padding:11px 22px;background:linear-gradient(135deg,#FF4500,#FF1493);color:#fff;text-decoration:none;font-family:'Bungee',sans-serif;font-size:12px;letter-spacing:2.5px;border-radius:10px;box-shadow:0 0 20px rgba(255,69,0,.45);">🔥 BURN $CHOGI</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>@keyframes burnBlink{0%,100%{opacity:1}50%{opacity:.25}}</style>
 
 <section class="buy-section">
   <div class="container">
@@ -713,5 +743,6 @@ footer .made-by a{color:var(--pink);}
   setInterval(loadDex, 30000);
 })();
 </script>
+<script src="/js/burn-meter.js"></script>
 </body>
 </html>

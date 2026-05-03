@@ -177,6 +177,7 @@ footer .links a{font-size:10px;letter-spacing:2px;}
   <div class="nav-links">
     <a href="/">HOME</a>
     <a href="/promo" style="background:linear-gradient(135deg,rgba(252,211,77,.18),rgba(255,20,147,.12));border-color:#FCD34D;color:#FCD34D;">🎬 PROMO</a>
+    <a href="/burn" style="background:linear-gradient(135deg,rgba(255,69,0,.22),rgba(255,20,147,.12));border-color:#FF4500;color:#FF4500;">🔥 BURN</a>
     <a href="/cto">CTO</a>
     <a href="/family">FAMILY</a>
     <a href="/badge">BADGE</a>
@@ -240,6 +241,20 @@ footer .links a{font-size:10px;letter-spacing:2px;}
         <div class="cb"><div class="cb-lbl">BUY PRESSURE</div><div class="cb-bar"><div class="cb-fill" id="cbBuy" style="width:0%"></div></div><div class="cb-val" id="cbBuyVal">—</div></div>
         <div class="cb"><div class="cb-lbl">CHAOS LEVEL</div><div class="cb-bar"><div class="cb-fill" id="cbChaos" style="width:0%"></div></div><div class="cb-val" id="cbChaosVal">—</div></div>
       </div>
+    </div>
+
+    <div class="panel" data-burn-meter style="border-color:rgba(255,69,0,.4);background:linear-gradient(180deg,rgba(255,69,0,.06),rgba(255,20,147,.03));">
+      <div class="panel-head"><span>🔥 INCINERATOR · BURN METER</span><span class="live" style="color:#FF4500;">ON-CHAIN</span></div>
+      <div style="font-family:'Bungee',sans-serif;font-size:clamp(26px,6vw,40px);letter-spacing:1.5px;color:#FF4500;text-shadow:0 0 16px rgba(255,69,0,.55);line-height:1;margin:6px 0 8px;">
+        <span data-burn-amount>—</span> <span style="font-size:.4em;color:#FFE9F4;letter-spacing:3px;">CHOGI</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.8px;color:#FCD34D;">
+        <span data-burn-pct>—</span> OF <span data-burn-supply>—</span> · PERMANENT
+      </div>
+      <div style="margin-top:12px;height:7px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;border:1px solid rgba(255,69,0,.18);">
+        <div data-burn-bar style="height:100%;width:0;background:linear-gradient(90deg,#FF4500,#FF1493,#FCD34D);box-shadow:0 0 12px rgba(255,69,0,.55);transition:width 1s ease;"></div>
+      </div>
+      <a href="/burn" style="display:block;margin-top:14px;padding:11px;background:linear-gradient(135deg,#FF4500,#FF1493);color:#fff;text-align:center;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2.5px;border-radius:9px;box-shadow:0 0 18px rgba(255,69,0,.4);">🔥 FEED THE FLAMES</a>
     </div>
   </div>
 
@@ -470,5 +485,6 @@ footer .links a{font-size:10px;letter-spacing:2px;}
   setInterval(loadDex, 30000);
 })();
 </script>
+<script src="/js/burn-meter.js"></script>
 </body>
 </html>
