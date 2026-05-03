@@ -14,7 +14,7 @@ The official site for **$CHOGI** — sister of Chog, mascot of mischief, born in
 **Chart:** [DexScreener](https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d)
 
 **Socials**
-- 𝕏 [@chogi_mon](https://x.com/chogi_mon)
+- 𝕏 [@Chogicto](https://x.com/chogicto)
 - Telegram: [t.me/chogicto](https://t.me/chogicto)
 
 ---
@@ -81,7 +81,7 @@ To wire up `chogi.xyz`:
 
 ## 🤝 Team
 
-- **Chogi** — CTO · Containment Breacher · [@chogi_mon](https://x.com/chogi_mon)
+- **Chogi** — CTO · Containment Breacher · [@Chogicto](https://x.com/chogicto)
 - **Chog** — Big brother · OG mascot · [chog.xyz](https://www.chog.xyz/)
 - **King Petty** — Builder · [@miggzyonbase](https://x.com/miggzyonbase)
 
