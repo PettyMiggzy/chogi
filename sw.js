@@ -3,7 +3,7 @@
              cache-first for static assets (icons, video, json).
    Versioned cache → bumping CHOGI_VERSION invalidates everything cleanly. */
 
-const CHOGI_VERSION   = 'v1.0.0-2026-05-03';
+const CHOGI_VERSION   = 'v1.1.0-notifs';
 const CACHE_RUNTIME   = 'chogi-runtime-' + CHOGI_VERSION;
 const CACHE_PRECACHE  = 'chogi-shell-'   + CHOGI_VERSION;
 
@@ -95,4 +95,39 @@ self.addEventListener('fetch', (event) => {
 /* allow page to trigger an update check */
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
+});
+
+/* notification click → open relevant page */
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // focus existing chogi tab if open
+      for (const c of clients) {
+        if (c.url && c.url.indexOf(self.location.origin) === 0 && 'focus' in c) {
+          c.navigate(url).catch(() => {});
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});
+
+/* future: real server-pushed alerts (VAPID + push subscription) */
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let payload;
+  try { payload = event.data.json(); } catch (e) { payload = { title: 'Chogi', body: event.data.text() }; }
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'Chogi', {
+      body:  payload.body || '',
+      icon:  payload.icon || '/icons/icon-192.png',
+      badge: '/icons/icon-96.png',
+      tag:   payload.tag || 'chogi',
+      data:  { url: payload.url || '/' },
+      vibrate: [80, 40, 80]
+    })
+  );
 });
