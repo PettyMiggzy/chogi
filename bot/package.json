@@ -1,0 +1,15 @@
+{
+  "name": "chogi-buybot",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.16.0",
+    "openai": "^6.15.0",
+    "telegraf": "^4.16.3"
+  }
+}
