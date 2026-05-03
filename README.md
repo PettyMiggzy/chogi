@@ -83,7 +83,7 @@ To wire up `chogi.xyz`:
 
 - **Chogi** — CTO · Containment Breacher · [@chogi_mon](https://x.com/chogi_mon)
 - **Chog** — Big brother · OG mascot · [chog.xyz](https://www.chog.xyz/)
-- **King Petty** — Builder · [@Monshi_Monpad](https://x.com/Monshi_Monpad)
+- **King Petty** — Builder · [@miggzyonbase](https://x.com/miggzyonbase)
 
 ---
 
