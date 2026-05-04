@@ -422,16 +422,99 @@ footer .made-by a{color:var(--pink);}
       <div class="brand-sub">EXPERIMENT 7777</div>
     </div>
   </a>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <a href="/comic" style="padding:9px 14px;background:linear-gradient(135deg,rgba(168,85,247,.18),rgba(255,20,147,.12));border:1.5px solid #A855F7;color:#A855F7;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">📜 COMIC</a>
-    <a href="/swap" style="padding:9px 14px;background:linear-gradient(135deg,rgba(255,69,0,.18),rgba(255,20,147,.12));border:1.5px solid #FF4500;color:#FF4500;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🔁 SWAP</a>
-    <a href="/mint" style="padding:9px 14px;background:linear-gradient(135deg,rgba(252,211,77,.18),rgba(168,85,247,.12));border:1.5px solid #A855F7;color:#FCD34D;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🧬 MINT</a>
-    <a href="/burn" style="padding:9px 14px;background:rgba(255,69,0,.12);border:1.5px solid #FF4500;color:#FF4500;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🔥 BURN</a>
-    <a href="/memes" style="padding:9px 14px;background:rgba(252,211,77,.12);border:1.5px solid #FCD34D;color:#FCD34D;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🎨 VAULT</a>
-    <a href="/lab" style="padding:9px 14px;background:rgba(34,211,238,.1);border:1.5px solid #22D3EE;color:#22D3EE;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;">🧪 LAB</a>
-    <a class="nav-cta" href="/swap">🔄 SWAP</a>
+
+  <div class="nav-desktop">
+    <a href="/swap"  class="navpill p-swap">🔁 SWAP</a>
+    <a href="/mint"  class="navpill p-mint">🧬 MINT</a>
+    <a href="/burn"  class="navpill p-burn">🔥 BURN</a>
+    <a href="/lab"   class="navpill p-lab">🧪 LAB</a>
+    <a href="/memes" class="navpill p-vault">🎨 VAULT</a>
+  </div>
+
+  <div class="nav-mobile">
+    <a href="/swap" class="nav-cta-mobile">🔁 SWAP</a>
+    <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<div class="nav-drawer" id="navDrawer" aria-hidden="true">
+  <div class="nav-drawer-inner">
+    <a href="/swap"  class="drawer-link p-swap"><span class="ico">🔁</span><div><b>SWAP</b><i>Buy / sell · 1% auto-burn</i></div></a>
+    <a href="/mint"  class="drawer-link p-mint"><span class="ico">🧬</span><div><b>MINT</b><i>Burn-to-mint · 5 tiers · soulbound</i></div></a>
+    <a href="/burn"  class="drawer-link p-burn"><span class="ico">🔥</span><div><b>BURN</b><i>Direct to the void · live meter</i></div></a>
+    <a href="/lab"   class="drawer-link p-lab"><span class="ico">🧪</span><div><b>LAB</b><i>Live dashboard · containment</i></div></a>
+    <a href="/memes" class="drawer-link p-vault"><span class="ico">🎨</span><div><b>VAULT</b><i>Memes · share · raid kit</i></div></a>
+    <div class="drawer-foot">
+      <a href="https://x.com/chogicto" target="_blank" rel="noopener">🐦 X</a>
+      <a href="https://t.me/chogicto" target="_blank" rel="noopener">💬 TG</a>
+      <a href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">📊 CHART</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.navpill{padding:9px 14px;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;border-radius:8px;border:1.5px solid;white-space:nowrap;transition:transform .12s;}
+.navpill:hover{transform:translateY(-1px);}
+.p-swap{background:linear-gradient(135deg,rgba(255,69,0,.18),rgba(255,20,147,.12));border-color:#FF4500;color:#FF4500;}
+.p-mint{background:linear-gradient(135deg,rgba(252,211,77,.18),rgba(168,85,247,.12));border-color:#A855F7;color:#FCD34D;}
+.p-burn{background:rgba(255,69,0,.12);border-color:#FF4500;color:#FF4500;}
+.p-lab{background:rgba(34,211,238,.1);border-color:#22D3EE;color:#22D3EE;}
+.p-vault{background:rgba(252,211,77,.12);border-color:#FCD34D;color:#FCD34D;}
+
+.nav-desktop{display:flex;gap:8px;align-items:center;}
+.nav-mobile{display:none;align-items:center;gap:10px;}
+
+.nav-burger{display:flex;flex-direction:column;justify-content:center;gap:5px;width:42px;height:42px;padding:0 10px;background:rgba(255,20,147,.12);border:1.5px solid rgba(255,20,147,.45);border-radius:10px;cursor:pointer;}
+.nav-burger span{display:block;height:2.5px;background:#FF1493;border-radius:2px;transition:transform .25s,opacity .15s;}
+.nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7.5px) rotate(45deg);}
+.nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0;}
+.nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
+
+.nav-cta-mobile{padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#FF4500,#FF1493);color:#fff;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.8px;box-shadow:0 0 14px rgba(255,69,0,.35);}
+
+.nav-drawer{position:fixed;inset:0;z-index:99990;background:rgba(10,1,24,.95);backdrop-filter:blur(12px);display:none;padding:90px 18px 40px;overflow-y:auto;}
+.nav-drawer.open{display:block;animation:drawerIn .25s ease;}
+@keyframes drawerIn{from{opacity:0;}to{opacity:1;}}
+.nav-drawer-inner{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+
+.drawer-link{display:flex;align-items:center;gap:14px;padding:18px 18px;border-radius:14px;border:1.5px solid;text-decoration:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.2));position:relative;}
+.drawer-link .ico{font-size:30px;line-height:1;flex-shrink:0;}
+.drawer-link b{display:block;font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;font-weight:400;}
+.drawer-link i{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(255,233,244,.55);margin-top:4px;}
+.drawer-link::after{content:'→';position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:24px;opacity:.4;color:#fff;}
+.drawer-link.p-swap{border-color:rgba(255,69,0,.55);color:#FF4500;}
+.drawer-link.p-mint{border-color:rgba(168,85,247,.55);color:#FCD34D;}
+.drawer-link.p-burn{border-color:rgba(255,69,0,.55);color:#FF4500;}
+.drawer-link.p-lab{border-color:rgba(34,211,238,.55);color:#22D3EE;}
+.drawer-link.p-vault{border-color:rgba(252,211,77,.55);color:#FCD34D;}
+
+.drawer-foot{display:flex;justify-content:center;gap:14px;margin-top:14px;padding-top:18px;border-top:1px solid rgba(255,20,147,.18);}
+.drawer-foot a{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;color:rgba(255,233,244,.7);text-decoration:none;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.04);}
+
+@media (max-width:760px){
+  .nav-desktop{display:none !important;}
+  .nav-mobile{display:flex !important;}
+  .nav{flex-wrap:nowrap !important;gap:8px !important;}
+  .brand-name{font-size:14px !important;}
+  .brand-sub{font-size:8px !important;}
+  .brand-img{width:38px !important;height:38px !important;}
+}
+</style>
+
+<script>
+(function(){
+  var btn=document.getElementById('navBurger'), dr=document.getElementById('navDrawer');
+  if(!btn||!dr) return;
+  function open(){btn.setAttribute('aria-expanded','true');dr.classList.add('open');dr.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+  function close(){btn.setAttribute('aria-expanded','false');dr.classList.remove('open');dr.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+  btn.addEventListener('click',function(){btn.getAttribute('aria-expanded')==='true'?close():open();});
+  dr.querySelectorAll('a').forEach(function(a){a.addEventListener('click',close);});
+  dr.addEventListener('click',function(e){if(e.target===dr) close();});
+  window.addEventListener('keydown',function(e){if(e.key==='Escape') close();});
+})();
+</script>
 
 <section class="hero">
   <div class="hero-bg-grid"></div>
