@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Chogi">
 <meta name="mobile-web-app-capable" content="yes">
 <title>THE VAULT · CHOGI memes · containment leaks</title>
-<meta name="description" content="Memes, lore drops, family moments, and lab footage. The Chogi vault.">
+<meta name="description" content="Memes, lore, and lab footage. The Chogi vault.">
 <meta property="og:title" content="THE VAULT · $CHOGI memes & leaks">
 <meta property="og:description" content="Containment leaks. Memes from the lab. Drop your own.">
 <meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
@@ -253,7 +253,7 @@ footer a{color:var(--pink);text-decoration:none;}
   <button class="fpill active" data-cat="all">ALL <span class="count" id="cnt-all"></span></button>
   <button class="fpill" data-cat="meme">MEMES <span class="count" id="cnt-meme"></span></button>
   <button class="fpill" data-cat="lore">LORE <span class="count" id="cnt-lore"></span></button>
-  <button class="fpill" data-cat="family">FAMILY <span class="count" id="cnt-family"></span></button>
+  <button class="fpill" data-cat="family" style="display:none"></button>
   <button class="fpill" data-cat="action">ACTION <span class="count" id="cnt-action"></span></button>
   <button class="fpill" data-cat="video">VIDEOS <span class="count" id="cnt-video"></span></button>
   <button class="fpill" data-cat="pfp">PFPS <span class="count" id="cnt-pfp"></span></button>
@@ -316,11 +316,6 @@ footer a{color:var(--pink);text-decoration:none;}
     { src:'/memes/lore-monad-chamber.jpg',   type:'image', cat:'lore',   label:'Experiment Chogi · containment chamber' },
     { src:'/memes/lore-tube-sleeping.jpg',   type:'image', cat:'lore',   label:'Subject 7777 · in the tube' },
 
-    // FAMILY (Chogi + Chog scenes)
-    { src:'/memes/family-monad-city.jpg',    type:'image', cat:'family', label:'Walking Monad City together' },
-    { src:'/memes/family-vortex.jpg',        type:'image', cat:'family', label:'Through the cosmic vortex' },
-    { src:'/memes/family-space-chains.jpg',  type:'image', cat:'family', label:'Breaking the chains in orbit' },
-
     // ACTION
     { src:'/memes/action-stadium.jpg',       type:'image', cat:'action', label:'Stadium starting line' },
     { src:'/memes/action-pool-sharks.jpg',   type:'image', cat:'action', label:'Pool · sharks circling' },
@@ -329,7 +324,7 @@ footer a{color:var(--pink);text-decoration:none;}
     { src:'/memes/pfp-chogi-purple.jpg',     type:'image', cat:'pfp',    label:'Chogi PFP · purple bg' },
 
     // VIDEOS (always show in VIDEOS filter and ALL)
-    { src:'/memes/video-lab-origin.mp4',     poster:'/memes/video-lab-origin-poster.jpg', type:'video', cat:'video', label:'Lab origin · Chog watches from the porthole' },
+    { src:'/memes/video-lab-origin.mp4',     poster:'/memes/video-lab-origin-poster.jpg', type:'video', cat:'video', label:'Lab origin · escape footage' },
     { src:'/memes/video-buy-bot.mp4',        poster:'/memes/video-buy-bot-poster.jpg',    type:'video', cat:'video', label:'Buy bot · money rain' },
     { src:'/memes/video-chogi-buy.mp4',      poster:'/memes/video-chogi-buy-poster.jpg',  type:'video', cat:'video', label:'Chogi buy · with Chog' },
     { src:'/memes/video-chog-crowd.mp4',     poster:'/memes/video-chog-crowd-poster.jpg', type:'video', cat:'video', label:'Chogi running with the chog crowd' },
