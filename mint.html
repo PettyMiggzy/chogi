@@ -258,6 +258,7 @@ footer a{color:var(--pink);text-decoration:none;}
 
 </div>
 
+<script src="/js/wallet-helper.js" defer></script>
 <script src="/js/pwa.js" defer></script>
 <script src="/js/notifications.js" defer></script>
 <script>
@@ -361,7 +362,11 @@ footer a{color:var(--pink);text-decoration:none;}
 
   /* ── connect ── */
   async function connect(){
-    if(!window.ethereum){ alert('No wallet detected. Install MetaMask, Rabby, or open in a wallet browser.'); return; }
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('No wallet detected. Install MetaMask, Rabby, or open in a wallet browser.');
+      return;
+    }
     try{
       var accounts = await window.ethereum.request({method:'eth_requestAccounts'});
       account = accounts[0];

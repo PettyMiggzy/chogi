@@ -278,6 +278,7 @@ footer a{color:var(--pink);text-decoration:none;}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script src="/js/wallet-helper.js" defer></script>
 <script src="/js/pwa.js" defer></script>
 <script src="/js/notifications.js" defer></script>
 <script>
@@ -513,7 +514,11 @@ footer a{color:var(--pink);text-decoration:none;}
   $('amountIn').addEventListener('input', onAmountChange);
 
   async function connect(){
-    if(!window.ethereum){ alert('No wallet detected. Install MetaMask, Rabby, or open in a wallet browser.'); return; }
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('No wallet detected. Install MetaMask, Rabby, or open in a wallet browser.');
+      return;
+    }
     try {
       var accs = await window.ethereum.request({method:'eth_requestAccounts'});
       var chain = await window.ethereum.request({method:'eth_chainId'});

@@ -437,7 +437,8 @@ footer a{color:var(--fire);text-decoration:none;}
   /* connect */
   async function connect(){
     if(!window.ethereum){
-      alert('No wallet detected. Install MetaMask, Rabby, or open this in a wallet browser.');
+      if(window.ChogiWallet) { ChogiWallet.requireWallet(); }
+      else alert('No wallet detected. Install MetaMask, Rabby, or open this in a wallet browser.');
       return;
     }
     try{
@@ -590,6 +591,7 @@ footer a{color:var(--fire);text-decoration:none;}
 })();
 </script>
 
+<script src="/js/wallet-helper.js" defer></script>
 <script src="/js/pwa.js" defer></script>
 <script src="/js/notifications.js" defer></script>
 </body>
