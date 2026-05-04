@@ -136,10 +136,13 @@
     showAndroidBtn();
   });
 
-  /* iOS Safari has no beforeinstallprompt; show manual instructions on first visit */
+  /* iOS Safari has no beforeinstallprompt; install sheet only shown
+     when user explicitly clicks the install nav link. NEVER auto-popup —
+     auto-popups with "tap share → add to home" instructions match
+     social-engineering patterns and trip browser security classifiers. */
   if (isIOS) {
-    // delay so it doesn't fight first paint
-    setTimeout(showIOSSheet, 2500);
+    // expose for manual trigger only
+    window.chogiShowIOSInstall = showIOSSheet;
   }
 
   /* clear button once installed */
