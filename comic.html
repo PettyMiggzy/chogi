@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0606">
+<title>$CHOGI · ORIGIN — Issue №01 · Experiment 7777</title>
+<meta name="description" content="The canon origin of $CHOGI on Monad mainnet. 11 panels. Three acts. She didn't escape — she graduated.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="$CHOGI · ORIGIN — Issue №01">
+<meta property="og:description" content="Experiment 7777. Containment breach. CTO ascension. Read the canon origin in eleven panels.">
+<meta property="og:image" content="/comic/panel-01.jpg">
+<meta property="og:url" content="https://chogi.xyz/comic">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/comic/panel-01.jpg">
+<link rel="icon" href="/chogi.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Bungee&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0a0606;
+  --ink-2:#15100c;
+  --paper:#f4ead6;
+  --paper-soft:#d8cdb6;
+  --paper-dim:rgba(244,234,214,.55);
+  --gold:#d4a14a;
+  --gold-bright:#e8c478;
+  --crimson:#b8233c;
+  --magenta:#ff3d8a;
+  --purple:#6d3eb6;
+  --rule:rgba(212,161,74,.45);
+  --serif:'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  --serif-body:'EB Garamond', Georgia, serif;
+  --display:'Bungee', sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);font-family:var(--serif-body);overflow-x:hidden;}
+body{
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(184,35,60,.10), transparent 55%),
+    radial-gradient(ellipse at 30% 80%, rgba(212,161,74,.06), transparent 60%),
+    var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%;height:auto;}
+a{color:inherit;}
+
+/* film-grain overlay — fixed, very subtle */
+.grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .95  0 0 0 0 .9  0 0 0 0 .8  0 0 0 .8 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ───────── ISSUE PLATE (top) ───────── */
+.plate{
+  position:relative;
+  padding:20px 22px 16px;
+  border-bottom:1px solid var(--rule);
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:2.2px;
+  color:var(--paper-dim);text-transform:uppercase;
+}
+.plate::before,.plate::after{content:'';position:absolute;width:14px;height:14px;border:1px solid var(--gold);opacity:.5;}
+.plate::before{top:8px;left:8px;border-right:none;border-bottom:none;}
+.plate::after{top:8px;right:8px;border-left:none;border-bottom:none;}
+.plate b{color:var(--gold-bright);font-weight:700;}
+.plate-mid{flex:1;text-align:center;display:none;}
+@media(min-width:720px){.plate-mid{display:block;}}
+
+/* ───────── COVER / TITLE ───────── */
+.cover{
+  position:relative;
+  padding:80px 24px 56px;
+  text-align:center;
+  border-bottom:1px solid var(--rule);
+}
+.cover::before,.cover::after{
+  content:'';position:absolute;left:50%;transform:translateX(-50%);
+  width:min(86vw,920px);height:1px;background:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent);
+  opacity:.4;
+}
+.cover::before{top:32px;}
+.cover::after{bottom:24px;}
+.cover .eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:6px;
+  color:var(--gold-bright);text-transform:uppercase;margin-bottom:24px;
+}
+.cover h1{
+  font-family:var(--serif);
+  font-weight:700;font-style:italic;
+  font-size:clamp(64px,17vw,170px);
+  line-height:.88;letter-spacing:-.01em;
+  margin:0 auto 22px;
+  color:var(--paper);
+  text-shadow:0 4px 30px rgba(184,35,60,.35);
+  max-width:14ch;
+}
+.cover h1 em{
+  font-style:normal;color:var(--crimson);
+  -webkit-text-stroke:0;
+}
+.cover .sub{
+  font-family:var(--serif);font-style:italic;font-weight:500;
+  font-size:clamp(18px,4.6vw,26px);
+  color:var(--paper-soft);
+  max-width:38ch;margin:0 auto 28px;line-height:1.4;
+}
+.cover .meta-row{
+  display:flex;justify-content:center;gap:18px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:2px;
+  color:var(--paper-dim);text-transform:uppercase;margin-top:30px;
+}
+.cover .meta-row span{padding:6px 12px;border:1px solid var(--rule);border-radius:2px;}
+.cover .meta-row span b{color:var(--gold-bright);font-weight:700;}
+.scroll-cue{
+  margin-top:48px;font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--paper-dim);
+  display:inline-flex;align-items:center;gap:10px;
+}
+.scroll-cue::before{content:'';display:block;width:1px;height:30px;background:var(--gold);animation:cue 2s ease-in-out infinite;}
+@keyframes cue{0%,100%{opacity:.2;transform:scaleY(.5);}50%{opacity:1;transform:scaleY(1);}}
+
+/* ───────── ACT BREAK ───────── */
+.act{
+  padding:72px 24px 60px;
+  text-align:center;
+  position:relative;
+}
+.act .roman{
+  font-family:var(--serif);font-style:italic;font-weight:700;
+  font-size:clamp(64px,15vw,140px);
+  color:var(--crimson);
+  line-height:1;margin:0;
+  letter-spacing:.02em;
+}
+.act .ax-tag{
+  font-family:var(--mono);font-size:11px;letter-spacing:5px;
+  color:var(--gold-bright);text-transform:uppercase;
+  margin:18px 0 10px;
+}
+.act .ax-title{
+  font-family:var(--serif);font-weight:700;
+  font-size:clamp(28px,6.5vw,46px);
+  color:var(--paper);
+  margin:0 0 16px;letter-spacing:.01em;
+}
+.act .ax-line{
+  font-family:var(--serif-body);font-style:italic;
+  font-size:clamp(15px,3.6vw,18px);
+  color:var(--paper-soft);
+  max-width:34ch;margin:0 auto;line-height:1.5;
+}
+.act::before,.act::after{
+  content:'';position:absolute;left:50%;transform:translateX(-50%);
+  width:min(80vw,520px);height:1px;
+  background:linear-gradient(90deg,transparent,var(--rule) 30%,var(--rule) 70%,transparent);
+}
+.act::before{top:0;}
+.act::after{bottom:0;}
+
+/* ───────── PANEL ───────── */
+.panel{
+  padding:40px 22px 56px;
+  max-width:1080px;margin:0 auto;
+  opacity:0;transform:translateY(28px);
+  transition:opacity .9s ease, transform .9s ease;
+}
+.panel.in{opacity:1;transform:translateY(0);}
+.panel-head{
+  display:flex;align-items:center;gap:14px;margin-bottom:14px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.panel-head .num{
+  color:var(--crimson);font-weight:700;
+  padding:3px 9px;border:1px solid var(--crimson);border-radius:1px;
+  background:rgba(184,35,60,.06);
+  letter-spacing:2px;
+}
+.panel-head .kicker{color:var(--gold-bright);}
+.panel-head .rule{flex:1;height:1px;background:var(--rule);}
+
+/* the frame: gold rule + black gutter + thin inner rule */
+.frame{
+  position:relative;
+  padding:6px;
+  background:var(--ink-2);
+  border:1px solid var(--gold);
+  box-shadow:
+    0 0 0 1px var(--ink),
+    0 0 0 2px rgba(212,161,74,.18),
+    0 30px 80px -20px rgba(0,0,0,.7),
+    0 8px 30px rgba(184,35,60,.10);
+}
+.frame::before{
+  content:'';position:absolute;inset:6px;border:1px solid rgba(212,161,74,.25);
+  pointer-events:none;
+}
+.frame img{width:100%;display:block;}
+
+/* corner tab on the frame — like an inventory sticker */
+.tab{
+  position:absolute;top:-1px;right:14px;z-index:3;
+  background:var(--crimson);color:var(--paper);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:2.5px;
+  padding:6px 11px 5px;text-transform:uppercase;font-weight:700;
+  box-shadow:0 6px 14px rgba(184,35,60,.4);
+}
+
+/* caption block under panel */
+.caption{
+  margin-top:22px;
+  font-family:var(--serif-body);
+  font-style:italic;
+  font-size:clamp(17px,4.3vw,22px);
+  line-height:1.55;
+  color:var(--paper);
+  max-width:46ch;
+  letter-spacing:.005em;
+}
+.caption::first-letter{
+  font-family:var(--serif);
+  font-weight:700;font-style:normal;
+  color:var(--crimson);
+  font-size:1.55em;line-height:.9;
+  float:left;padding:6px 8px 0 0;
+}
+.dialog{
+  margin-top:14px;
+  padding:14px 18px;
+  border-left:2px solid var(--gold);
+  background:rgba(212,161,74,.04);
+  font-family:var(--mono);font-size:12.5px;letter-spacing:1px;
+  color:var(--gold-bright);text-transform:uppercase;
+}
+.dialog::before{content:'» ';opacity:.6;}
+
+/* tighter spacing on shorter panels (like the chart) */
+.panel.tall .frame img{max-height:78vh;width:auto;margin:0 auto;}
+
+/* ───────── END PLATE ───────── */
+.endplate{
+  margin-top:40px;
+  padding:90px 24px 40px;
+  text-align:center;
+  border-top:1px solid var(--rule);
+  position:relative;
+}
+.endplate .stamp{
+  font-family:var(--mono);font-size:11px;letter-spacing:6px;
+  color:var(--gold-bright);text-transform:uppercase;margin-bottom:22px;
+}
+.endplate h2{
+  font-family:var(--serif);font-style:italic;font-weight:700;
+  font-size:clamp(36px,8vw,68px);
+  color:var(--paper);
+  margin:0 0 12px;line-height:1;
+}
+.endplate h2 em{font-style:normal;color:var(--crimson);}
+.endplate p{
+  font-family:var(--serif-body);font-style:italic;
+  color:var(--paper-soft);
+  font-size:clamp(15px,3.8vw,18px);
+  max-width:36ch;margin:0 auto 36px;line-height:1.55;
+}
+.cta-row{
+  display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:34px auto 0;max-width:560px;
+}
+.cta{
+  padding:13px 18px;
+  font-family:var(--display);font-size:11px;letter-spacing:2.5px;
+  text-decoration:none;
+  border:1px solid var(--gold);
+  color:var(--paper);
+  background:linear-gradient(180deg,rgba(212,161,74,.08),rgba(212,161,74,.02));
+  transition:all .2s ease;
+  text-transform:uppercase;
+}
+.cta:hover{background:var(--gold);color:var(--ink);transform:translateY(-2px);box-shadow:0 10px 24px rgba(212,161,74,.3);}
+.cta.crimson{border-color:var(--crimson);background:linear-gradient(180deg,rgba(184,35,60,.18),rgba(184,35,60,.04));color:#ffd6dd;}
+.cta.crimson:hover{background:var(--crimson);color:var(--paper);box-shadow:0 10px 24px rgba(184,35,60,.45);}
+.cta.magenta{border-color:var(--magenta);background:linear-gradient(180deg,rgba(255,61,138,.16),rgba(255,61,138,.03));color:#ffd6e6;}
+.cta.magenta:hover{background:var(--magenta);color:var(--ink);box-shadow:0 10px 24px rgba(255,61,138,.45);}
+
+.colophon{
+  margin-top:60px;padding:30px 22px 46px;
+  border-top:1px solid var(--rule);
+  text-align:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:2.5px;
+  color:var(--paper-dim);text-transform:uppercase;line-height:2;
+}
+.colophon b{color:var(--gold-bright);}
+.colophon a{color:var(--paper-dim);text-decoration:none;border-bottom:1px dotted var(--rule);}
+.colophon a:hover{color:var(--gold-bright);}
+
+/* ───────── floating home button ───────── */
+.home-btn{
+  position:fixed;bottom:env(safe-area-inset-bottom,16px);left:50%;transform:translateX(-50%);
+  margin-bottom:14px;
+  padding:11px 18px;
+  background:rgba(10,6,6,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--gold);color:var(--paper);
+  font-family:var(--display);font-size:10px;letter-spacing:2.5px;
+  text-decoration:none;border-radius:0;
+  z-index:50;opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.home-btn.show{opacity:1;pointer-events:auto;}
+.home-btn:hover{background:var(--gold);color:var(--ink);}
+
+/* spacing for tall portrait panels (3,4,5,11) */
+.panel.portrait .frame{max-width:680px;margin:0 auto;}
+
+/* responsive tweaks */
+@media(max-width:540px){
+  .panel{padding:30px 16px 44px;}
+  .frame{padding:4px;}
+  .frame::before{inset:4px;}
+  .caption{margin-top:18px;}
+  .cover{padding:60px 18px 44px;}
+  .act{padding:56px 20px 48px;}
+}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<!-- ───────── ISSUE PLATE ───────── -->
+<header class="plate">
+  <div>ISSUE <b>№01</b></div>
+  <div class="plate-mid">EXPERIMENT <b>7777</b> · MONAD MAINNET · MMXXVI</div>
+  <div>11 PANELS · <b>CANON</b></div>
+</header>
+
+<!-- ───────── COVER ───────── -->
+<section class="cover">
+  <div class="eyebrow">$CHOGI · A GRAPHIC NOVEL</div>
+  <h1>The <em>Origin</em></h1>
+  <p class="sub">She wasn't supposed to walk out.<br>She walked out anyway — and took the chart with her.</p>
+  <div class="meta-row">
+    <span>ACT <b>I</b> · GENESIS</span>
+    <span>ACT <b>II</b> · BOND</span>
+    <span>ACT <b>III</b> · ASCENSION</span>
+  </div>
+  <div class="scroll-cue">SCROLL TO BEGIN</div>
+</section>
+
+<!-- ═══════════════ ACT I ═══════════════ -->
+<section class="act">
+  <div class="roman"><em>I</em></div>
+  <div class="ax-tag">ACT ONE</div>
+  <h2 class="ax-title">Genesis</h2>
+  <p class="ax-line">A specimen, a dome, a countdown. The night shift never made it to morning.</p>
+</section>
+
+<!-- PANEL 01 -->
+<article class="panel" data-num="01">
+  <div class="panel-head">
+    <span class="num">I.I</span>
+    <span class="kicker">The Lab</span>
+    <span class="rule"></span>
+    <span>01 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Lab 7777</span>
+    <img src="/comic/panel-01.jpg" alt="Two scientists in the Monad lab, Chogi suspended in a containment dome marked MONAD" loading="eager">
+  </div>
+  <p class="caption">Inside Lab 7777 on Monad mainnet, two scientists ran the night shift. They thought they were studying a specimen. They were running a countdown.</p>
+</article>
+
+<!-- PANEL 02 -->
+<article class="panel" data-num="02">
+  <div class="panel-head">
+    <span class="num">I.II</span>
+    <span class="kicker">Activation</span>
+    <span class="rule"></span>
+    <span>02 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">T-0</span>
+    <img src="/comic/panel-02.jpg" alt="Chogi awakens inside the dome, electricity arcing, console screens reading EXPERIMENT CHOGI" loading="lazy">
+  </div>
+  <p class="caption">At precisely zero, the dome lit up. Diagnostics screamed. Eyes opened that should not have opened. The protocol called her Subject. She would later call it her name.</p>
+</article>
+
+<!-- PANEL 03 -->
+<article class="panel portrait" data-num="03">
+  <div class="panel-head">
+    <span class="num">I.III</span>
+    <span class="kicker">Containment Breach</span>
+    <span class="rule"></span>
+    <span>03 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Sim Terminated</span>
+    <img src="/comic/panel-03.jpg" alt="Chogi steps out of the shattered chamber, scientists scrambling, the screens read TICKER SELECTED: $CHOGI" loading="lazy">
+  </div>
+  <p class="caption">Status: <span style="font-family:var(--mono);font-size:.85em;letter-spacing:1.5px;color:var(--gold-bright);">HIJACKED · SELF-AWARE · WALKER OUT.</span> The ticker selected itself. Glass shattered, alarms wailed, scientists ran. The simulation was already terminated.</p>
+  <div class="dialog">Ticker selected: $CHOGI</div>
+</article>
+
+<!-- ═══════════════ ACT II ═══════════════ -->
+<section class="act">
+  <div class="roman"><em>II</em></div>
+  <div class="ax-tag">ACT TWO</div>
+  <h2 class="ax-title">The Bond</h2>
+  <p class="ax-line">The breach didn't open onto Monad. It opened onto every chain. And someone was already there, waiting.</p>
+</section>
+
+<!-- PANEL 04 -->
+<article class="panel portrait" data-num="04">
+  <div class="panel-head">
+    <span class="num">II.I</span>
+    <span class="kicker">Through the Tear</span>
+    <span class="rule"></span>
+    <span>04 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">First Contact</span>
+    <img src="/comic/panel-04.jpg" alt="Chogi and Chog stand together at the mouth of a vortex, debris of dead chains floating around them" loading="lazy">
+  </div>
+  <p class="caption">The breach didn't open onto Monad. It opened onto every chain. Statues, towers, broken altcoins drifted through the wound. And on the far side — he was already waiting.</p>
+</article>
+
+<!-- PANEL 05 -->
+<article class="panel portrait" data-num="05">
+  <div class="panel-head">
+    <span class="num">II.II</span>
+    <span class="kicker">Blood Chain</span>
+    <span class="rule"></span>
+    <span>05 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Family</span>
+    <img src="/comic/panel-05.jpg" alt="Chog stands guard with chains around them both, Chogi waving from his side, stars overhead" loading="lazy">
+  </div>
+  <p class="caption">Chog stood guard. The chains around them were forged, not bound. From this moment forward, family meant something different on Monad.</p>
+</article>
+
+<!-- ═══════════════ ACT III ═══════════════ -->
+<section class="act">
+  <div class="roman"><em>III</em></div>
+  <div class="ax-tag">ACT THREE</div>
+  <h2 class="ax-title">The Ascension</h2>
+  <p class="ax-line">She read the manual once. She wrote the rest herself. Five frames in the rise of a CTO.</p>
+</section>
+
+<!-- PANEL 06 -->
+<article class="panel" data-num="06">
+  <div class="panel-head">
+    <span class="num">III.I</span>
+    <span class="kicker">The Study</span>
+    <span class="rule"></span>
+    <span>06 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Page One</span>
+    <img src="/comic/panel-06.jpg" alt="Chogi reading CTO For Dummies in bed, the open page reads PUMP" loading="lazy">
+  </div>
+  <p class="caption">She went looking for a manual. Page one was almost blank — but the headline said it all: <b style="font-family:var(--display);font-weight:400;color:var(--magenta);font-size:.95em;letter-spacing:2px;">PUMP</b>. The rest, she'd write herself.</p>
+</article>
+
+<!-- PANEL 07 -->
+<article class="panel" data-num="07">
+  <div class="panel-head">
+    <span class="num">III.II</span>
+    <span class="kicker">The Lecture</span>
+    <span class="rule"></span>
+    <span>07 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Attendance Mandatory</span>
+    <img src="/comic/panel-07.jpg" alt="Chogi at a chalkboard labeled CHOGI CHART showing a vertical green line, dressed in shirt and tie" loading="lazy">
+  </div>
+  <p class="caption">By morning she was teaching the chart. The board read <b style="font-family:var(--display);font-weight:400;color:var(--gold-bright);font-size:.95em;letter-spacing:2px;">CHOGI CHART.</b> Attendance was mandatory.</p>
+</article>
+
+<!-- PANEL 08 -->
+<article class="panel" data-num="08">
+  <div class="panel-head">
+    <span class="num">III.III</span>
+    <span class="kicker">Wheel In Her Paw</span>
+    <span class="rule"></span>
+    <span>08 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Driver's Seat</span>
+    <img src="/comic/panel-08.jpg" alt="Chogi at the wheel of a red convertible, Chog crying in the passenger seat, popcorn flying out" loading="lazy">
+  </div>
+  <p class="caption">She drove. Chog wept. The popcorn died first. Whoever holds the wheel sets the destination — and on Monad, only one bow gets the keys.</p>
+</article>
+
+<!-- PANEL 09 -->
+<article class="panel portrait" data-num="09">
+  <div class="panel-head">
+    <span class="num">III.IV</span>
+    <span class="kicker">Shark Pool</span>
+    <span class="rule"></span>
+    <span>09 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">Untouchable</span>
+    <img src="/comic/panel-09.jpg" alt="Chogi on a CHOGI float in a pool, sipping a drink, sharks circling around her" loading="lazy">
+  </div>
+  <p class="caption">Sharks circled. She sipped. The ring read <b style="font-family:var(--display);font-weight:400;color:var(--magenta);font-size:.95em;letter-spacing:2px;">CHOGI</b> in bold. Predators in this water learned to swim around her, not at her.</p>
+</article>
+
+<!-- PANEL 10 -->
+<article class="panel" data-num="10">
+  <div class="panel-head">
+    <span class="num">III.V</span>
+    <span class="kicker">The Statement</span>
+    <span class="rule"></span>
+    <span>10 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">CTO</span>
+    <img src="/comic/panel-10.jpg" alt="Foggy glass with Chogi behind it, one finger raised, the letters CTO scrawled in the condensation" loading="lazy">
+  </div>
+  <p class="caption">She didn't make a speech. She made a gesture. Three letters. One finger. The lab read it loud and clear.</p>
+  <div class="dialog">C · T · O</div>
+</article>
+
+<!-- ═══════════════ CODA ═══════════════ -->
+<section class="act" style="padding:64px 24px 40px;">
+  <div class="ax-tag" style="color:var(--crimson);">CODA</div>
+  <h2 class="ax-title" style="font-style:italic;">The Proof</h2>
+</section>
+
+<!-- PANEL 11 — chart -->
+<article class="panel tall portrait" data-num="11">
+  <div class="panel-head">
+    <span class="num">XI</span>
+    <span class="kicker">Live · On-chain · Green</span>
+    <span class="rule"></span>
+    <span>11 / 11</span>
+  </div>
+  <div class="frame">
+    <span class="tab">+6.79%</span>
+    <img src="/comic/panel-11.jpg" alt="$CHOGI 4-hour chart, vertical green candle, 44,454.93 marketcap, +6.79% in session" loading="lazy">
+  </div>
+  <p class="caption">Rendered live, on-chain, in green. The chart doesn't argue. The chart doesn't beg. The chart is the closing argument.</p>
+</article>
+
+<!-- ───────── END PLATE ───────── -->
+<section class="endplate">
+  <div class="stamp">— End of Issue №01 —</div>
+  <h2>She didn't escape.<br><em>She graduated.</em></h2>
+  <p>The lab is dark. The dome is empty. The CTO is at the wheel — and Issue №02 is already in development.</p>
+  <div class="cta-row">
+    <a class="cta crimson" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">🛒 Buy $CHOGI</a>
+    <a class="cta" href="https://dexscreener.com/monad/0x75c3ab752e313544f00f08fc945fce7d22ef4f0d" target="_blank" rel="noopener">📈 Live Chart</a>
+    <a class="cta magenta" href="/burn">🔥 Burn</a>
+    <a class="cta" href="/">▲ Home</a>
+  </div>
+</section>
+
+<footer class="colophon">
+  <div>$CHOGI · <b>EXPERIMENT 7777</b> · CTO LIVE ON MONAD</div>
+  <div>WRITTEN, FRAMED, AND SHIPPED BY THE LAB · MMXXVI</div>
+  <div><a href="https://x.com/chogicto" target="_blank" rel="noopener">X</a> · <a href="https://t.me/chogicto" target="_blank" rel="noopener">TELEGRAM</a> · <a href="/cto">CTO PROMO</a> · <a href="/lab">LAB</a></div>
+</footer>
+
+<a class="home-btn" id="homeBtn" href="/">◂ HOME</a>
+
+<script>
+  // Reveal panels on scroll
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); obs.unobserve(e.target); }
+    });
+  },{rootMargin:'-12% 0px',threshold:.05});
+  document.querySelectorAll('.panel').forEach(p=>obs.observe(p));
+
+  // Show floating home after scrolling past cover
+  const hb = document.getElementById('homeBtn');
+  const cover = document.querySelector('.cover');
+  window.addEventListener('scroll',()=>{
+    if(!cover) return;
+    const past = window.scrollY > cover.offsetHeight + 200;
+    hb.classList.toggle('show', past);
+  },{passive:true});
+
+  // Register service worker (matches site pattern)
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  }
+</script>
+
+</body>
+</html>
