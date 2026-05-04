@@ -50,7 +50,7 @@ contract ChogiSwapBurner {
     // ─── constants ──────────────────────────────────────────────
     address public constant CHOGI  = 0x5E1b1A14c8758104B8560514e94ab8320e587777;
     address public constant WMON   = 0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A;
-    address public constant ROUTER = 0xfe31f71c1b106eac32f1a19239c9a9a72ddfb900;
+    address public constant ROUTER = 0xfE31F71C1b106EAc32F1A19239c9a9A72ddfb900;
     address public constant DEAD   = 0x000000000000000000000000000000000000dEaD;
 
     uint16 public constant MAX_BURN_BPS = 1000; // 10%
