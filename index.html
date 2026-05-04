@@ -12,7 +12,11 @@
 <meta name="apple-mobile-web-app-title" content="Chogi">
 <meta name="mobile-web-app-capable" content="yes">
 <title>CHOGI · Experiment 7777 escaped on Monad</title>
-<meta name="description" content="Born from an experiment. Now she's loose on Monad. $CHOGI — sister of Chog, mascot of mischief.">
+<meta name="description" content="Chogi is an open-source community memecoin on the Monad blockchain. Self-custody, on-chain, transparent. Source code: github.com/PettyMiggzy/chogi. See /security for full transparency. $CHOGI — sister of Chog, mascot of mischief.">
+<link rel="canonical" href="https://chogi.xyz/">
+<meta name="application-name" content="Chogi">
+<meta name="author" content="Chogi Community">
+<meta property="og:site_name" content="Chogi">
 <meta property="og:title" content="CHOGI · Experiment 7777">
 <meta property="og:description" content="An experiment sparked her existence. Now she's ready to take over Monad 💜">
 <meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
@@ -544,6 +548,54 @@ footer .made-by a{color:var(--pink);}
     <span>BUYS 24H <b id="lsBuys">—</b></span>
   </div>
 </div>
+
+<div class="trust-strip" role="note" aria-label="Project transparency">
+  <div class="trust-strip-inner">
+    <div class="trust-item">
+      <span class="trust-ico" aria-hidden="true">🔒</span>
+      <div>
+        <b>Self-custody.</b>
+        <span>Sign in your own wallet — chogi.xyz never sees your keys, seed phrase, or password.</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <span class="trust-ico" aria-hidden="true">📖</span>
+      <div>
+        <b>Open-source.</b>
+        <span>Every line of code is public. <a href="https://github.com/PettyMiggzy/chogi" target="_blank" rel="noopener">GitHub repo</a> · <a href="/security">security &amp; transparency</a></span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <span class="trust-ico" aria-hidden="true">🔗</span>
+      <div>
+        <b>On-chain.</b>
+        <span>$CHOGI is an ERC-20 on the public Monad blockchain. Trades happen on independent decentralized exchanges, not on this site.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.trust-strip{
+  background:linear-gradient(180deg,rgba(168,85,247,.06),rgba(255,20,147,.03));
+  border-top:1px solid rgba(168,85,247,.2);
+  border-bottom:1px solid rgba(168,85,247,.2);
+  padding:18px 16px;
+  font-family:'Inter',system-ui,sans-serif;
+}
+.trust-strip-inner{
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+}
+.trust-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;color:rgba(255,233,244,.85)}
+.trust-item .trust-ico{font-size:18px;line-height:1;flex-shrink:0;margin-top:1px}
+.trust-item b{display:block;color:#FFF4D6;font-weight:600;margin-bottom:2px;font-size:13px}
+.trust-item a{color:#FF69B4;text-decoration:underline}
+.trust-item a:hover{color:#FF1493}
+@media(max-width:760px){
+  .trust-strip-inner{grid-template-columns:1fr;gap:14px}
+}
+</style>
 
 <section id="origin">
   <div class="container">
