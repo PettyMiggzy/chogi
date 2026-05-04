@@ -3,7 +3,7 @@
              cache-first for static assets (icons, video, json).
    Versioned cache → bumping CHOGI_VERSION invalidates everything cleanly. */
 
-const CHOGI_VERSION   = 'v1.10.1-panel-640';
+const CHOGI_VERSION   = 'v1.11.0-safety-hardening';
 const CACHE_RUNTIME   = 'chogi-runtime-' + CHOGI_VERSION;
 const CACHE_PRECACHE  = 'chogi-shell-'   + CHOGI_VERSION;
 
@@ -17,6 +17,7 @@ const PRECACHE_URLS = [
   '/mint.html',
   '/swap.html',
   '/comic.html',
+  '/security.html',
   '/swap.html',
   '/family.html',
   '/badge.html',

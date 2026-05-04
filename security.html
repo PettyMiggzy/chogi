@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Security & Transparency · Chogi</title>
+<meta name="description" content="Chogi is an open community memecoin on the Monad blockchain. This page lists every smart contract, every external service, and explains exactly what the site does and does not do.">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="Security & Transparency · Chogi">
+<meta property="og:description" content="Open documentation of contracts, scripts, and security practices for chogi.xyz.">
+<meta property="og:url" content="https://chogi.xyz/security">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="/chogi.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0118;
+  --bg-2:#160830;
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --purple:#A855F7;
+  --cream:#FFF4D6;
+  --text:#FFE9F4;
+  --text-dim:rgba(255,233,244,.7);
+  --rule:rgba(168,85,247,.3);
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:var(--sans);background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,20,147,.10), transparent 55%),
+    radial-gradient(ellipse at 30% 80%, rgba(168,85,247,.06), transparent 60%),
+    var(--bg);color:var(--text);min-height:100vh;line-height:1.55;
+}
+a{color:var(--pink-soft);text-decoration:none}
+a:hover{color:var(--pink);text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:32px 22px 80px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);font-weight:700}
+.brand img{width:32px;height:32px;border-radius:50%}
+.back{color:var(--text-dim);font-size:14px}
+h1{font-size:32px;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--text-dim);font-size:15px;margin-bottom:32px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em}
+h2{font-size:20px;margin:36px 0 12px;color:var(--cream);font-weight:700}
+p{margin:0 0 14px;color:var(--text)}
+ul{padding-left:22px;margin:0 0 14px}
+li{margin-bottom:8px}
+code,.addr{font-family:var(--mono);font-size:13px;background:rgba(168,85,247,.1);padding:2px 7px;border-radius:4px;color:var(--pink-soft);word-break:break-all}
+.card{
+  background:linear-gradient(180deg,rgba(168,85,247,.08),rgba(255,20,147,.04));
+  border:1px solid var(--rule);border-radius:14px;padding:20px 22px;margin:18px 0;
+}
+.card h2{margin-top:0}
+.label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:4px}
+.row{margin-bottom:14px}
+hr{border:none;border-top:1px solid var(--rule);margin:32px 0}
+.footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--rule);color:var(--text-dim);font-size:13px;text-align:center}
+.footer a{color:var(--text-dim)}
+.warn-box{
+  background:rgba(255,20,147,.08);
+  border:1px solid rgba(255,20,147,.3);
+  border-radius:10px;padding:14px 16px;margin:14px 0;
+  color:var(--cream);
+}
+.warn-box strong{color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="brand" href="/"><img src="/chogi.png" alt="Chogi"> chogi.xyz</a>
+  <a class="back" href="/">← home</a>
+</header>
+
+<h1>Security &amp; Transparency</h1>
+<div class="sub">Public documentation · last updated May 4, 2026</div>
+
+<p><b>Chogi</b> is a community memecoin project on the <a href="https://monad.xyz" target="_blank" rel="noopener">Monad blockchain</a>. This page documents exactly how the site works, what data it touches, and what it does not do. It exists so anyone — users, browser security teams, or auditors — can verify the site at a glance.</p>
+
+<div class="warn-box">
+  <strong>What chogi.xyz never asks for:</strong> seed phrases, private keys, passwords, credit card numbers, government ID, or any login credential. We never ask you to download software or browser extensions. We do not store personal data on a server.
+</div>
+
+<h2>How the site works</h2>
+<p>chogi.xyz is a static website that displays content and lets users interact with public smart contracts on the Monad blockchain. When you click "Connect Wallet," your browser-installed wallet (e.g. MetaMask, Rabby) opens its own permission prompt — chogi.xyz never sees your private key. When you click "Approve" or "Mint," the transaction is constructed by the page and signed inside your wallet, exactly as it would be on any decentralized application.</p>
+<p>Every transaction shows you the exact destination contract, the function being called, and the cost before you sign. You are always in control.</p>
+
+<h2>Contracts (public, on-chain, verifiable)</h2>
+
+<div class="card">
+  <div class="row">
+    <div class="label">$CHOGI Token (ERC-20)</div>
+    <div class="addr" id="addr-chogi">— see explorer link below —</div>
+    <div style="margin-top:6px"><a href="https://monadexplorer.com/" target="_blank" rel="noopener">View on Monad Explorer →</a></div>
+  </div>
+  <div class="row">
+    <div class="label">Burn Address (irreversible)</div>
+    <div class="addr">0x000000000000000000000000000000000000dEaD</div>
+  </div>
+  <div class="row">
+    <div class="label">Lab Subjects NFT (soulbound, ERC-721)</div>
+    <div>Deployed contract address is shown on <a href="/mint">/mint</a> at connect time. View source: <a href="https://github.com/PettyMiggzy/chogi/blob/main/contracts/ChogiLabSubjects.sol" target="_blank" rel="noopener">ChogiLabSubjects.sol on GitHub</a>.</div>
+  </div>
+</div>
+
+<h2>External services used</h2>
+<p>chogi.xyz makes network requests to a small, fixed set of well-known third parties. There are no analytics trackers, no advertising scripts, and no embedded iframes that could redirect or harvest input.</p>
+<ul>
+  <li><b>fonts.googleapis.com / fonts.gstatic.com</b> — Google Fonts (typography)</li>
+  <li><b>rpc.monad.xyz</b> — official Monad public RPC (read blockchain state)</li>
+  <li><b>monadexplorer.com</b> — block explorer (transaction links)</li>
+  <li><b>x.com (Twitter), t.me (Telegram)</b> — social profile links only, opened in new tab</li>
+</ul>
+<p>That's the entire list. You can verify by viewing the page source on any chogi.xyz page (right-click → View Source).</p>
+
+<h2>What the wallet pages do</h2>
+<ul>
+  <li><b>/mint</b> — calls <code>mintByBurning(tier)</code> on the Lab Subjects NFT contract. This pulls $CHOGI from your wallet (you approve the amount first) and forwards it to the burn address, then mints a soulbound NFT to your wallet.</li>
+  <li><b>/burn</b> — calls a transfer of $CHOGI from your wallet to the burn address. Reduces supply.</li>
+  <li><b>/swap</b> — opens the public Monad DEX swap router for the $CHOGI/MON pair. The trade happens through the DEX, not chogi.xyz.</li>
+</ul>
+<p>None of these pages can move funds without a signature from your own wallet. None of them request your seed phrase or password.</p>
+
+<h2>Source code</h2>
+<p>The site is open source. You can read every line of HTML, JavaScript, and Solidity at <a href="https://github.com/PettyMiggzy/chogi" target="_blank" rel="noopener">github.com/PettyMiggzy/chogi</a>. The smart contracts are deployable and verifiable on Monad Explorer.</p>
+
+<h2>Reporting concerns</h2>
+<p>If you believe a page is misbehaving or you see content that looks impersonating, please reach out via the project's verified social channels (linked from the homepage footer). For browser-flag reports, please verify chogi.xyz is currently in <a href="https://transparencyreport.google.com/safe-browsing/search?url=chogi.xyz" target="_blank" rel="noopener">Google Safe Browsing's transparency database</a>.</p>
+
+<hr>
+
+<p style="color:var(--text-dim);font-size:13px;font-style:italic">This document is provided in the interest of openness. It does not constitute financial, legal, or investment advice. Memecoins are volatile and may go to zero. Only interact with amounts you can afford to lose.</p>
+
+<div class="footer">
+  <a href="/">home</a> · <a href="/mint">mint</a> · <a href="/burn">burn</a> · <a href="/lab">lab</a> · <a href="https://github.com/PettyMiggzy/chogi" target="_blank" rel="noopener">github</a>
+</div>
+
+</div>
+</body>
+</html>
