@@ -102,32 +102,82 @@ function escapeMd(s) { return String(s).replace(/[_*[\]()~`>#+=|{}.!-]/g, m => '
 
 // ── Tier scaling (theatrical buy levels) ─────────────────────
 function buyTier(usd) {
-  if (usd >= 5000) return { label: 'WHALE BUY · CONTAINMENT BREACH', emoji: '🚨🚨🚨', breach: true };
-  if (usd >= 1000) return { label: 'BIG BUY · CONTAINED',           emoji: '🐋',     breach: false };
-  if (usd >= 200)  return { label: 'BUY · LAB SECURE',               emoji: '🚀',     breach: false };
-  if (usd >= 50)   return { label: 'BUY',                            emoji: '🟢',     breach: false };
-  return                  { label: 'small buy',                     emoji: '🟢',     breach: false };
+  if (usd >= 10000) return { label: 'MEGA WHALE · CONTAINMENT BREACH',  emoji: '🚨', breach: true,  rockets: 15, level: 4 };
+  if (usd >= 5000)  return { label: 'WHALE BUY · CONTAINMENT BREACH',   emoji: '🚨', breach: true,  rockets: 10, level: 3 };
+  if (usd >= 1000)  return { label: 'BIG BUY · CONTAINED',              emoji: '🐋', breach: false, rockets: 6,  level: 2 };
+  if (usd >= 200)   return { label: 'BUY · LAB SECURE',                 emoji: '🚀', breach: false, rockets: 3,  level: 1 };
+  if (usd >= 50)    return { label: 'BUY',                              emoji: '🟢', breach: false, rockets: 1,  level: 0 };
+  return                   { label: 'small buy',                        emoji: '🟢', breach: false, rockets: 0,  level: 0 };
 }
 
 // ── Buy alert composer ───────────────────────────────────────
 function composeBuyMsg(buy, usd) {
   const t = buyTier(usd);
   const priceLine = usdCache.priceUsd > 0 ? `$${usdCache.priceUsd.toFixed(8)}` : '—';
-  const mc = usdCache.mcUsd > 0 ? fmtUsd(usdCache.mcUsd) : '—';
-  const ch = fmtPct(usdCache.change24h);
+  const mc  = usdCache.mcUsd > 0 ? fmtUsd(usdCache.mcUsd) : '—';
+  const ch  = fmtPct(usdCache.change24h);
+  const vol = fmtUsd(usdCache.volume24h);
 
-  const head = t.breach
-    ? `${t.emoji} *${t.label}* ${t.emoji}\n\n*${fmtNum(buy.monHuman)} MON spent* · ${fmtUsd(usd)}\n*${fmtNum(buy.chogiHuman)} CHOGI* contained`
-    : `${t.emoji} *${t.label} · $CHOGI*\n\n💸 *${fmtNum(buy.monHuman)} MON* spent (${fmtUsd(usd)})\n🧪 *${fmtNum(buy.chogiHuman)} CHOGI* received`;
+  const rocketLine = t.rockets > 0 ? '🚀'.repeat(t.rockets) : '';
 
-  return [
+  let head;
+  if (t.level === 4) {
+    head = [
+      `🚨🚨🚨 *MEGA WHALE BUY* 🚨🚨🚨`,
+      `*CONTAINMENT BREACH · ALL HANDS*`,
+      ``,
+      `🐋🐋🐋  $CHOGI  🐋🐋🐋`,
+      ``,
+      `💸 *${fmtNum(buy.monHuman)} MON spent*`,
+      `💵 *${fmtUsd(usd)}*`,
+      `🧪 *${fmtNum(buy.chogiHuman)} CHOGI* secured`,
+    ].join('\n');
+  } else if (t.level === 3) {
+    head = [
+      `🚨🚨 *WHALE BUY · $CHOGI* 🚨🚨`,
+      `*CONTAINMENT BREACH*`,
+      ``,
+      `🐋  scientists deployed  🐋`,
+      ``,
+      `💸 *${fmtNum(buy.monHuman)} MON spent*`,
+      `💵 *${fmtUsd(usd)}*`,
+      `🧪 *${fmtNum(buy.chogiHuman)} CHOGI* contained`,
+    ].join('\n');
+  } else if (t.level === 2) {
+    head = [
+      `🐋 *BIG BUY · $CHOGI* 🐋`,
+      ``,
+      `💸 *${fmtNum(buy.monHuman)} MON* spent (${fmtUsd(usd)})`,
+      `🧪 *${fmtNum(buy.chogiHuman)} CHOGI* received`,
+    ].join('\n');
+  } else if (t.level === 1) {
+    head = [
+      `🚀 *BUY · $CHOGI* 🚀`,
+      ``,
+      `💸 *${fmtNum(buy.monHuman)} MON* spent (${fmtUsd(usd)})`,
+      `🧪 *${fmtNum(buy.chogiHuman)} CHOGI* received`,
+    ].join('\n');
+  } else {
+    head = [
+      `🟢 *buy · $CHOGI*`,
+      ``,
+      `💸 ${fmtNum(buy.monHuman)} MON (${fmtUsd(usd)})`,
+      `🧪 ${fmtNum(buy.chogiHuman)} CHOGI received`,
+    ].join('\n');
+  }
+
+  const lines = [
     head,
+    rocketLine,
     ``,
-    `💵 Price: ${priceLine}`,
-    `📊 MC: ${mc}  ·  24h: ${ch}`,
+    `💵 Price: \`${priceLine}\``,
+    `📊 MC: *${mc}*  ·  24h: *${ch}*`,
+    `💱 Vol: ${vol}`,
     `👤 ${short(buy.recipient)}`,
     `🔗 [view tx](${config.explorer}/tx/${buy.txHash})`,
-  ].join('\n');
+  ];
+
+  return lines.filter(Boolean).join('\n');
 }
 
 // ── Burn alert composer ──────────────────────────────────────
@@ -171,6 +221,63 @@ async function safeSend(text, opts = {}) {
   }
 }
 
+// Send a video/animation with caption, falling back to text-only if the file is missing
+import fs from 'fs';
+const BUY_VIDEO_PATH = './buy.mp4';
+let buyVideoFileId = null;     // cached after first upload — reuse for speed
+
+async function sendBuyAlert(captionText, replyMarkup) {
+  const now = Date.now();
+  const wait = Math.max(0, lastSendAt + TG_MIN_GAP_MS - now);
+  if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  lastSendAt = Date.now();
+
+  const opts = {
+    caption: captionText,
+    parse_mode: 'Markdown',
+    ...replyMarkup,
+  };
+
+  // 1) Reuse cached file_id if we have one (instant, no upload)
+  if (buyVideoFileId) {
+    try {
+      return await bot.telegram.sendVideo(CHAT_ID, buyVideoFileId, opts);
+    } catch (e) {
+      console.warn('[sendBuyAlert] cached file_id failed, re-uploading:', e.message);
+      buyVideoFileId = null;
+    }
+  }
+
+  // 2) Upload from disk if buy.mp4 exists
+  if (fs.existsSync(BUY_VIDEO_PATH)) {
+    try {
+      const res = await bot.telegram.sendVideo(CHAT_ID, { source: BUY_VIDEO_PATH }, opts);
+      // Cache the file_id from response so subsequent sends are instant
+      const v = res?.video || res?.animation;
+      if (v?.file_id) buyVideoFileId = v.file_id;
+      return res;
+    } catch (e) {
+      console.error('[sendBuyAlert] video send err:', e.message);
+      // fall through to text-only
+    }
+  }
+
+  // 3) Fallback: text-only
+  try {
+    return await bot.telegram.sendMessage(CHAT_ID, captionText, {
+      parse_mode: 'Markdown',
+      disable_web_page_preview: true,
+      ...replyMarkup,
+    });
+  } catch (e) {
+    console.error('[sendBuyAlert] text fallback err:', e.message);
+    if (/parse|markdown/i.test(e.message)) {
+      try { return await bot.telegram.sendMessage(CHAT_ID, captionText.replace(/[*_`]/g,''), { disable_web_page_preview: true, ...replyMarkup }); }
+      catch (e2) { console.error('[sendBuyAlert] plain retry err:', e2.message); }
+    }
+  }
+}
+
 // ── Buy / burn handlers ──────────────────────────────────────
 async function handleBuy(buy) {
   await refreshUsd();
@@ -183,7 +290,7 @@ async function handleBuy(buy) {
   }
 
   const msg = composeBuyMsg(buy, usdReal);
-  await safeSend(msg, { ...buyKeyboard });
+  await sendBuyAlert(msg, buyKeyboard);
   console.log(`[buy] alerted · ${buy.chogiHuman.toFixed(0)} CHOGI · ${usdReal.toFixed(2)} USD · ${short(buy.recipient)}`);
 }
 

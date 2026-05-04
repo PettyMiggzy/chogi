@@ -43,7 +43,7 @@
     s.id = 'chogi-install-style';
     s.textContent =
       '#chogi-install-btn{' +
-        'position:fixed;bottom:18px;right:18px;z-index:9999;' +
+        'position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));right:18px;z-index:9999;' +
         'display:none;align-items:center;gap:8px;' +
         'padding:11px 16px;' +
         'background:linear-gradient(135deg,#FF1493,#A855F7);' +

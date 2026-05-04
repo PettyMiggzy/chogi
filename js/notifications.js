@@ -183,7 +183,9 @@
     if(document.getElementById('chogi-bell-style')) return;
     var s = document.createElement('style'); s.id='chogi-bell-style';
     s.textContent =
-      '#chogi-bell{position:fixed;bottom:18px;left:18px;z-index:9998;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,20,147,.5);background:linear-gradient(135deg,#1a0436,#2a0855);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 18px rgba(255,20,147,.25);transition:all .2s;font-family:system-ui;}'+
+      /* prevent bell + install pill from covering page footer */
+      'body{padding-bottom:max(90px,env(safe-area-inset-bottom,0px));}'+
+      '#chogi-bell{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:18px;z-index:9998;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,20,147,.5);background:linear-gradient(135deg,#1a0436,#2a0855);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 18px rgba(255,20,147,.25);transition:all .2s;font-family:system-ui;}'+
       '#chogi-bell:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 24px rgba(255,20,147,.45);}'+
       '#chogi-bell.on{border-color:#FCD34D;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 18px rgba(252,211,77,.5);animation:cBellPulse 2.6s infinite;}'+
       '@keyframes cBellPulse{0%,100%{box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 0 rgba(252,211,77,.4);}50%{box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 8px rgba(252,211,77,0);}}'+

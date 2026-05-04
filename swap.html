@@ -131,9 +131,9 @@ body::after{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;bac
 
 .flip-btn{
   display:block;margin:6px auto;
-  width:36px;height:36px;border-radius:50%;
+  width:44px;height:44px;border-radius:50%;
   background:rgba(255,20,147,.12);border:1.5px solid rgba(255,20,147,.4);
-  color:var(--pink);cursor:pointer;font-size:16px;
+  color:var(--pink);cursor:pointer;font-size:18px;
   transition:transform .25s,background .15s;
 }
 .flip-btn:hover{background:rgba(255,20,147,.22);transform:rotate(180deg);}
@@ -144,8 +144,8 @@ body::after{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;bac
 .details .row.fire b{color:var(--fire);}
 .details .row.gold b{color:var(--gold);}
 
-.slip-row{display:flex;align-items:center;gap:8px;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
-.slip-row .pill{padding:5px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;color:#fff;font-size:10px;}
+.slip-row{display:flex;align-items:center;gap:8px;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-wrap:wrap;}
+.slip-row .pill{padding:9px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;cursor:pointer;color:#fff;font-size:11px;letter-spacing:.5px;min-height:36px;display:inline-flex;align-items:center;}
 .slip-row .pill.active{border-color:var(--pink);color:var(--pink);background:rgba(255,20,147,.1);}
 
 .action-btn{
