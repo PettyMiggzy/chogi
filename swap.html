@@ -110,8 +110,24 @@ body::after{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;bac
   border:1px solid rgba(255,255,255,.12);border-radius:10px;
   font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;
 }
-.swap-row .token-emoji{font-size:18px;line-height:1;}
+.swap-row .token-emoji{font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center;}
+.swap-row .token-emoji img{width:22px;height:22px;border-radius:50%;display:block;object-fit:cover;}
 .swap-row.out input{color:var(--gold);}
+
+/* connected pill */
+.connect-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:20px;
+  background:rgba(74,222,128,.12);
+  border:1px solid rgba(74,222,128,.4);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  color:var(--green);
+  margin-bottom:14px;
+}
+.connect-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.connect-pill.off{background:rgba(255,69,0,.08);border-color:rgba(255,69,0,.4);color:var(--fire);}
+.connect-pill.off .dot{background:var(--fire);box-shadow:0 0 8px var(--fire);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 
 .flip-btn{
   display:block;margin:6px auto;
@@ -189,6 +205,11 @@ footer a{color:var(--pink);text-decoration:none;}
 
 <div class="card">
 
+  <div id="connectPill" class="connect-pill off">
+    <span class="dot"></span>
+    <span id="connectText">WALLET NOT CONNECTED · TAP BELOW</span>
+  </div>
+
   <div class="tabs">
     <div class="tab buy active" data-mode="buy">BUY $CHOGI</div>
     <div class="tab sell" data-mode="sell">SELL $CHOGI</div>
@@ -201,7 +222,7 @@ footer a{color:var(--pink);text-decoration:none;}
     </div>
     <div class="input-row">
       <input type="text" id="amountIn" placeholder="0.0" inputmode="decimal" autocomplete="off">
-      <span class="token"><span class="token-emoji" id="emojiIn">🔵</span><span id="tokenIn">MON</span></span>
+      <span class="token"><span class="token-emoji" id="emojiIn"><img src="/monad-logo.png" alt="MON"></span><span id="tokenIn">MON</span></span>
     </div>
   </div>
 
@@ -214,7 +235,7 @@ footer a{color:var(--pink);text-decoration:none;}
     </div>
     <div class="input-row">
       <input type="text" id="amountOut" placeholder="0.0" readonly>
-      <span class="token"><span class="token-emoji" id="emojiOut">🧪</span><span id="tokenOut">CHOGI</span></span>
+      <span class="token"><span class="token-emoji" id="emojiOut"><img src="/chogi.png" alt="CHOGI"></span><span id="tokenOut">CHOGI</span></span>
     </div>
   </div>
 
@@ -326,12 +347,14 @@ footer a{color:var(--pink);text-decoration:none;}
   });
 
   function paintTokens(){
+    var monLogo   = '<img src="/monad-logo.png" alt="MON">';
+    var chogiLogo = '<img src="/chogi.png" alt="CHOGI">';
     if(mode === 'buy'){
-      $('tokenIn').textContent = 'MON';   $('emojiIn').textContent = '🔵';
-      $('tokenOut').textContent = 'CHOGI'; $('emojiOut').textContent = '🧪';
+      $('tokenIn').textContent = 'MON';   $('emojiIn').innerHTML  = monLogo;
+      $('tokenOut').textContent = 'CHOGI'; $('emojiOut').innerHTML = chogiLogo;
     } else {
-      $('tokenIn').textContent = 'CHOGI'; $('emojiIn').textContent = '🧪';
-      $('tokenOut').textContent = 'MON';  $('emojiOut').textContent = '🔵';
+      $('tokenIn').textContent = 'CHOGI'; $('emojiIn').innerHTML  = chogiLogo;
+      $('tokenOut').textContent = 'MON';  $('emojiOut').innerHTML = monLogo;
     }
     paintBalances();
   }
@@ -428,7 +451,13 @@ footer a{color:var(--pink);text-decoration:none;}
 
   function paintAction(){
     var btn = $('actionBtn');
-    if(!signer){ btn.textContent = 'CONNECT WALLET'; btn.disabled = false; return; }
+    if(!signer){
+      btn.textContent = '🟣 CONNECT WALLET';
+      btn.disabled = false;
+      btn.dataset.role = 'connect';
+      return;
+    }
+    btn.dataset.role = 'swap';
     if(!validBurner()){ btn.textContent = 'CONTRACT NOT DEPLOYED'; btn.disabled = true; return; }
     if(!bestQuote){ btn.textContent = mode === 'buy' ? 'ENTER MON AMOUNT' : 'ENTER CHOGI AMOUNT'; btn.disabled = true; return; }
     btn.disabled = false;
@@ -484,27 +513,36 @@ footer a{color:var(--pink);text-decoration:none;}
   $('amountIn').addEventListener('input', onAmountChange);
 
   async function connect(){
-    if(!window.ethereum){ alert('No wallet detected.'); return; }
-    var accs = await window.ethereum.request({method:'eth_requestAccounts'});
-    var chain = await window.ethereum.request({method:'eth_chainId'});
-    if(chain !== CHAIN_HEX){
-      try{
-        await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
-      }catch(e){
-        if(e.code===4902){
-          await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
-            chainId:CHAIN_HEX,chainName:'Monad',
-            nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
-            rpcUrls:[RPC],blockExplorerUrls:['https://monadexplorer.com']
-          }]});
-        } else { throw e; }
+    if(!window.ethereum){ alert('No wallet detected. Install MetaMask, Rabby, or open in a wallet browser.'); return; }
+    try {
+      var accs = await window.ethereum.request({method:'eth_requestAccounts'});
+      var chain = await window.ethereum.request({method:'eth_chainId'});
+      if(chain !== CHAIN_HEX){
+        try{
+          await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
+        }catch(e){
+          if(e.code===4902){
+            await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+              chainId:CHAIN_HEX,chainName:'Monad',
+              nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+              rpcUrls:[RPC],blockExplorerUrls:['https://monadexplorer.com']
+            }]});
+          } else { throw e; }
+        }
       }
+      var bp = new ethers.BrowserProvider(window.ethereum);
+      signer = await bp.getSigner();
+      wallet = accs[0];
+      // paint connected pill
+      var pill = $('connectPill');
+      pill.classList.remove('off');
+      $('connectText').textContent = 'CONNECTED · ' + wallet.slice(0,6) + '…' + wallet.slice(-4);
+      paintBalances();
+      paintAction();
+    } catch(e) {
+      console.error('[connect] err', e);
+      alert('Connect failed: ' + (e.shortMessage || e.message || 'unknown error'));
     }
-    var bp = new ethers.BrowserProvider(window.ethereum);
-    signer = await bp.getSigner();
-    wallet = accs[0];
-    paintBalances();
-    paintAction();
   }
 
   function status(kind, html){
@@ -566,7 +604,14 @@ footer a{color:var(--pink);text-decoration:none;}
       paintAction();
     }
   }
-  $('actionBtn').addEventListener('click', execute);
+  $('actionBtn').addEventListener('click', async function(){
+    var btn = $('actionBtn');
+    if(btn.dataset.role === 'connect' || !signer){
+      await connect();
+      return;
+    }
+    await execute();
+  });
 
   loadMeter();
   setInterval(loadMeter, 60000);
@@ -574,7 +619,10 @@ footer a{color:var(--pink);text-decoration:none;}
 
   if(window.ethereum){
     window.ethereum.request({method:'eth_accounts'}).then(function(a){
-      if(a && a.length){ connect(); }
+      if(a && a.length){
+        // already authorized — restore connected state without re-prompting
+        connect().catch(function(e){ console.warn('auto-connect:', e?.message); });
+      }
     });
   }
 })();
