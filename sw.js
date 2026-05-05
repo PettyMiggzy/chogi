@@ -3,7 +3,7 @@
              cache-first for static assets (icons, video, json).
    Versioned cache → bumping CHOGI_VERSION invalidates everything cleanly. */
 
-const CHOGI_VERSION   = 'v1.16.0-marketplace';
+const CHOGI_VERSION   = 'v1.17.0-add-token';
 const CACHE_RUNTIME   = 'chogi-runtime-' + CHOGI_VERSION;
 const CACHE_PRECACHE  = 'chogi-shell-'   + CHOGI_VERSION;
 
@@ -30,7 +30,8 @@ const PRECACHE_URLS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/js/burn-meter.js',
-  '/js/wallet-helper.js'
+  '/js/wallet-helper.js',
+  '/js/add-token.js'
 ];
 
 self.addEventListener('install', (event) => {
