@@ -190,58 +190,64 @@ main, header{position:relative;z-index:2}
   position:relative;z-index:2;
 }
 
-/* COSMETIC OVERLAY LAYERS — positioned over the pet image */
+/* COSMETIC OVERLAY LAYERS — positioned over the pet image
+   Each slot is a fixed BOX. The item image shrinks to fit inside the box
+   via object-fit:contain. So even if Grok drew an item full-canvas, it
+   scales down to the slot size. */
 .cosmetic-layer{
   position:absolute;
   pointer-events:none;
   object-fit:contain;
-  animation:petBob 4s ease-in-out infinite;
   z-index:5;
 }
-/* HEAD — sits on top of head, ~upper third */
+/* HEAD — small, sits on/replaces the existing bow on top of pet's head */
 .cosmetic-layer[data-slot="head"]{
-  width:38%;
-  top:8%;
+  width:22%;
+  height:18%;
+  top:4%;
   left:50%;
   transform:translateX(-50%);
   z-index:8;
+  animation:petBob 4s ease-in-out infinite;
 }
-/* OUTFIT — covers torso, ~middle */
+/* OUTFIT — slim box covering torso area only */
 .cosmetic-layer[data-slot="outfit"]{
-  width:50%;
-  top:42%;
+  width:30%;
+  height:28%;
+  top:46%;
   left:50%;
   transform:translateX(-50%);
   z-index:6;
+  animation:petBob 4s ease-in-out infinite;
 }
-/* BOOTS — at the feet */
+/* BOOTS — small box at the feet */
 .cosmetic-layer[data-slot="boots"]{
-  width:42%;
-  bottom:13%;
+  width:22%;
+  height:14%;
+  bottom:14%;
   left:50%;
   transform:translateX(-50%);
   z-index:7;
-}
-/* ACCESSORY — beside hand, lower right */
-.cosmetic-layer[data-slot="acc"]{
-  width:30%;
-  bottom:22%;
-  right:14%;
-  z-index:7;
-}
-@keyframes petBob{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-10px)}
-}
-/* head overlay shifts independently of bobbing */
-.cosmetic-layer[data-slot="head"]{
   animation:petBob 4s ease-in-out infinite;
 }
+/* ACCESSORY — small held item to the side */
 .cosmetic-layer[data-slot="acc"]{
-  /* keep right offset, just bob */
-  animation:petBobRight 4s ease-in-out infinite;
+  width:18%;
+  height:18%;
+  bottom:28%;
+  right:16%;
+  z-index:7;
+  animation:petBob 4s ease-in-out infinite;
 }
-@keyframes petBobRight{
+@keyframes petBob{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(-10px)}
+}
+/* acc has different transform origin — no x-translate */
+.cosmetic-layer[data-slot="acc"]{
+  animation:petBobAcc 4s ease-in-out infinite;
+}
+@keyframes petBobAcc{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
 }
