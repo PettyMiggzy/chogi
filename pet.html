@@ -189,65 +189,7 @@ main, header{position:relative;z-index:2}
   animation:petBob 4s ease-in-out infinite;
   position:relative;z-index:2;
 }
-
-/* COSMETIC OVERLAY LAYERS — positioned over the pet image
-   Each slot is a fixed BOX. The item image shrinks to fit inside the box
-   via object-fit:contain. So even if Grok drew an item full-canvas, it
-   scales down to the slot size. */
-.cosmetic-layer{
-  position:absolute;
-  pointer-events:none;
-  object-fit:contain;
-  z-index:5;
-}
-/* HEAD — small, sits on/replaces the existing bow on top of pet's head */
-.cosmetic-layer[data-slot="head"]{
-  width:22%;
-  height:18%;
-  top:4%;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:8;
-  animation:petBob 4s ease-in-out infinite;
-}
-/* OUTFIT — slim box covering torso area only */
-.cosmetic-layer[data-slot="outfit"]{
-  width:30%;
-  height:28%;
-  top:46%;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:6;
-  animation:petBob 4s ease-in-out infinite;
-}
-/* BOOTS — small box at the feet */
-.cosmetic-layer[data-slot="boots"]{
-  width:22%;
-  height:14%;
-  bottom:14%;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:7;
-  animation:petBob 4s ease-in-out infinite;
-}
-/* ACCESSORY — small held item to the side */
-.cosmetic-layer[data-slot="acc"]{
-  width:18%;
-  height:18%;
-  bottom:28%;
-  right:16%;
-  z-index:7;
-  animation:petBob 4s ease-in-out infinite;
-}
 @keyframes petBob{
-  0%,100%{transform:translateX(-50%) translateY(0)}
-  50%{transform:translateX(-50%) translateY(-10px)}
-}
-/* acc has different transform origin — no x-translate */
-.cosmetic-layer[data-slot="acc"]{
-  animation:petBobAcc 4s ease-in-out infinite;
-}
-@keyframes petBobAcc{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
 }
@@ -485,6 +427,7 @@ main, header{position:relative;z-index:2}
   display:block;color:var(--ink-faint);font-size:8.5px;
   letter-spacing:.13em;margin-bottom:5px;font-weight:600;
 }
+.pet-img.prime{
   animation:petBob 4s ease-in-out infinite, holoShift 6s linear infinite;
 }
 @keyframes holoShift{
@@ -547,10 +490,6 @@ main, header{position:relative;z-index:2}
       <div class="portrait-inner">
         <div class="pet-img-wrap">
           <img class="pet-img" id="petImg" src="/pet-assets/baby-chogi.png" alt="">
-          <img class="cosmetic-layer" id="cosmeticHead"   data-slot="head"   src="" alt="" style="display:none">
-          <img class="cosmetic-layer" id="cosmeticOutfit" data-slot="outfit" src="" alt="" style="display:none">
-          <img class="cosmetic-layer" id="cosmeticBoots"  data-slot="boots"  src="" alt="" style="display:none">
-          <img class="cosmetic-layer" id="cosmeticAcc"    data-slot="acc"    src="" alt="" style="display:none">
         </div>
 
         <!-- GROWTH PROGRESS -->
@@ -876,23 +815,17 @@ main, header{position:relative;z-index:2}
     $('dayStamp').textContent = 'DAY '+pet.days_alive+' / 30';
     $('stageStamp').textContent = stage.toUpperCase() + (stage === 'adult' ? ' · ' + calcPersonality(pet).toUpperCase() : '');
 
-    // ─── COSMETIC OVERLAYS ───
+    // ─── LOADOUT SLOTS (beside pet, not on pet) ───
     var eq = pet.cosmetics || {};
     var slots = ['head','outfit','boots','acc'];
-    var layerIds = {head:'cosmeticHead', outfit:'cosmeticOutfit', boots:'cosmeticBoots', acc:'cosmeticAcc'};
     var slotElIds = {head:'slotHead', outfit:'slotOutfit', boots:'slotBoots', acc:'slotAcc'};
     slots.forEach(function(s){
-      var layer = $(layerIds[s]);
       var slotEl = $(slotElIds[s]);
       var itemId = eq[s];
       if(itemId){
-        layer.src = '/marketplace/items/'+itemId+'.png';
-        layer.style.display = '';
         slotEl.classList.add('equipped');
         slotEl.innerHTML = '<img src="/marketplace/items/'+itemId+'.png" alt="">';
       } else {
-        layer.style.display = 'none';
-        layer.src = '';
         slotEl.classList.remove('equipped');
         var defaults = {head:['🎀','HEAD'], outfit:['👕','OUTFIT'], boots:['👟','BOOTS'], acc:['🎒','ACC']};
         slotEl.innerHTML = '<span class="ico">'+defaults[s][0]+'</span><span class="lbl">'+defaults[s][1]+'</span>';
