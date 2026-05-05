@@ -497,7 +497,7 @@ main, header{position:relative;z-index:2}
 
       <div class="portrait-inner">
         <div class="pet-img-wrap">
-          <img class="pet-img" id="petImg" src="/pet-assets/baby-chogi.jpg" alt="">
+          <img class="pet-img" id="petImg" src="/pet-assets/baby-chogi.png" alt="">
           <img class="cosmetic-layer" id="cosmeticHead"   data-slot="head"   src="" alt="" style="display:none">
           <img class="cosmetic-layer" id="cosmeticOutfit" data-slot="outfit" src="" alt="" style="display:none">
           <img class="cosmetic-layer" id="cosmeticBoots"  data-slot="boots"  src="" alt="" style="display:none">
@@ -759,10 +759,10 @@ main, header{position:relative;z-index:2}
     var imgSrc;
     if(stage === 'adult'){
       var personality = calcPersonality(pet);
-      imgSrc = '/pet-assets/adult-' + personality + '-' + pet.type + '.jpg';
+      imgSrc = '/pet-assets/adult-' + personality + '-' + pet.type + '.png';
       $('petImg').classList.toggle('prime', personality === 'prime');
     } else {
-      imgSrc = '/pet-assets/' + stage + '-' + pet.type + '.jpg';
+      imgSrc = '/pet-assets/' + stage + '-' + pet.type + '.png';
       $('petImg').classList.remove('prime');
     }
     $('petImg').src = imgSrc;
