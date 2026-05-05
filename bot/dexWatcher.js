@@ -32,7 +32,6 @@ const TRANSFER_TOPIC = ethers.id('Transfer(address,address,uint256)');
 
 const STATE_FILE = './dexwatcher_state.json';
 const MAX_BACKFILL_BLOCKS = 50000;   // ~7 hours on Monad
-const BACKFILL_PAGE_SIZE  = 95;      // public Monad RPC limits to 100/range
 const RECENT_TX_CAP       = 200;
 
 const POOL_LOWER  = config.pool.toLowerCase();
@@ -51,9 +50,15 @@ function saveState(s) {
 
 function buildProviderList() {
   const list = [];
-  if (process.env.RPC_URL && process.env.RPC_URL.trim()) list.push(process.env.RPC_URL.trim());
-  if (process.env.RPC_URL_2 && process.env.RPC_URL_2.trim()) list.push(process.env.RPC_URL_2.trim());
+  // Public Monad RPC PRIMARY (free, no rate limits for normal traffic)
   if (!list.includes(config.rpcHttp)) list.push(config.rpcHttp);
+  // QuickNode (and any extra) as FALLBACK — kicks in when public hits a limit
+  if (process.env.RPC_URL && process.env.RPC_URL.trim() && !list.includes(process.env.RPC_URL.trim())) {
+    list.push(process.env.RPC_URL.trim());
+  }
+  if (process.env.RPC_URL_2 && process.env.RPC_URL_2.trim() && !list.includes(process.env.RPC_URL_2.trim())) {
+    list.push(process.env.RPC_URL_2.trim());
+  }
   return list;
 }
 
@@ -242,17 +247,24 @@ export function startDexWatcher({ onBuy, onBurn }) {
   }
 
   // ── backfill missed blocks since last run ─────────────────────
+  // Adaptive chunk size: starts large (favoring QuickNode's 10K+ allowance),
+  // drops to 95 when public Monad RPC's 100-block limit is hit, and grows
+  // back gradually when calls succeed.
+  let currentChunkSize = 5000;
+  const CHUNK_SMALL = 95;     // public Monad RPC limit
+  const CHUNK_LARGE = 5000;   // QuickNode-friendly
+
   async function backfill() {
     try {
       const head = await httpProvider.getBlockNumber();
       const fromBlock = Math.max(state.lastBlock + 1, head - MAX_BACKFILL_BLOCKS);
       if (fromBlock > head) return;
 
-      console.log(`[dexWatcher] backfilling ${fromBlock} → ${head}`);
+      console.log(`[dexWatcher] backfilling ${fromBlock} → ${head} (chunk=${currentChunkSize})`);
 
       let cursor = fromBlock;
       while (cursor <= head) {
-        const end = Math.min(cursor + BACKFILL_PAGE_SIZE - 1, head);
+        const end = Math.min(cursor + currentChunkSize - 1, head);
 
         // swaps
         try {
@@ -261,9 +273,18 @@ export function startDexWatcher({ onBuy, onBurn }) {
             fromBlock: cursor, toBlock: end
           });
           for (const log of swapLogs) await handleSwapLog(log);
-        } catch (e) { console.warn('[dexWatcher] swap backfill err:', e.message); }
+          // success — try growing chunk back toward LARGE if currently small
+          if (currentChunkSize < CHUNK_LARGE) currentChunkSize = Math.min(CHUNK_LARGE, currentChunkSize * 2);
+        } catch (e) {
+          console.warn('[dexWatcher] swap backfill err:', e.message);
+          if (/range|limit|too many/i.test(e.message) && currentChunkSize > CHUNK_SMALL) {
+            console.log('[dexWatcher] shrinking chunk size:', currentChunkSize, '->', CHUNK_SMALL);
+            currentChunkSize = CHUNK_SMALL;
+            continue; // retry from same cursor with smaller chunk
+          }
+        }
 
-        // burns
+        // burns (separate try so a failure doesn't break swap backfill)
         try {
           const xferLogs = await httpProvider.getLogs({
             address: config.token,
@@ -271,7 +292,14 @@ export function startDexWatcher({ onBuy, onBurn }) {
             fromBlock: cursor, toBlock: end
           });
           for (const log of xferLogs) await handleTransferLog(log);
-        } catch (e) { console.warn('[dexWatcher] burn backfill err:', e.message); }
+        } catch (e) {
+          console.warn('[dexWatcher] burn backfill err:', e.message);
+          if (/range|limit|too many/i.test(e.message) && currentChunkSize > CHUNK_SMALL) {
+            console.log('[dexWatcher] shrinking chunk size:', currentChunkSize, '->', CHUNK_SMALL);
+            currentChunkSize = CHUNK_SMALL;
+            continue;
+          }
+        }
 
         cursor = end + 1;
       }
