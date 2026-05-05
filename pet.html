@@ -115,6 +115,67 @@ main, header{position:relative;z-index:2}
 .dash{
   max-width:1200px;margin:0 auto;padding:32px 22px 80px;
 }
+/* PET SWITCHER (multi-pet pill row) */
+.pet-switcher{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  margin-bottom:18px;padding:10px 14px;
+  background:rgba(168,85,247,.06);
+  border:1px solid var(--rule);border-radius:14px;
+}
+.pet-switcher .ps-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.32em;
+  color:var(--ink-faint);font-weight:700;text-transform:uppercase;
+  padding-right:6px;
+}
+.pet-switcher .ps-pet{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 12px;border-radius:99px;
+  background:rgba(0,0,0,.3);border:1.5px solid var(--rule);
+  cursor:pointer;transition:.2s;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  color:var(--ink-dim);font-weight:600;text-transform:uppercase;
+}
+.pet-switcher .ps-pet:hover{border-color:var(--pink);color:var(--pink)}
+.pet-switcher .ps-pet.active{
+  background:linear-gradient(135deg,rgba(255,20,147,.2),rgba(168,85,247,.2));
+  border-color:var(--pink);color:var(--cream);
+  box-shadow:0 0 18px rgba(255,20,147,.25);
+}
+.pet-switcher .ps-pet .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--pink);
+}
+.pet-switcher .ps-pet[data-type="chog"] .dot{background:var(--purple)}
+.pet-switcher .ps-pet.critical .dot{
+  background:var(--red);
+  animation:critPulse 1s ease-in-out infinite;
+}
+@keyframes critPulse{50%{opacity:.3}}
+.pet-switcher .ps-add{
+  padding:7px 14px;border-radius:99px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;font-family:var(--display);font-size:10px;letter-spacing:1.4px;
+  text-decoration:none;
+}
+.pet-switcher .ps-add:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,20,147,.4)}
+.pet-switcher .ps-cap-note{
+  font-family:var(--mono);font-size:9px;color:var(--ink-faint);
+  letter-spacing:.13em;margin-left:auto;
+}
+
+/* CRITICAL TIMER BANNER */
+.crit-banner{
+  background:linear-gradient(90deg,rgba(255,107,138,.15),rgba(255,20,147,.1));
+  border:1.5px solid var(--red);
+  border-radius:11px;padding:11px 16px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  color:var(--red);font-weight:700;text-transform:uppercase;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+  animation:critPulse 2s ease-in-out infinite;
+}
+.crit-banner b{color:#fff}
+
 .pet-head{
   display:flex;justify-content:space-between;align-items:flex-end;
   margin-bottom:24px;flex-wrap:wrap;gap:14px;
@@ -467,6 +528,9 @@ main, header{position:relative;z-index:2}
 <!-- DASHBOARD -->
 <section class="dash" id="dashState" style="display:none">
 
+  <!-- PET SWITCHER — pill row of all owned pets, click to swap active -->
+  <div id="petSwitcher" class="pet-switcher" style="display:none"></div>
+
   <div class="pet-head">
     <div class="pet-titleblock">
       <div class="label">▸ Subject <span id="subjectId">7777</span> · <span id="petTypeLbl">CHOGI</span></div>
@@ -715,19 +779,42 @@ main, header{position:relative;z-index:2}
     t._to = setTimeout(function(){t.classList.remove('show');}, 2800);
   }
 
-  /* ─── pet store (uses ChogiPetStore: cloud + localStorage fallback) ─── */
-  function getPet(addr){
-    if(!addr) return null;
-    return window.ChogiPetStore ? window.ChogiPetStore.getLocal(addr) : null;
+  /* ─── pet store (multi-pet aware) ─── */
+  var allPets = [];        // all pets owned by current wallet
+  var activePetId = null;  // currently displayed pet's ID
+
+  function getActivePet(){
+    if(!activePetId) return null;
+    return allPets.find(function(p){ return p.pet_id === activePetId; }) || null;
   }
-  function savePet(addr, p){
-    if(window.ChogiPetStore){
-      window.ChogiPetStore.save(addr, p);
+  function savePet(_walletIgnored, p){
+    if(window.ChogiPetStore && p) window.ChogiPetStore.save(p);
+  }
+  async function loadPetsForWallet(){
+    if(!account || !window.ChogiPetStore) return;
+    var fetched = await window.ChogiPetStore.fetchAll(account);
+    // exclude buried pets from active roster (they go to memorial/owned tab in market)
+    allPets = fetched.filter(function(p){ return !p.buried; });
+    // pick active: stored selection if still alive, else first alive pet
+    var stored = window.ChogiPetStore.getActivePetId();
+    if(stored && allPets.find(function(p){ return p.pet_id === stored; })){
+      activePetId = stored;
+    } else if(allPets.length > 0){
+      activePetId = allPets[0].pet_id;
+      window.ChogiPetStore.setActivePetId(activePetId);
+    } else {
+      activePetId = null;
     }
+    // keep `pet` for legacy code paths in this file
+    pet = getActivePet();
   }
-  function loadAll(){
-    try { return JSON.parse(localStorage.getItem('chogi_pet_v1') || '{}'); }
-    catch(e){ return {}; }
+  function switchActivePet(pet_id){
+    if(!allPets.find(function(p){ return p.pet_id === pet_id; })) return;
+    activePetId = pet_id;
+    window.ChogiPetStore.setActivePetId(pet_id);
+    pet = getActivePet();
+    window._chatLoaded = false; // force chat reload for new pet
+    render();
   }
 
   /* ─── DECAY CALCULATOR (lazy on read) ─── */
@@ -761,6 +848,8 @@ main, header{position:relative;z-index:2}
     else if(daysAlive < 24) p.stage = 'teen';
     else p.stage = 'adult';
 
+    // Death detection
+    checkDeath(p);
     return p;
   }
 
@@ -783,6 +872,98 @@ main, header{position:relative;z-index:2}
     return 'loyal';
   }
 
+  /* ─── PET SWITCHER UI ─── */
+  function renderPetSwitcher(){
+    var sw = $('petSwitcher');
+    if(!sw) return;
+    if(!allPets || allPets.length === 0){
+      sw.style.display = 'none';
+      return;
+    }
+    sw.style.display = '';
+    var pillsHtml = allPets.map(function(p){
+      var isActive = p.pet_id === activePetId;
+      var isCritical = (p.hunger||0) <= 10 || (p.thirst||0) <= 10 || (p.happiness||0) <= 10;
+      var dotClass = isCritical ? ' critical' : '';
+      return '<button class="ps-pet'+(isActive?' active':'')+dotClass+'" data-type="'+p.type+'" data-id="'+p.pet_id+'">'+
+        '<span class="dot"></span>'+(p.name || 'unnamed')+'</button>';
+    }).join('');
+    var canAddMore = allPets.length < 3;
+    var addPill = canAddMore
+      ? '<a href="/hatch" class="ps-add">+ HATCH</a>'
+      : '<span class="ps-cap-note">3/3 max</span>';
+    sw.innerHTML = '<span class="ps-label">YOUR PETS</span>'+pillsHtml+addPill;
+
+    sw.querySelectorAll('.ps-pet').forEach(function(b){
+      b.addEventListener('click', function(){
+        switchActivePet(b.dataset.id);
+      });
+    });
+  }
+
+  /* ─── DEATH / CRITICAL DETECTION ─── */
+  var DEATH_GRACE_MS = 6 * 3600 * 1000; // 6 hours of stat=0 before death
+  function checkDeath(p){
+    if(!p || p.died_at) return p;
+    var lowest = Math.min(p.hunger||0, p.thirst||0, p.happiness||0);
+    if(lowest > 0){
+      // not in critical zero-state — clear the timer
+      if(p.critical_since) p.critical_since = null;
+      return p;
+    }
+    // any stat is 0
+    if(!p.critical_since){
+      p.critical_since = Date.now();
+    }
+    var elapsed = Date.now() - p.critical_since;
+    if(elapsed >= DEATH_GRACE_MS){
+      p.died_at = new Date().toISOString();
+      // determine cause
+      if((p.hunger||0) === 0) p.death_cause = 'starvation';
+      else if((p.thirst||0) === 0) p.death_cause = 'thirst';
+      else p.death_cause = 'sadness';
+    }
+    return p;
+  }
+  function getCritTimerMs(p){
+    if(!p || !p.critical_since || p.died_at) return 0;
+    var remaining = DEATH_GRACE_MS - (Date.now() - p.critical_since);
+    return Math.max(0, remaining);
+  }
+  function fmtTimer(ms){
+    if(ms <= 0) return '0:00:00';
+    var h = Math.floor(ms / 3600000);
+    var m = Math.floor((ms % 3600000) / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+
+  /* When a pet dies: persist + remove from active list + show next pet or empty */
+  async function handlePetDeath(p){
+    if(!p || !p.died_at) return;
+    // persist death state
+    await window.ChogiPetStore.save(p);
+    if(window.ChogiPetStore.logEvent){
+      window.ChogiPetStore.logEvent(p.pet_id, {
+        type: 'death',
+        metadata: { cause: p.death_cause, days_alive: p.days_alive }
+      });
+    }
+    // remove from active roster (memorial visible in marketplace OWNED tab)
+    allPets = allPets.filter(function(x){ return x.pet_id !== p.pet_id; });
+    if(allPets.length > 0){
+      activePetId = allPets[0].pet_id;
+      window.ChogiPetStore.setActivePetId(activePetId);
+      pet = getActivePet();
+    } else {
+      pet = null;
+      activePetId = null;
+    }
+    renderPetSwitcher();
+    // re-render with new pet (or empty state)
+    setTimeout(render, 100);
+  }
+
   function render(){
     if(!pet){
       $('emptyState').style.display = 'block';
@@ -793,7 +974,29 @@ main, header{position:relative;z-index:2}
     $('dashState').style.display = 'block';
 
     applyDecay(pet);
+    // If pet just died, redirect to memorial flow
+    if(pet.died_at){
+      handlePetDeath(pet);
+      return;
+    }
     savePet(account, pet);
+
+    // CRITICAL TIMER BANNER
+    var critMs = getCritTimerMs(pet);
+    var banner = document.getElementById('critBanner');
+    if(critMs > 0){
+      if(!banner){
+        banner = document.createElement('div');
+        banner.id = 'critBanner';
+        banner.className = 'crit-banner';
+        var dash = $('dashState');
+        var head = dash.querySelector('.pet-head');
+        dash.insertBefore(banner, head);
+      }
+      banner.innerHTML = '⚠️ <span>'+(pet.name||'YOUR PET').toUpperCase()+' IS DYING</span> · TIMER <b>'+fmtTimer(critMs)+'</b> · FEED OR REVIVE NOW';
+    } else if(banner) {
+      banner.remove();
+    }
 
     // header
     $('petName').textContent = pet.name || 'UNNAMED';
@@ -904,17 +1107,11 @@ main, header{position:relative;z-index:2}
           } else throw e;
         }
       }
-      // try local first (instant), then refresh from cloud
-      pet = getPet(account);
+      // load all pets for wallet
+      await loadPetsForWallet();
       render();
+      renderPetSwitcher();
       maybeShowDevPanel();
-      if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
-        var fresh = await window.ChogiPetStore.fetch(account);
-        if(fresh){
-          pet = fresh;
-          render();
-        }
-      }
       return true;
     }catch(e){
       console.error(e); return false;
@@ -987,7 +1184,7 @@ main, header{position:relative;z-index:2}
     if(!account || !pet || !pet.bonded) return;
     try {
       var url = (window.ChogiConfig.SUPABASE_URL) +
-        '/rest/v1/chogi_pet_chats?wallet=eq.' + encodeURIComponent(account.toLowerCase()) +
+        '/rest/v1/chogi_pet_chats?pet_id=eq.' + encodeURIComponent(pet.pet_id) +
         '&select=role,content,created_at&order=created_at.desc&limit=20';
       var r = await fetch(url, {
         headers: {
@@ -1027,7 +1224,6 @@ main, header{position:relative;z-index:2}
     sendBtn.textContent = '...';
     input.value = '';
 
-    // optimistic append user message
     var ch = $('chatHistory');
     var existingItems = ch.querySelectorAll('div[style*="margin-bottom"]').length;
     if(existingItems === 0) ch.innerHTML = '';
@@ -1035,13 +1231,11 @@ main, header{position:relative;z-index:2}
     ch.scrollTop = ch.scrollHeight;
 
     try {
-      // use absolute www URL to dodge the chogi.xyz -> www.chogi.xyz redirect
-      // (307 redirects can drop POST bodies in some clients)
       var apiBase = (window.location.host.startsWith('www.') ? '' : 'https://www.chogi.xyz');
       var r = await fetch(apiBase + '/api/chat-pet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: account, message: msg, pet: pet })
+        body: JSON.stringify({ wallet: account, pet_id: pet.pet_id, message: msg, pet: pet })
       });
       var data = await r.json();
       if(!r.ok){
@@ -1071,22 +1265,33 @@ main, header{position:relative;z-index:2}
   if(window.ethereum && window.ethereum.selectedAddress){
     connect();
   } else {
-    // try to render whatever pet we can find without wallet (read-only)
-    var all = loadAll();
-    var keys = Object.keys(all);
-    if(keys.length){
-      account = keys[0];
-      pet = all[keys[0]];
+    // try to render whatever pet we can find from local storage
+    var localPets = window.ChogiPetStore ? loadAllLocalUnfiltered() : [];
+    if(localPets.length > 0){
+      account = localPets[0].wallet;
+      allPets = localPets.filter(function(p){ return !p.buried; });
+      activePetId = window.ChogiPetStore.getActivePetId() || (allPets[0] && allPets[0].pet_id);
+      pet = getActivePet();
       render();
+      renderPetSwitcher();
     } else {
       $('emptyState').style.display='block';
       $('dashState').style.display='none';
     }
-    // attempt to connect in background after a moment
     setTimeout(connect, 500);
+  }
+  function loadAllLocalUnfiltered(){
+    try { return JSON.parse(localStorage.getItem('chogi_pets_v2') || '[]'); }
+    catch(e){ return []; }
   }
 
   // re-render every 60s for live decay
+  // smart re-render: 1s when in critical countdown, 60s normal decay
+  setInterval(function(){
+    if(pet && getCritTimerMs(pet) > 0){
+      render(); // tick the countdown display
+    }
+  }, 1000);
   setInterval(render, 60000);
 
   /* ─── DEV PANEL (wallet-gated to deployer) ─── */
@@ -1190,16 +1395,26 @@ main, header{position:relative;z-index:2}
       }
     }
     else if(action === 'reset' && val === 'pet'){
-      if(!confirm('Wipe pet completely? You will need to re-hatch.')) return;
-      try {
-        var all = JSON.parse(localStorage.getItem('chogi_pet_v1') || '{}');
-        delete all[account.toLowerCase()];
-        localStorage.setItem('chogi_pet_v1', JSON.stringify(all));
-      } catch(e){}
-      // also try cloud delete via upsert with deletion flag — for now, just nuke local + reload
-      pet = null;
-      toast('PET WIPED — REDIRECTING');
-      setTimeout(function(){window.location.href='/hatch';}, 1200);
+      if(!pet){ toast('NO PET TO RESET'); return; }
+      if(!confirm('Bury "'+(pet.name||'this pet')+'"? Goes to memorial. You can hatch a new one.')) return;
+      var oldId = pet.pet_id;
+      // mark buried via store
+      window.ChogiPetStore.bury(oldId);
+      // remove from active roster
+      allPets = allPets.filter(function(p){ return p.pet_id !== oldId; });
+      if(allPets.length > 0){
+        activePetId = allPets[0].pet_id;
+        window.ChogiPetStore.setActivePetId(activePetId);
+        pet = getActivePet();
+        toast('BURIED · SWITCHED TO ' + (pet.name||'next pet').toUpperCase());
+        renderPetSwitcher();
+        render();
+      } else {
+        pet = null;
+        activePetId = null;
+        toast('BURIED — REDIRECTING');
+        setTimeout(function(){window.location.href='/hatch';}, 1200);
+      }
       return;
     }
 
@@ -1218,14 +1433,11 @@ main, header{position:relative;z-index:2}
     window.ethereum.on('accountsChanged', async function(accs){
       if(accs && accs[0]){
         account = accs[0];
-        pet = getPet(account);
+        await loadPetsForWallet();
         render();
+        renderPetSwitcher();
         if(account.toLowerCase() === DEV_WALLET) maybeShowDevPanel();
         else hideDevPanel();
-        if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
-          var fresh = await window.ChogiPetStore.fetch(account);
-          if(fresh){pet = fresh; render();}
-        }
       }
     });
   }

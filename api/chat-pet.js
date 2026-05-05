@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'invalid json' });
   }
 
-  const { wallet, message, pet } = body || {};
+  const { wallet, message, pet, pet_id } = body || {};
   if (!wallet || !message || !pet) {
     return res.status(400).json({ error: 'missing wallet, message, or pet' });
   }
@@ -36,10 +36,16 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'pet not bonded — burn BOND TOKEN first' });
   }
 
+  // Use pet_id from explicit param OR fall back to pet.pet_id, OR legacy fallback to wallet-keying
+  const scopeId = pet_id || pet.pet_id || null;
+
   // ── per-pet daily message cap ──
   const today = new Date().toISOString().slice(0, 10);
   try {
-    const countUrl = `${SUPABASE_URL}/rest/v1/chogi_pet_chats?wallet=eq.${wallet.toLowerCase()}&created_at=gte.${today}T00:00:00Z&select=id`;
+    const filter = scopeId
+      ? `pet_id=eq.${encodeURIComponent(scopeId)}`
+      : `wallet=eq.${wallet.toLowerCase()}`;
+    const countUrl = `${SUPABASE_URL}/rest/v1/chogi_pet_chats?${filter}&created_at=gte.${today}T00:00:00Z&select=id`;
     const countRes = await fetch(countUrl, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact' }
     });
@@ -55,7 +61,10 @@ export default async function handler(req, res) {
   // ── pull last 6 messages for short context ──
   let history = [];
   try {
-    const histUrl = `${SUPABASE_URL}/rest/v1/chogi_pet_chats?wallet=eq.${wallet.toLowerCase()}&select=role,content&order=created_at.desc&limit=6`;
+    const filter = scopeId
+      ? `pet_id=eq.${encodeURIComponent(scopeId)}`
+      : `wallet=eq.${wallet.toLowerCase()}`;
+    const histUrl = `${SUPABASE_URL}/rest/v1/chogi_pet_chats?${filter}&select=role,content&order=created_at.desc&limit=6`;
     const histRes = await fetch(histUrl, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
@@ -112,8 +121,8 @@ export default async function handler(req, res) {
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify([
-        { wallet: wallet.toLowerCase(), role: 'user', content: message.slice(0, 280) },
-        { wallet: wallet.toLowerCase(), role: 'assistant', content: reply.slice(0, 500) }
+        { wallet: wallet.toLowerCase(), pet_id: scopeId, role: 'user', content: message.slice(0, 280) },
+        { wallet: wallet.toLowerCase(), pet_id: scopeId, role: 'assistant', content: reply.slice(0, 500) }
       ])
     });
   } catch (e) {

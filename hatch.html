@@ -645,24 +645,6 @@ main, header{position:relative;z-index:2}
     }).then(function(r){return r.json();}).then(function(j){return BigInt(j.result || '0x0');});
   }
 
-  /* ─── pet store (uses ChogiPetStore: cloud + localStorage fallback) ─── */
-  function getPet(addr){
-    if(!addr) return null;
-    return window.ChogiPetStore ? window.ChogiPetStore.getLocal(addr) : null;
-  }
-  async function getPetCloud(addr){
-    if(!addr) return null;
-    if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
-      return await window.ChogiPetStore.fetch(addr);
-    }
-    return getPet(addr);
-  }
-  function savePet(addr, pet){
-    if(window.ChogiPetStore){
-      window.ChogiPetStore.save(addr, pet);
-    }
-  }
-
   /* ─── connect ─── */
   async function connect(){
     if(!window.ethereum){
@@ -697,13 +679,6 @@ main, header{position:relative;z-index:2}
       }
       $('ws-status').textContent = account.slice(0,6)+'…'+account.slice(-4);
       refreshBalance();
-      // if user already has a pet, redirect (check cloud first, then local)
-      var existing = await getPetCloud(account);
-      if(existing){
-        if(confirm('You already have a pet ('+existing.name+', '+existing.type+'). Open dashboard?')){
-          window.location.href = '/pet';
-        }
-      }
       return true;
     }catch(e){
       console.error(e);
@@ -729,12 +704,14 @@ main, header{position:relative;z-index:2}
       if(!ok) return;
     }
 
-    // existing pet check (cloud-aware)
-    var existing = await getPetCloud(account);
-    if(existing){
-      alert('You already have a '+existing.type+' named '+existing.name+'. Visit /pet to see them.');
-      window.location.href = '/pet';
-      return;
+    // Soft-cap: 3 living pets per wallet (buried pets don't count)
+    if(window.ChogiPetStore){
+      var existing = await window.ChogiPetStore.fetchAll(account);
+      var alive = existing.filter(function(p){ return !p.buried; });
+      if(alive.length >= 3){
+        alert('You can only have 3 active pets at a time. Bury one first or wait.');
+        return;
+      }
     }
 
     // balance check
@@ -849,27 +826,24 @@ main, header{position:relative;z-index:2}
   }
 
   /* ─── claim with name ─── */
-  function claim(){
+  async function claim(){
     var pet = window._pendingPet;
     if(!pet){alert('Hatch a pet first.');return;}
     var name = $('petName').value.trim();
     if(!name){
-      // suggest default
       name = pet.type === 'chogi' ? 'Experiment 7778' : 'Experiment 7779';
     }
     pet.name = name.slice(0, 22);
-    savePet(account, pet);
-    // log hatch event (fire-and-forget)
-    if(window.ChogiPetStore){
-      window.ChogiPetStore.logEvent(account, {
-        type: 'hatch',
-        burn_amount: 10000,
-        tx_hash: pet.hatch_tx,
-        metadata: { pet_type: pet.type, name: pet.name }
-      });
-    }
-    // wait briefly so the cloud upsert has time to complete before navigating
-    setTimeout(function(){ window.location.href = '/pet'; }, 600);
+    // create via store — assigns pet_id, sets active, persists local + cloud
+    var created = await window.ChogiPetStore.create(account, pet);
+    // log hatch event tied to this pet_id
+    window.ChogiPetStore.logEvent(created.pet_id, {
+      type: 'hatch',
+      burn_amount: 10000,
+      tx_hash: pet.hatch_tx,
+      metadata: { pet_type: pet.type, name: pet.name }
+    });
+    setTimeout(function(){ window.location.href = '/pet'; }, 700);
   }
 
   /* ─── wire up ─── */

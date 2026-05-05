@@ -193,6 +193,14 @@ main, header{position:relative;z-index:2}
 .card:hover{border-color:var(--rule-strong);transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.3)}
 .card.owned{border-color:rgba(232,161,79,.5)}
 .card.equipped{border-color:var(--green);box-shadow:0 0 0 1px var(--green), 0 14px 30px rgba(0,255,130,.15)}
+.card.memorial{
+  border-color:rgba(120,120,140,.4);
+  background:linear-gradient(180deg, rgba(50,40,80,.3), rgba(20,20,35,.5));
+  opacity:.85;
+}
+.card.memorial:hover{opacity:1;border-color:rgba(180,120,255,.5)}
+.card.pet-card .card-img{aspect-ratio:1;background:radial-gradient(ellipse at center, rgba(255,20,147,.08), transparent 70%)}
+.card.pet-card.memorial .card-name{color:#aaa}
 .card.locked{opacity:.55}
 
 .card-stamp{
@@ -493,6 +501,9 @@ main, header{position:relative;z-index:2}
 
     // ─── BOND ───
     {id:'bond-token',         name:'BOND TOKEN',       cat:'bond', price:25000,  desc:'Permanent. Unlocks chat with your pet forever. Kid stage or older.', slot:null, effect:{}, lockStage:'baby'},
+
+    // ─── REVIVE ───
+    {id:'revive-tonic',       name:'REVIVE TONIC',     cat:'revive', price:100000, desc:'Bring a buried pet back to life. Stats restored to 30%. Within 7 days of death only.', slot:null, effect:{}},
   ];
 
   var CATS = [
@@ -500,7 +511,8 @@ main, header{position:relative;z-index:2}
     {id:'food',   label:'FOOD'},
     {id:'water',  label:'WATER'},
     {id:'bond',   label:'BOND ★'},
-    {id:'owned',  label:'★ OWNED'}
+    {id:'revive', label:'REVIVE 🧪'},
+    {id:'owned',  label:'★ MY PETS'}
   ];
 
   var $ = function(id){return document.getElementById(id);};
@@ -530,19 +542,26 @@ main, header{position:relative;z-index:2}
     t._to = setTimeout(function(){t.classList.remove('show');}, 2800);
   }
 
-  /* ─── pet store (uses ChogiPetStore: cloud + localStorage fallback) ─── */
-  function getPet(addr){
-    if(!addr) return null;
-    return window.ChogiPetStore ? window.ChogiPetStore.getLocal(addr) : null;
+  /* ─── pet store (multi-pet) ─── */
+  var allPets = [];
+  var activePetId = null;
+  function savePet(_unused, p){
+    if(window.ChogiPetStore && p) window.ChogiPetStore.save(p);
   }
-  function savePet(addr, p){
-    if(window.ChogiPetStore){
-      window.ChogiPetStore.save(addr, p);
+  async function loadPetsForWallet(){
+    if(!account || !window.ChogiPetStore) return;
+    var fetched = await window.ChogiPetStore.fetchAll(account);
+    allPets = fetched.filter(function(p){ return !p.buried; });
+    var stored = window.ChogiPetStore.getActivePetId();
+    if(stored && allPets.find(function(p){ return p.pet_id === stored; })){
+      activePetId = stored;
+    } else if(allPets.length > 0){
+      activePetId = allPets[0].pet_id;
+      window.ChogiPetStore.setActivePetId(activePetId);
+    } else {
+      activePetId = null;
     }
-  }
-  function loadAll(){
-    try { return JSON.parse(localStorage.getItem('chogi_pet_v1') || '{}'); }
-    catch(e){ return {}; }
+    pet = activePetId ? allPets.find(function(p){ return p.pet_id === activePetId; }) : null;
   }
 
   /* ─── RPC ─── */
@@ -586,17 +605,22 @@ main, header{position:relative;z-index:2}
 
   /* ─── grid ─── */
   function renderGrid(){
-    var owned = (pet && pet.owned_items) || [];
+    // OWNED tab = show all pets owned (alive + buried memorials)
+    if(activeCat === 'owned'){
+      renderPetsTab();
+      return;
+    }
+
     var bonded = !!(pet && pet.bonded);
     var stage = pet ? pet.stage : null;
+    // count buried pets (used to surface revive item)
+    var buriedPets = [];
+    if(window.ChogiPetStore && account){
+      buriedPets = (window.ChogiPetStore.getLocalAll(account) || []).filter(function(p){ return p.died_at; });
+    }
 
     var filtered;
     if(activeCat === 'all') filtered = ITEMS;
-    else if(activeCat === 'owned') filtered = ITEMS.filter(function(it){
-      // "owned" = bonded if bond-token, or in owned_items list otherwise
-      if(it.id === 'bond-token') return bonded;
-      return owned.indexOf(it.id) !== -1;
-    });
     else filtered = ITEMS.filter(function(it){return it.cat === activeCat;});
 
     if(filtered.length === 0){
@@ -607,24 +631,29 @@ main, header{position:relative;z-index:2}
     var html = filtered.map(function(it){
       var consumable = it.cat === 'food' || it.cat === 'water';
       var isBondToken = it.id === 'bond-token';
+      var isReviveTonic = it.id === 'revive-tonic';
       var isBondedAlready = isBondToken && bonded;
-      // bond token requires kid stage or older
       var bondLocked = isBondToken && stage === 'baby';
+      var reviveDisabled = isReviveTonic && buriedPets.length === 0;
 
       var cls = 'card ' + it.cat;
       var stamp = '';
       if(isBondedAlready) {cls += ' equipped'; stamp = '<span class="card-stamp">BONDED</span>';}
-      else if(bondLocked) {cls += ' locked';}
+      else if(bondLocked || reviveDisabled) {cls += ' locked';}
 
       var btn;
       if(isBondedAlready){
         btn = '<button class="card-btn" disabled>ALREADY BONDED</button>';
       } else if(bondLocked){
         btn = '<button class="card-btn" disabled>UNLOCKS AT KID STAGE</button>';
+      } else if(reviveDisabled){
+        btn = '<button class="card-btn" disabled>NO BURIED PETS</button>';
       } else if(consumable){
         btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">BURN '+fmtPrice(it.price)+'</button>';
       } else if(isBondToken){
         btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">UNLOCK CHAT '+fmtPrice(it.price)+'</button>';
+      } else if(isReviveTonic){
+        btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">REVIVE PET '+fmtPrice(it.price)+'</button>';
       } else {
         btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">BUY '+fmtPrice(it.price)+'</button>';
       }
@@ -638,10 +667,12 @@ main, header{position:relative;z-index:2}
         effect = bits.join(' · ');
       }
 
-      // bond-token has no image yet — use an emoji card
+      // emoji-based image for items without art
       var imgHtml;
       if(isBondToken){
         imgHtml = '<div class="card-img bond-img"><div style="font-size:64px;filter:drop-shadow(0 6px 12px rgba(255,20,147,.5))">💜</div></div>';
+      } else if(isReviveTonic){
+        imgHtml = '<div class="card-img"><div style="font-size:64px;filter:drop-shadow(0 6px 12px rgba(168,85,247,.5))">🧪</div></div>';
       } else {
         imgHtml = '<div class="card-img"><img src="/marketplace/items/'+it.id+'.png" alt="'+it.name+'" loading="lazy" onerror="this.parentNode.innerHTML=\'<div style=&quot;font-size:48px&quot;>🍓</div>\'"></div>';
       }
@@ -668,6 +699,87 @@ main, header{position:relative;z-index:2}
   }
 
   /* ─── shelf — shows pet status (bonded? hatched?) ─── */
+  /* ─── MY PETS tab — shows all owned pets as cards (alive + memorial) ─── */
+  function renderPetsTab(){
+    if(!account){
+      $('grid').innerHTML = '<div class="empty-cat">Connect your wallet to see your pets.</div>';
+      return;
+    }
+    // include buried pets so memorials show
+    var allOwned = window.ChogiPetStore ? (window.ChogiPetStore.getLocalAll(account) || []) : [];
+    if(allOwned.length === 0){
+      $('grid').innerHTML = '<div class="empty-cat">No pets yet. <a href="/hatch" style="color:var(--pink)">Hatch one →</a></div>';
+      return;
+    }
+
+    var html = allOwned.map(function(p){
+      var isDead = !!p.died_at;
+      var isBuried = !!p.buried;
+      var isActive = p.pet_id === activePetId;
+      var imgSrc;
+      if(p.stage === 'adult'){
+        // need personality to pick image — fallback to loyal
+        var pers = p.personality || 'loyal';
+        imgSrc = '/pet-assets/adult-' + pers + '-' + p.type + '.png';
+      } else {
+        imgSrc = '/pet-assets/' + (p.stage || 'baby') + '-' + p.type + '.png';
+      }
+
+      var cls = 'card pet-card';
+      if(isActive && !isDead) cls += ' equipped';
+      if(isDead) cls += ' memorial';
+
+      var stamp = '';
+      if(isDead) stamp = '<span class="card-stamp" style="background:#444;color:#999">RIP</span>';
+      else if(isActive) stamp = '<span class="card-stamp">ACTIVE</span>';
+
+      var statLine = isDead
+        ? 'lived ' + (p.days_alive || 1) + ' days · ' + (p.death_cause || 'unknown')
+        : 'day ' + (p.days_alive || 1) + ' / 30 · ' + (p.stage || 'baby').toUpperCase();
+
+      var btn;
+      if(isDead && !isBuried){
+        btn = '<button class="card-btn" data-act="select" data-id="'+p.pet_id+'" disabled>BURY OR REVIVE</button>';
+      } else if(isDead && isBuried){
+        btn = '<button class="card-btn" disabled style="opacity:.5">BURIED</button>';
+      } else if(isActive){
+        btn = '<button class="card-btn" disabled>CURRENTLY ACTIVE</button>';
+      } else {
+        btn = '<button class="card-btn" data-act="switch" data-id="'+p.pet_id+'">SWITCH TO ' + (p.name||'pet').toUpperCase() + '</button>';
+      }
+
+      var imgHtml = isDead
+        ? '<div class="card-img" style="filter:grayscale(.9) brightness(.5);position:relative"><img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:54px">🪦</div></div>'
+        : '<div class="card-img"><img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'"></div>';
+
+      return '<div class="'+cls+'">' +
+        stamp +
+        imgHtml +
+        '<div class="card-name">' + (p.name || 'unnamed') + '</div>' +
+        '<div class="card-meta">' + statLine + ' · burned ' + fmtPrice(p.total_burned||0) + '</div>' +
+        '<div class="card-cost"><span class="price">' + (p.type||'chogi').toUpperCase() + (p.bonded ? ' · 💜 BONDED' : '') + '</span></div>' +
+        btn +
+      '</div>';
+    }).join('');
+
+    $('grid').innerHTML = html;
+
+    // wire up switch / bury buttons
+    $('grid').querySelectorAll('.card-btn[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(b.disabled) return;
+        var act = b.dataset.act, id = b.dataset.id;
+        if(act === 'switch'){
+          window.ChogiPetStore.setActivePetId(id);
+          activePetId = id;
+          pet = allPets.find(function(x){ return x.pet_id === id; });
+          renderTabs(); renderGrid(); renderShelf();
+          toast('SWITCHED TO ' + (pet.name || 'PET').toUpperCase());
+        }
+      });
+    });
+  }
+
   function renderShelf(){
     if(!pet){
       $('shelf').classList.remove('show');
@@ -717,8 +829,86 @@ main, header{position:relative;z-index:2}
       var ok = await connect();
       if(!ok){closeConfirm(); return;}
     }
+
+    // REVIVE TONIC — needs a buried pet, not an active one
+    if(item.cat === 'revive'){
+      // find buried pets within 7 days of death
+      var allOwned = window.ChogiPetStore ? (window.ChogiPetStore.getLocalAll(account) || []) : [];
+      var SEVEN_DAYS = 7 * 86400000;
+      var revivable = allOwned.filter(function(p){
+        if(!p.died_at) return false;
+        var diedMs = new Date(p.died_at).getTime();
+        return (Date.now() - diedMs) < SEVEN_DAYS;
+      });
+      if(revivable.length === 0){
+        toast('NO REVIVABLE PETS · DEATH WINDOW IS 7 DAYS');
+        closeConfirm();
+        return;
+      }
+      // simple flow: revive the most recently-died one
+      var target = revivable.sort(function(a,b){
+        return new Date(b.died_at).getTime() - new Date(a.died_at).getTime();
+      })[0];
+
+      // balance check
+      var bal = BigInt($('ws-balPill').dataset.raw || '0');
+      var cost = BigInt(item.price) * ONE;
+      if(bal < cost){
+        toast('NOT ENOUGH $CHOGI · NEED '+fmtPrice(item.price));
+        return;
+      }
+
+      var data = '0xa9059cbb' + pad32(DEAD) + cost.toString(16).padStart(64, '0');
+      closeConfirm();
+      toast('CONFIRM IN WALLET…');
+      try{
+        var txHash = await window.ethereum.request({
+          method:'eth_sendTransaction',
+          params:[{from:account, to:TOKEN, data:data, value:'0x0'}]
+        });
+        toast('🔥 BURNING — '+txHash.slice(0,8)+'…');
+
+        // revive the pet
+        target.died_at = null;
+        target.death_cause = null;
+        target.critical_since = null;
+        target.hunger = 30;
+        target.thirst = 30;
+        target.happiness = 30;
+        target.revived_count = (target.revived_count || 0) + 1;
+        target.total_burned = (target.total_burned||0) + item.price;
+        target.buried = false;
+        target.last_updated_at = Date.now();
+        target.last_fed_at = Date.now();
+        target.last_watered_at = Date.now();
+
+        await window.ChogiPetStore.save(target);
+        window.ChogiPetStore.logEvent(target.pet_id, {
+          type: 'revive',
+          item_id: item.id,
+          burn_amount: item.price,
+          tx_hash: txHash
+        });
+
+        // refresh local state
+        await loadPetsForWallet();
+        refreshBalance();
+        renderTabs();
+        renderGrid();
+        renderShelf();
+
+        setTimeout(function(){
+          toast('🧪 ' + (target.name || 'PET').toUpperCase() + ' REVIVED · STATS AT 30%');
+        }, 2000);
+      }catch(e){
+        console.error(e);
+        toast(e.code === 4001 ? 'CANCELLED' : 'TX FAILED');
+      }
+      return;
+    }
+
     if(!pet){
-      toast('NO PET — HATCH ONE FIRST');
+      toast('NO ACTIVE PET — HATCH OR SWITCH FIRST');
       closeConfirm();
       setTimeout(function(){window.location.href='/hatch';}, 1400);
       return;
@@ -745,27 +935,25 @@ main, header{position:relative;z-index:2}
 
       toast('🔥 BURNING — '+txHash.slice(0,8)+'…');
 
-      // optimistic state update
+      // apply to ACTIVE pet
       pet.total_burned = (pet.total_burned||0) + item.price;
 
       if(item.cat === 'food' || item.cat === 'water'){
-        // consumable — apply effect immediately
         var ef = item.effect || {};
         if(ef.hunger){pet.hunger = clamp((pet.hunger||0) + ef.hunger, 0, 100); pet.last_fed_at = Date.now(); pet.feed_count = (pet.feed_count||0)+1;}
         if(ef.thirst){pet.thirst = clamp((pet.thirst||0) + ef.thirst, 0, 100); pet.last_watered_at = Date.now(); pet.water_count = (pet.water_count||0)+1;}
         if(ef.happy){pet.happiness = clamp((pet.happiness||0) + ef.happy, 0, 100);}
         pet.last_updated_at = Date.now();
       } else if(item.cat === 'bond'){
-        // BOND TOKEN — permanent chat unlock
         pet.bonded = true;
         pet.bonded_at = Date.now();
         pet.bond_tx = txHash;
         pet.last_updated_at = Date.now();
       }
 
-      // log event for analytics
+      // log event tied to pet_id
       if(window.ChogiPetStore && window.ChogiPetStore.logEvent){
-        window.ChogiPetStore.logEvent(account, {
+        window.ChogiPetStore.logEvent(pet.pet_id, {
           type: 'buy',
           item_id: item.id,
           burn_amount: item.price,
@@ -823,21 +1011,11 @@ main, header{position:relative;z-index:2}
         }
       }
       $('ws-status').textContent = account.slice(0,6)+'…'+account.slice(-4);
-      pet = getPet(account);
+      await loadPetsForWallet();
       refreshBalance();
       renderTabs();
       renderGrid();
       renderShelf();
-      // refresh from cloud
-      if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
-        var fresh = await window.ChogiPetStore.fetch(account);
-        if(fresh){
-          pet = fresh;
-          renderTabs();
-          renderGrid();
-          renderShelf();
-        }
-      }
       return true;
     }catch(e){console.error(e);return false;}
   }
@@ -848,12 +1026,14 @@ main, header{position:relative;z-index:2}
   if(window.ethereum && window.ethereum.selectedAddress){
     connect();
   } else {
-    // try to pick up existing pet without wallet
-    var all = loadAll();
-    var keys = Object.keys(all);
-    if(keys.length){
-      account = keys[0];
-      pet = all[keys[0]];
+    // try to pick up existing pets from localStorage
+    var localPets = [];
+    try { localPets = JSON.parse(localStorage.getItem('chogi_pets_v2') || '[]'); } catch(e){}
+    if(localPets.length > 0){
+      account = localPets[0].wallet;
+      allPets = localPets.filter(function(p){ return !p.buried; });
+      activePetId = (window.ChogiPetStore && window.ChogiPetStore.getActivePetId()) || (allPets[0] && allPets[0].pet_id);
+      pet = allPets.find(function(p){ return p.pet_id === activePetId; });
       $('ws-status').textContent = 'OFFLINE';
       renderTabs();
       renderGrid();
@@ -866,15 +1046,11 @@ main, header{position:relative;z-index:2}
     window.ethereum.on('accountsChanged', async function(accs){
       if(accs && accs[0]){
         account = accs[0];
-        pet = getPet(account);
+        await loadPetsForWallet();
         refreshBalance();
         renderTabs();
         renderGrid();
         renderShelf();
-        if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
-          var fresh = await window.ChogiPetStore.fetch(account);
-          if(fresh){pet = fresh; renderTabs(); renderGrid(); renderShelf();}
-        }
       }
     });
   }
