@@ -355,18 +355,19 @@ function burnStatsBlock() {
 }
 
 async function handleBurn(burn) {
-  // Sanity: refuse weird/zero amounts (was producing NaN entries before fix)
+  // Sanity: refuse weird/zero amounts
   const amt = Number(burn.chogiHuman);
   if (!Number.isFinite(amt) || amt <= 0) {
     console.warn(`[burn] skipped invalid amount: ${burn.chogiHuman} from ${burn.from}`);
     return;
   }
-  // Filter out the pool itself burning swap fees (auto-burn dust spam)
-  // The pool address shouldn't count as a "burn alert" — those are protocol burns
+  // Skip pool dust entirely — the Capricorn V3 pool sweeps tiny rounding errors to dead
+  // on every swap. These are protocol-level, not user burns. ~9000 wei = effectively 0.
   if ((burn.from || '').toLowerCase() === config.pool.toLowerCase()) {
-    console.log(`[burn] skipping pool fee auto-burn: ${amt.toFixed(0)}`);
-    // still track it as a stat though, useful info
-    recordBurn({ ...burn, chogiHuman: amt, isPoolBurn: true });
+    return; // silent skip — don't pollute stats, don't log
+  }
+  // Skip dust amounts (anything under 1 CHOGI is noise from rounding)
+  if (amt < 1) {
     return;
   }
   recordBurn({ ...burn, chogiHuman: amt });

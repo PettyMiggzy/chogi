@@ -31,8 +31,8 @@ const V3_SWAP_TOPIC = ethers.id('Swap(address,address,int256,int256,uint160,uint
 const TRANSFER_TOPIC = ethers.id('Transfer(address,address,uint256)');
 
 const STATE_FILE = './dexwatcher_state.json';
-const MAX_BACKFILL_BLOCKS = 5000;
-const BACKFILL_PAGE_SIZE  = 500;
+const MAX_BACKFILL_BLOCKS = 50000;   // ~7 hours on Monad
+const BACKFILL_PAGE_SIZE  = 95;      // public Monad RPC limits to 100/range
 const RECENT_TX_CAP       = 200;
 
 const POOL_LOWER  = config.pool.toLowerCase();
