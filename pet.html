@@ -712,6 +712,13 @@ main, header{position:relative;z-index:2}
   </div>
 
   <hr>
+  <small>HATCH (FREE · DEV)</small>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="hatch" data-val="chogi">+ CHOGI</button>
+    <button class="dev-btn" data-dev="hatch" data-val="chog">+ CHOG</button>
+  </div>
+
+  <hr>
   <small>NUKE</small>
   <div class="dev-row">
     <button class="dev-btn danger" data-dev="reset" data-val="pet">RESET PET</button>
@@ -1386,14 +1393,56 @@ main, header{position:relative;z-index:2}
         toast('🔒 BOND CLEARED');
       } else if(val === 'clear-history'){
         if(!confirm('Wipe all chat history with this pet?')) return;
-        // delete all chat rows for this wallet via the REST API (using anon key with delete policy)
-        // Note: anon doesn't have delete in the schema — we'd need to add one OR just clear local UI.
-        // For now, just empty the UI and let server cap at 30/day naturally.
         var ch = $('chatHistory');
         if(ch) ch.innerHTML = '<div style="font-family:var(--serif);font-style:italic;color:var(--ink-faint);text-align:center;padding:20px">cleared locally — server keeps last 20 for context</div>';
         toast('UI CLEARED (server retains)');
         return;
       }
+    }
+    else if(action === 'hatch'){
+      if(!account){ toast('CONNECT WALLET FIRST'); return; }
+      if(!window.ChogiPetStore){ toast('STORE NOT LOADED'); return; }
+      var aliveCount = (allPets || []).filter(function(p){ return !p.buried && !p.died_at; }).length;
+      if(aliveCount >= 3){
+        toast('3-PET CAP — BURY ONE FIRST');
+        return;
+      }
+      var petType = (val === 'chog') ? 'chog' : 'chogi';
+      var defaultName = petType === 'chogi' ? 'Test Chogi ' + Math.floor(Math.random()*9000+1000) : 'Test Chog ' + Math.floor(Math.random()*9000+1000);
+      var customName = prompt('Name this pet:', defaultName);
+      if(customName === null) return; // cancelled
+      var name = (customName || defaultName).slice(0, 22);
+
+      toast('HATCHING ' + name.toUpperCase() + '…');
+      window.ChogiPetStore.create(account, {
+        type: petType,
+        name: name,
+        total_burned: 0,         // 0 — dev hatch doesn't count as burn
+        hatch_tx: '0xDEV-FREE'
+      }).then(function(created){
+        if(window.ChogiPetStore.logEvent){
+          window.ChogiPetStore.logEvent(created.pet_id, {
+            type: 'hatch',
+            burn_amount: 0,
+            tx_hash: '0xDEV-FREE',
+            metadata: { pet_type: petType, name: name, dev: true }
+          });
+        }
+        // re-fetch full roster + switch active to the new pet
+        return loadPetsForWallet().then(function(){
+          activePetId = created.pet_id;
+          window.ChogiPetStore.setActivePetId(activePetId);
+          pet = getActivePet();
+          window._chatLoaded = false;
+          renderPetSwitcher();
+          render();
+          toast('✓ ' + name.toUpperCase() + ' HATCHED FREE');
+        });
+      }).catch(function(e){
+        console.error('dev hatch failed:', e);
+        toast('HATCH FAILED · ' + (e.message || 'unknown'));
+      });
+      return; // skip the savePet+render at the bottom — we did our own
     }
     else if(action === 'reset' && val === 'pet'){
       if(!pet){ toast('NO PET TO RESET'); return; }
