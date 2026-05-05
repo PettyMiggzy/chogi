@@ -563,15 +563,26 @@ main, header{position:relative;z-index:2}
         <div class="placeholder-note">▸ Real food art ships in marketplace v1.1 · placeholder icons for now</div>
       </div>
 
-      <div class="panel">
-        <h3>LOADOUT <span class="extra"><a href="/marketplace" style="color:inherit">→ shop</a></span></h3>
-        <div class="loadout">
-          <div class="slot" id="slotHead" data-slot="head"><span class="ico">🎀</span><span class="lbl">HEAD</span></div>
-          <div class="slot" id="slotOutfit" data-slot="outfit"><span class="ico">👕</span><span class="lbl">OUTFIT</span></div>
-          <div class="slot" id="slotBoots" data-slot="boots"><span class="ico">👟</span><span class="lbl">BOOTS</span></div>
-          <div class="slot" id="slotAcc" data-slot="acc"><span class="ico">🎒</span><span class="lbl">ACC</span></div>
+      <div class="panel" id="chatPanel">
+        <h3>TALK TO YOUR PET <span class="extra" id="chatStatus">🔒 LOCKED</span></h3>
+
+        <!-- locked state shown by default -->
+        <div id="chatLocked">
+          <p style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-dim);line-height:1.5;margin-bottom:14px">
+            Form a permanent bond with your pet. Burn the BOND TOKEN once at kid stage and chat with them forever after — their voice shaped by how you raised them.
+          </p>
+          <a href="/marketplace?cat=bond" class="mint-cta" style="display:block;text-align:center;text-decoration:none">UNLOCK CHAT · 25K $CHOGI</a>
         </div>
-        <div class="placeholder-note">▸ Click a slot to unequip · <a href="/marketplace" style="color:var(--pink-soft)">browse market</a> to buy more</div>
+
+        <!-- chat UI shown after bonded -->
+        <div id="chatActive" style="display:none">
+          <div id="chatHistory" style="max-height:280px;overflow-y:auto;margin-bottom:12px;padding:10px;background:rgba(0,0,0,.3);border-radius:11px;border:1px solid var(--rule)"></div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="chatInput" placeholder="say something to your pet…" maxlength="280" style="flex:1;padding:11px 14px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid var(--rule);color:var(--ink);font-family:var(--mono);font-size:12px;outline:none">
+            <button id="chatSend" class="mint-cta" style="padding:11px 18px;font-size:11px;width:auto">SEND</button>
+          </div>
+          <div id="chatHint" style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);text-align:center;margin-top:8px;letter-spacing:.13em">▸ 30 messages per day · personality based on your care</div>
+        </div>
       </div>
 
       <div class="panel">
@@ -815,22 +826,22 @@ main, header{position:relative;z-index:2}
     $('dayStamp').textContent = 'DAY '+pet.days_alive+' / 30';
     $('stageStamp').textContent = stage.toUpperCase() + (stage === 'adult' ? ' · ' + calcPersonality(pet).toUpperCase() : '');
 
-    // ─── LOADOUT SLOTS (beside pet, not on pet) ───
-    var eq = pet.cosmetics || {};
-    var slots = ['head','outfit','boots','acc'];
-    var slotElIds = {head:'slotHead', outfit:'slotOutfit', boots:'slotBoots', acc:'slotAcc'};
-    slots.forEach(function(s){
-      var slotEl = $(slotElIds[s]);
-      var itemId = eq[s];
-      if(itemId){
-        slotEl.classList.add('equipped');
-        slotEl.innerHTML = '<img src="/marketplace/items/'+itemId+'.png" alt="">';
-      } else {
-        slotEl.classList.remove('equipped');
-        var defaults = {head:['🎀','HEAD'], outfit:['👕','OUTFIT'], boots:['👟','BOOTS'], acc:['🎒','ACC']};
-        slotEl.innerHTML = '<span class="ico">'+defaults[s][0]+'</span><span class="lbl">'+defaults[s][1]+'</span>';
+    // ─── CHAT PANEL TOGGLE ───
+    if(pet.bonded){
+      $('chatLocked').style.display = 'none';
+      $('chatActive').style.display = '';
+      $('chatStatus').textContent = '💜 BONDED';
+      $('chatStatus').style.color = 'var(--pink)';
+      // load history once per session
+      if(!window._chatLoaded){
+        window._chatLoaded = true;
+        loadChatHistory();
       }
-    });
+    } else {
+      $('chatLocked').style.display = '';
+      $('chatActive').style.display = 'none';
+      $('chatStatus').textContent = stage === 'baby' ? '🔒 KID STAGE+' : '🔒 LOCKED';
+    }
 
     // stats
     $('hungerPct').textContent = Math.floor(pet.hunger)+'%';
@@ -970,18 +981,86 @@ main, header{position:relative;z-index:2}
     b.addEventListener('click', function(){feed(b.dataset.feed);});
   });
 
-  // click slot to unequip
-  document.querySelectorAll('.slot[data-slot]').forEach(function(s){
-    s.addEventListener('click', function(){
-      if(!s.classList.contains('equipped')) return;
-      if(!pet) return;
-      var slot = s.dataset.slot;
-      pet.cosmetics = pet.cosmetics || {};
-      pet.cosmetics[slot] = null;
-      savePet(account, pet);
-      render();
-      toast('UNEQUIPPED');
-    });
+  /* ─── CHAT WIRE-UP ─── */
+  async function loadChatHistory(){
+    if(!account || !pet || !pet.bonded) return;
+    try {
+      var url = (window.ChogiConfig.SUPABASE_URL) +
+        '/rest/v1/chogi_pet_chats?wallet=eq.' + encodeURIComponent(account.toLowerCase()) +
+        '&select=role,content,created_at&order=created_at.desc&limit=20';
+      var r = await fetch(url, {
+        headers: {
+          'apikey': window.ChogiConfig.SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + window.ChogiConfig.SUPABASE_ANON_KEY
+        }
+      });
+      var rows = await r.json();
+      var history = (rows || []).reverse();
+      renderChatHistory(history);
+    } catch(e){ console.warn('chat load:', e); }
+  }
+
+  function renderChatHistory(rows){
+    var html = rows.map(function(m){
+      var who = m.role === 'user' ? 'YOU' : (pet.name || 'PET').toUpperCase();
+      var color = m.role === 'user' ? 'var(--ink-dim)' : 'var(--pink)';
+      return '<div style="margin-bottom:8px"><span style="color:'+color+';font-family:var(--mono);font-size:9px;letter-spacing:.13em;font-weight:700">' + who + '</span><br><span style="font-size:13px;color:var(--ink);line-height:1.4">' + escapeHtml(m.content) + '</span></div>';
+    }).join('');
+    var ch = $('chatHistory');
+    ch.innerHTML = html || '<div style="font-family:var(--serif);font-style:italic;color:var(--ink-faint);text-align:center;padding:20px">say something to '+(pet.name||'your pet')+'…</div>';
+    ch.scrollTop = ch.scrollHeight;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function sendChat(){
+    if(!account || !pet || !pet.bonded) return;
+    var input = $('chatInput');
+    var msg = input.value.trim();
+    if(!msg) return;
+
+    var sendBtn = $('chatSend');
+    sendBtn.disabled = true;
+    sendBtn.textContent = '...';
+    input.value = '';
+
+    // optimistic append user message
+    var ch = $('chatHistory');
+    var existingItems = ch.querySelectorAll('div[style*="margin-bottom"]').length;
+    if(existingItems === 0) ch.innerHTML = '';
+    ch.innerHTML += '<div style="margin-bottom:8px"><span style="color:var(--ink-dim);font-family:var(--mono);font-size:9px;letter-spacing:.13em;font-weight:700">YOU</span><br><span style="font-size:13px;color:var(--ink);line-height:1.4">' + escapeHtml(msg) + '</span></div>';
+    ch.scrollTop = ch.scrollHeight;
+
+    try {
+      var r = await fetch('/api/chat-pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: account, message: msg, pet: pet })
+      });
+      var data = await r.json();
+      if(!r.ok){
+        ch.innerHTML += '<div style="margin-bottom:8px;color:var(--red);font-family:var(--mono);font-size:11px">⚠ ' + (data.error || 'failed') + '</div>';
+      } else {
+        ch.innerHTML += '<div style="margin-bottom:8px"><span style="color:var(--pink);font-family:var(--mono);font-size:9px;letter-spacing:.13em;font-weight:700">' + (pet.name || 'PET').toUpperCase() + '</span><br><span style="font-size:13px;color:var(--ink);line-height:1.4">' + escapeHtml(data.reply) + '</span></div>';
+      }
+      ch.scrollTop = ch.scrollHeight;
+    } catch(e){
+      ch.innerHTML += '<div style="margin-bottom:8px;color:var(--red);font-family:var(--mono);font-size:11px">⚠ network error</div>';
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'SEND';
+      input.focus();
+    }
+  }
+
+  $('chatSend').addEventListener('click', sendChat);
+  $('chatInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendChat();
+    }
   });
 
   /* ─── INIT ─── */

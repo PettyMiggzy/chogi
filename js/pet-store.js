@@ -147,7 +147,10 @@
       thirsty_events: p.thirsty_events || 0,
       cosmetics: p.cosmetics || {head:null, outfit:null, boots:null, acc:null},
       owned_items: p.owned_items || [],
-      hatch_tx: p.hatch_tx || null
+      hatch_tx: p.hatch_tx || null,
+      bonded: !!p.bonded,
+      bonded_at: p.bonded_at || null,
+      bond_tx: p.bond_tx || null
     };
   }
   function rowToPet(r){
@@ -171,6 +174,9 @@
       cosmetics: r.cosmetics || {head:null, outfit:null, boots:null, acc:null},
       owned_items: r.owned_items || [],
       hatch_tx: r.hatch_tx,
+      bonded: !!r.bonded,
+      bonded_at: r.bonded_at,
+      bond_tx: r.bond_tx,
       wallet: r.wallet
     };
   }

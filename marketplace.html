@@ -473,61 +473,33 @@ main, header{position:relative;z-index:2}
               effect (for consumables: hunger/thirst/happy)
   */
   var ITEMS = [
-    // CONSUMABLES
-    {id:'food-tap-water',     name:'TAP WATER',        cat:'food', price:500,    desc:'A simple glass of water.',                   slot:null, effect:{thirst:20}},
-    {id:'food-spring-water',  name:'SPRING WATER',     cat:'food', price:2000,   desc:'From the mountain. Worth the burn.',         slot:null, effect:{thirst:50,happy:1}},
-    {id:'food-sparkle-water', name:'SPARKLE WATER',    cat:'food', price:8000,   desc:'Magical pink fizz. Hydration with vibes.',   slot:null, effect:{thirst:100,happy:10}},
+    // ─── WATER ───
+    {id:'food-tap-water',     name:'TAP WATER',        cat:'water', price:500,    desc:'A simple glass of water.',                   slot:null, effect:{thirst:20}},
+    {id:'food-spring-water',  name:'SPRING WATER',     cat:'water', price:2000,   desc:'From the mountain. Worth the burn.',         slot:null, effect:{thirst:50,happy:1}},
+    {id:'food-sparkle-water', name:'SPARKLE WATER',    cat:'water', price:8000,   desc:'Magical pink fizz. Hydration with vibes.',   slot:null, effect:{thirst:100,happy:10}},
+    {id:'food-coffee',        name:'COFFEE',           cat:'water', price:4000,   desc:'+20 thirst, +20 happy. Caffeinated.',        slot:null, effect:{thirst:20,happy:20}},
+    {id:'food-boba',          name:'BOBA',             cat:'water', price:6000,   desc:'Sweet milk tea. Tapioca included.',          slot:null, effect:{thirst:50,happy:15}},
+    {id:'food-energy-soda',   name:'ENERGY SODA',      cat:'water', price:15000,  desc:'+100 thirst, +30 happy. Anti-decay 1hr.',    slot:null, effect:{thirst:100,happy:30}},
+
+    // ─── FOOD ───
     {id:'food-berry-snack',   name:'BERRY SNACK',      cat:'food', price:1000,   desc:'Pink berries on a leaf. Quick bite.',        slot:null, effect:{hunger:15}},
     {id:'food-lab-meal',      name:'LAB MEAL',         cat:'food', price:5000,   desc:'A balanced meal from the experiment kitchen.', slot:null, effect:{hunger:50,happy:5}},
+    {id:'food-pizza',         name:'PIZZA SLICE',      cat:'food', price:3000,   desc:'A cheesy pink-sauce slice.',                  slot:null, effect:{hunger:30,happy:5}},
+    {id:'food-sushi',         name:'SUSHI ROLL',       cat:'food', price:8000,   desc:'Fresh ocean roll. Smart-trait food.',         slot:null, effect:{hunger:60,happy:10}},
+    {id:'food-ramen',         name:'RAMEN BOWL',       cat:'food', price:12000,  desc:'Steaming hot bowl. Soul food.',               slot:null, effect:{hunger:80,happy:15}},
     {id:'food-birthday-feast',name:'BIRTHDAY FEAST',   cat:'food', price:25000,  desc:'Full feast. Cake, candles, the works.',      slot:null, effect:{hunger:100,happy:20,thirst:10}},
     {id:'food-monad-booster', name:'MONAD BOOSTER',    cat:'food', price:50000,  desc:'Fills everything. Skips an hour of decay.',  slot:null, effect:{hunger:100,thirst:100,happy:40}},
+    {id:'food-mystery-meal',  name:'MYSTERY MEAL',     cat:'food', price:20000,  desc:'Random stat boost. Roll the dice.',           slot:null, effect:{hunger:50,thirst:50,happy:50}},
 
-    // HEADPIECES
-    {id:'hat-pink-bow',       name:'PINK BOW',         cat:'head', price:2500,   desc:'Hot pink replacement bow.',                  slot:'head'},
-    {id:'hat-crown',          name:'GOLD CROWN',       cat:'head', price:25000,  desc:'For royalty. Or those pretending.',          slot:'head'},
-    {id:'hat-halo',           name:'HALO',             cat:'head', price:50000,  desc:'Gold halo. Ascended energy.',                slot:'head'},
-    {id:'hat-beanie',         name:'BEANIE',           cat:'head', price:5000,   desc:'Casual streetwear knit cap.',                slot:'head'},
-    {id:'hat-cowboy',         name:'COWBOY HAT',       cat:'head', price:10000,  desc:'Yeehaw on the chain.',                       slot:'head'},
-    {id:'hat-witch',          name:'WITCH HAT',        cat:'head', price:10000,  desc:'Spooky szn. Stars included.',                slot:'head'},
-    {id:'hat-devil-horns',    name:'DEVIL HORNS',      cat:'head', price:15000,  desc:'For mischief makers.',                       slot:'head'},
-    {id:'hat-angel-wings',    name:'ANGEL WINGS',      cat:'head', price:30000,  desc:'Wings worn behind the head.',                slot:'head'},
-
-    // OUTFITS
-    {id:'outfit-lab-coat',    name:'LAB COAT',         cat:'outfit', price:5000, desc:'CTO-of-the-experiment fit.',                slot:'outfit'},
-    {id:'outfit-hoodie-black',name:'BLACK HOODIE',     cat:'outfit', price:5000, desc:'Streetwear. Hood up.',                      slot:'outfit'},
-    {id:'outfit-hoodie-monad',name:'MONAD HOODIE',     cat:'outfit', price:7500, desc:'Brand loyalty in pullover form.',           slot:'outfit'},
-    {id:'outfit-suit',        name:'SUIT &amp; TIE',   cat:'outfit', price:15000,desc:'Boardroom. Red tie.',                       slot:'outfit'},
-    {id:'outfit-sweater',     name:'COZY SWEATER',     cat:'outfit', price:4000, desc:'Cream cable-knit. Winter szn.',             slot:'outfit'},
-    {id:'outfit-hawaiian',    name:'HAWAIIAN SHIRT',   cat:'outfit', price:8000, desc:'Vacation Chogi. Hibiscus print.',           slot:'outfit'},
-    {id:'outfit-astronaut',   name:'ASTRONAUT SUIT',   cat:'outfit', price:40000,desc:'Mission to Monad and beyond.',              slot:'outfit'},
-    {id:'outfit-holographic', name:'HOLOGRAPHIC SUIT', cat:'outfit', price:75000,desc:'Iridescent flex. Top-tier.',                slot:'outfit'},
-
-    // BOOTS
-    {id:'boots-sneakers-white',name:'WHITE SNEAKERS',  cat:'boots', price:3000,  desc:'Clean. Always.',                            slot:'boots'},
-    {id:'boots-sneakers-red', name:'RED SNEAKERS',     cat:'boots', price:8000,  desc:'Hype tier high-tops.',                      slot:'boots'},
-    {id:'boots-doc-martens',  name:'DOC MARTENS',      cat:'boots', price:6000,  desc:'Punk. Yellow stitch.',                      slot:'boots'},
-    {id:'boots-cowboy',       name:'COWBOY BOOTS',     cat:'boots', price:7000,  desc:'Pairs with the hat.',                       slot:'boots'},
-    {id:'boots-roller-skates',name:'ROLLER SKATES',    cat:'boots', price:12000, desc:'Movement matters.',                         slot:'boots'},
-    {id:'boots-diamond',      name:'DIAMOND BOOTS',    cat:'boots', price:50000, desc:'Crystal flex. Whale only.',                 slot:'boots'},
-
-    // ACCESSORIES
-    {id:'acc-sunglasses',     name:'SUNGLASSES',       cat:'acc', price:3000,    desc:'Cool. Permanently.',                        slot:'acc'},
-    {id:'acc-glasses',        name:'GLASSES',          cat:'acc', price:3000,    desc:'Reading mode.',                             slot:'acc'},
-    {id:'acc-backpack',       name:'BACKPACK',         cat:'acc', price:5000,    desc:'For adventures.',                           slot:'acc'},
-    {id:'acc-scarf',          name:'RED SCARF',        cat:'acc', price:4000,    desc:'Cozy as hell.',                             slot:'acc'},
-    {id:'acc-chogi-sign',     name:'$CHOGI SIGN',      cat:'acc', price:5000,    desc:'For shilling on chain.',                    slot:'acc'},
-    {id:'acc-phone',          name:'PHONE',            cat:'acc', price:4000,    desc:'On X. Always.',                             slot:'acc'},
-    {id:'acc-money-bag',      name:'MONEY BAG',        cat:'acc', price:10000,   desc:'Whale energy.',                             slot:'acc'},
-    {id:'acc-sword',          name:'SWORD',            cat:'acc', price:20000,   desc:'Going to war for the bag.',                 slot:'acc'},
+    // ─── BOND ───
+    {id:'bond-token',         name:'BOND TOKEN',       cat:'bond', price:25000,  desc:'Permanent. Unlocks chat with your pet forever. Kid stage or older.', slot:null, effect:{}, lockStage:'baby'},
   ];
 
   var CATS = [
     {id:'all',    label:'ALL'},
-    {id:'food',   label:'FOOD &amp; WATER'},
-    {id:'head',   label:'HEADPIECES'},
-    {id:'outfit', label:'OUTFITS'},
-    {id:'boots',  label:'BOOTS'},
-    {id:'acc',    label:'ACCESSORIES'},
+    {id:'food',   label:'FOOD'},
+    {id:'water',  label:'WATER'},
+    {id:'bond',   label:'BOND ★'},
     {id:'owned',  label:'★ OWNED'}
   ];
 
@@ -615,12 +587,16 @@ main, header{position:relative;z-index:2}
   /* ─── grid ─── */
   function renderGrid(){
     var owned = (pet && pet.owned_items) || [];
-    var equipped = (pet && pet.cosmetics) || {};
-    var bal = pet ? (pet.balance || 0) : 0; // we re-check on click
+    var bonded = !!(pet && pet.bonded);
+    var stage = pet ? pet.stage : null;
 
     var filtered;
     if(activeCat === 'all') filtered = ITEMS;
-    else if(activeCat === 'owned') filtered = ITEMS.filter(function(it){return owned.indexOf(it.id) !== -1;});
+    else if(activeCat === 'owned') filtered = ITEMS.filter(function(it){
+      // "owned" = bonded if bond-token, or in owned_items list otherwise
+      if(it.id === 'bond-token') return bonded;
+      return owned.indexOf(it.id) !== -1;
+    });
     else filtered = ITEMS.filter(function(it){return it.cat === activeCat;});
 
     if(filtered.length === 0){
@@ -629,22 +605,26 @@ main, header{position:relative;z-index:2}
     }
 
     var html = filtered.map(function(it){
-      var isOwned = owned.indexOf(it.id) !== -1;
-      var isEquipped = it.slot && equipped[it.slot] === it.id;
-      var consumable = it.cat === 'food';
+      var consumable = it.cat === 'food' || it.cat === 'water';
+      var isBondToken = it.id === 'bond-token';
+      var isBondedAlready = isBondToken && bonded;
+      // bond token requires kid stage or older
+      var bondLocked = isBondToken && stage === 'baby';
 
       var cls = 'card ' + it.cat;
       var stamp = '';
-      if(isEquipped) {cls += ' equipped'; stamp = '<span class="card-stamp">EQUIPPED</span>';}
-      else if(isOwned) {cls += ' owned'; stamp = '<span class="card-stamp">OWNED</span>';}
+      if(isBondedAlready) {cls += ' equipped'; stamp = '<span class="card-stamp">BONDED</span>';}
+      else if(bondLocked) {cls += ' locked';}
 
       var btn;
-      if(consumable){
+      if(isBondedAlready){
+        btn = '<button class="card-btn" disabled>ALREADY BONDED</button>';
+      } else if(bondLocked){
+        btn = '<button class="card-btn" disabled>UNLOCKS AT KID STAGE</button>';
+      } else if(consumable){
         btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">BURN '+fmtPrice(it.price)+'</button>';
-      } else if(isEquipped){
-        btn = '<button class="card-btn" data-act="unequip" data-id="'+it.id+'">UNEQUIP</button>';
-      } else if(isOwned){
-        btn = '<button class="card-btn" data-act="equip" data-id="'+it.id+'">EQUIP</button>';
+      } else if(isBondToken){
+        btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">UNLOCK CHAT '+fmtPrice(it.price)+'</button>';
       } else {
         btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">BUY '+fmtPrice(it.price)+'</button>';
       }
@@ -658,9 +638,17 @@ main, header{position:relative;z-index:2}
         effect = bits.join(' · ');
       }
 
+      // bond-token has no image yet — use an emoji card
+      var imgHtml;
+      if(isBondToken){
+        imgHtml = '<div class="card-img bond-img"><div style="font-size:64px;filter:drop-shadow(0 6px 12px rgba(255,20,147,.5))">💜</div></div>';
+      } else {
+        imgHtml = '<div class="card-img"><img src="/marketplace/items/'+it.id+'.png" alt="'+it.name+'" loading="lazy" onerror="this.parentNode.innerHTML=\'<div style=&quot;font-size:48px&quot;>🍓</div>\'"></div>';
+      }
+
       return '<div class="'+cls+'">' +
         stamp +
-        '<div class="card-img"><img src="/marketplace/items/'+it.id+'.png" alt="'+it.name+'" loading="lazy"></div>' +
+        imgHtml +
         '<div class="card-name">'+it.name+'</div>' +
         '<div class="card-meta">'+it.desc+'</div>' +
         '<div class="card-cost"><span class="price"><b>'+fmtPrice(it.price)+'</b> $CHOGI</span>'+(effect?'<span class="effect">'+effect+'</span>':'')+'</div>' +
@@ -672,33 +660,27 @@ main, header{position:relative;z-index:2}
 
     $('grid').querySelectorAll('.card-btn').forEach(function(b){
       b.addEventListener('click', function(){
+        if(b.disabled) return;
         var act = b.dataset.act, id = b.dataset.id;
         if(act === 'buy') openConfirm(id);
-        else if(act === 'equip') equip(id);
-        else if(act === 'unequip') unequip(id);
       });
     });
   }
 
-  /* ─── shelf ─── */
+  /* ─── shelf — shows pet status (bonded? hatched?) ─── */
   function renderShelf(){
     if(!pet){
       $('shelf').classList.remove('show');
       return;
     }
     $('shelf').classList.add('show');
-    $('shelfPetName').textContent = pet.name + ' · ' + (pet.type||'').toUpperCase();
-    var slots = ['head','outfit','boots','acc'];
+    var status = pet.bonded ? '💜 BONDED' : '🥚 NOT BONDED';
+    $('shelfPetName').innerHTML = pet.name + ' · ' + (pet.type||'').toUpperCase() + ' · ' + (pet.stage||'baby').toUpperCase() + '<br><span style="color:var(--pink);font-size:9px">' + status + '</span>';
+    // hide loadout slots
     var ids = ['eqHead','eqOutfit','eqBoots','eqAcc'];
-    var eq = pet.cosmetics || {};
-    slots.forEach(function(s, i){
-      var el = $(ids[i]);
-      var itemId = eq[s];
-      if(itemId){
-        el.innerHTML = '<img src="/marketplace/items/'+itemId+'.png" alt="">';
-      } else {
-        el.innerHTML = '';
-      }
+    ids.forEach(function(id){
+      var el = $(id);
+      if(el) el.style.display = 'none';
     });
   }
 
@@ -708,7 +690,11 @@ main, header{position:relative;z-index:2}
     var item = ITEMS.find(function(it){return it.id === id;});
     if(!item) return;
     pendingItem = item;
-    $('cfImg').src = '/marketplace/items/'+item.id+'.png';
+    if(item.id === 'bond-token'){
+      $('cfImg').parentNode.innerHTML = '<div style="font-size:80px;padding:24px">💜</div>';
+    } else {
+      $('cfImg').src = '/marketplace/items/'+item.id+'.png';
+    }
     $('cfName').textContent = item.name;
     $('cfDesc').innerHTML = item.desc;
     $('cfPrice').textContent = fmtPrice(item.price);
@@ -762,38 +748,47 @@ main, header{position:relative;z-index:2}
       // optimistic state update
       pet.total_burned = (pet.total_burned||0) + item.price;
 
-      if(item.cat === 'food'){
+      if(item.cat === 'food' || item.cat === 'water'){
         // consumable — apply effect immediately
         var ef = item.effect || {};
         if(ef.hunger){pet.hunger = clamp((pet.hunger||0) + ef.hunger, 0, 100); pet.last_fed_at = Date.now(); pet.feed_count = (pet.feed_count||0)+1;}
         if(ef.thirst){pet.thirst = clamp((pet.thirst||0) + ef.thirst, 0, 100); pet.last_watered_at = Date.now(); pet.water_count = (pet.water_count||0)+1;}
         if(ef.happy){pet.happiness = clamp((pet.happiness||0) + ef.happy, 0, 100);}
         pet.last_updated_at = Date.now();
-      } else {
-        // permanent cosmetic
-        pet.owned_items = pet.owned_items || [];
-        if(pet.owned_items.indexOf(item.id) === -1) pet.owned_items.push(item.id);
-        // auto-equip if slot is empty
-        pet.cosmetics = pet.cosmetics || {head:null,outfit:null,boots:null,acc:null};
-        if(!pet.cosmetics[item.slot]){
-          pet.cosmetics[item.slot] = item.id;
-        }
+      } else if(item.cat === 'bond'){
+        // BOND TOKEN — permanent chat unlock
+        pet.bonded = true;
+        pet.bonded_at = Date.now();
+        pet.bond_tx = txHash;
+        pet.last_updated_at = Date.now();
+      }
+
+      // log event for analytics
+      if(window.ChogiPetStore && window.ChogiPetStore.logEvent){
+        window.ChogiPetStore.logEvent(account, {
+          type: 'buy',
+          item_id: item.id,
+          burn_amount: item.price,
+          tx_hash: txHash
+        });
       }
 
       savePet(account, pet);
       refreshBalance();
       renderTabs();
       renderGrid();
-      renderShelf();
 
-      // explicit cloud confirmation to make sure equip/owned state persists
+      // explicit cloud confirmation
       await savePet(account, pet);
       renderTabs();
       renderGrid();
-      renderShelf();
 
       setTimeout(function(){
-        toast(item.cat === 'food' ? '✓ FED ' + item.name : '✓ OWNED ' + item.name);
+        var msg;
+        if(item.cat === 'bond') msg = '💜 BONDED FOREVER — TALK TO ' + (pet.name || 'YOUR PET');
+        else if(item.cat === 'water') msg = '💧 HYDRATED · ' + item.name;
+        else msg = '🍓 FED · ' + item.name;
+        toast(msg);
       }, 2200);
 
     }catch(e){
@@ -802,33 +797,6 @@ main, header{position:relative;z-index:2}
     }
   }
   $('cfConfirm').addEventListener('click', buy);
-
-  /* ─── equip / unequip ─── */
-  async function equip(id){
-    if(!pet){toast('CONNECT WALLET FIRST');return;}
-    var item = ITEMS.find(function(it){return it.id === id;});
-    if(!item || !item.slot) return;
-    if(!pet.owned_items || pet.owned_items.indexOf(id) === -1){
-      toast('YOU DONT OWN THIS YET');
-      return;
-    }
-    pet.cosmetics = pet.cosmetics || {};
-    pet.cosmetics[item.slot] = item.id;
-    renderGrid();
-    renderShelf();
-    toast('✓ EQUIPPED ' + item.name);
-    await savePet(account, pet);
-  }
-  async function unequip(id){
-    if(!pet){return;}
-    var item = ITEMS.find(function(it){return it.id === id;});
-    if(!item || !item.slot) return;
-    if(pet.cosmetics) pet.cosmetics[item.slot] = null;
-    renderGrid();
-    renderShelf();
-    toast('✓ UNEQUIPPED ' + item.name);
-    await savePet(account, pet);
-  }
 
   /* ─── connect ─── */
   async function connect(){
