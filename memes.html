@@ -252,11 +252,11 @@ footer a{color:var(--pink);text-decoration:none;}
 <div class="filters" id="filters">
   <button class="fpill active" data-cat="all">ALL <span class="count" id="cnt-all"></span></button>
   <button class="fpill" data-cat="meme">MEMES <span class="count" id="cnt-meme"></span></button>
-  <button class="fpill" data-cat="lore">LORE <span class="count" id="cnt-lore"></span></button>
+  <button class="fpill" data-cat="lore" style="display:none"></button>
   <button class="fpill" data-cat="family" style="display:none"></button>
-  <button class="fpill" data-cat="action">ACTION <span class="count" id="cnt-action"></span></button>
+  <button class="fpill" data-cat="action" style="display:none"></button>
   <button class="fpill" data-cat="video">VIDEOS <span class="count" id="cnt-video"></span></button>
-  <button class="fpill" data-cat="pfp">PFPS <span class="count" id="cnt-pfp"></span></button>
+  <button class="fpill" data-cat="pfp" style="display:none"></button>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -303,31 +303,65 @@ footer a{color:var(--pink);text-decoration:none;}
   // ─── ASSET MANIFEST ───
   // each: src, type, cat, label
   var ASSETS = [
-    // MEMES (text-overlay style, share-ready)
-    { src:'/memes/meme-buy-dip.jpg',         type:'image', cat:'meme',   label:'When you buy the dip and it actually works' },
-    { src:'/memes/meme-pump-marker.jpg',     type:'image', cat:'meme',   label:'PUMP $CHOGI' },
-    { src:'/memes/meme-my-turn.jpg',         type:'image', cat:'meme',   label:'MY TURN' },
-    { src:'/memes/meme-money-box.jpg',       type:'image', cat:'meme',   label:'Money in the box' },
+    // COMMUNITY MEMES (May 2026 import)
+    { src:'/memes/chogi-meme-001.jpg', type:'image', cat:'meme', label:'Chogi · #001' },
+    { src:'/memes/chogi-meme-002.jpg', type:'image', cat:'meme', label:'Chogi · #002' },
+    { src:'/memes/chogi-meme-003.jpg', type:'image', cat:'meme', label:'Chogi · #003' },
+    { src:'/memes/chogi-meme-004.jpg', type:'image', cat:'meme', label:'Chogi · #004' },
+    { src:'/memes/chogi-meme-005.jpg', type:'image', cat:'meme', label:'Chogi · #005' },
+    { src:'/memes/chogi-meme-006.jpg', type:'image', cat:'meme', label:'Chogi · #006' },
+    { src:'/memes/chogi-meme-007.jpg', type:'image', cat:'meme', label:'Chogi · #007' },
+    { src:'/memes/chogi-meme-008.jpg', type:'image', cat:'meme', label:'Chogi · #008' },
+    { src:'/memes/chogi-meme-009.jpg', type:'image', cat:'meme', label:'Chogi · #009' },
+    { src:'/memes/chogi-meme-010.jpg', type:'image', cat:'meme', label:'Chogi · #010' },
+    { src:'/memes/chogi-meme-011.jpg', type:'image', cat:'meme', label:'Chogi · #011' },
+    { src:'/memes/chogi-meme-012.jpg', type:'image', cat:'meme', label:'Chogi · #012' },
+    { src:'/memes/chogi-meme-013.jpg', type:'image', cat:'meme', label:'Chogi · #013' },
+    { src:'/memes/chogi-meme-014.jpg', type:'image', cat:'meme', label:'Chogi · #014' },
+    { src:'/memes/chogi-meme-015.jpg', type:'image', cat:'meme', label:'Chogi · #015' },
+    { src:'/memes/chogi-meme-016.jpg', type:'image', cat:'meme', label:'Chogi · #016' },
+    { src:'/memes/chogi-meme-017.jpg', type:'image', cat:'meme', label:'Chogi · #017' },
+    { src:'/memes/chogi-meme-018.jpg', type:'image', cat:'meme', label:'Chogi · #018' },
+    { src:'/memes/chogi-meme-019.jpg', type:'image', cat:'meme', label:'Chogi · #019' },
+    { src:'/memes/chogi-meme-020.jpg', type:'image', cat:'meme', label:'Chogi · #020' },
+    { src:'/memes/chogi-meme-021.jpg', type:'image', cat:'meme', label:'Chogi · #021' },
+    { src:'/memes/chogi-meme-022.jpg', type:'image', cat:'meme', label:'Chogi · #022' },
+    { src:'/memes/chogi-meme-023.jpg', type:'image', cat:'meme', label:'Chogi · #023' },
+    { src:'/memes/chogi-meme-024.jpg', type:'image', cat:'meme', label:'Chogi · #024' },
+    { src:'/memes/chogi-meme-025.jpg', type:'image', cat:'meme', label:'Chogi · #025' },
+    { src:'/memes/chogi-meme-026.jpg', type:'image', cat:'meme', label:'Chogi · #026' },
+    { src:'/memes/chogi-meme-027.jpg', type:'image', cat:'meme', label:'Chogi · #027' },
+    { src:'/memes/chogi-meme-028.jpg', type:'image', cat:'meme', label:'Chogi · #028' },
+    { src:'/memes/chogi-meme-029.jpg', type:'image', cat:'meme', label:'Chogi · #029' },
+    { src:'/memes/chogi-meme-030.jpg', type:'image', cat:'meme', label:'Chogi · #030' },
+    { src:'/memes/chogi-meme-031.jpg', type:'image', cat:'meme', label:'Chogi · #031' },
+    { src:'/memes/chogi-meme-032.jpg', type:'image', cat:'meme', label:'Chogi · #032' },
+    { src:'/memes/chogi-meme-033.jpg', type:'image', cat:'meme', label:'Chogi · #033' },
+    { src:'/memes/chogi-meme-034.jpg', type:'image', cat:'meme', label:'Chogi · #034' },
+    { src:'/memes/chogi-meme-035.jpg', type:'image', cat:'meme', label:'Chogi · #035' },
+    { src:'/memes/chogi-meme-036.jpg', type:'image', cat:'meme', label:'Chogi · #036' },
+    { src:'/memes/chogi-meme-037.jpg', type:'image', cat:'meme', label:'Chogi · #037' },
+    { src:'/memes/chogi-meme-038.jpg', type:'image', cat:'meme', label:'Chogi · #038' },
+    { src:'/memes/chogi-meme-039.jpg', type:'image', cat:'meme', label:'Chogi · #039' },
+    { src:'/memes/chogi-meme-040.jpg', type:'image', cat:'meme', label:'Chogi · #040' },
+    { src:'/memes/chogi-meme-041.jpg', type:'image', cat:'meme', label:'Chogi · #041' },
+    { src:'/memes/chogi-meme-042.jpg', type:'image', cat:'meme', label:'Chogi · #042' },
+    { src:'/memes/chogi-meme-043.jpg', type:'image', cat:'meme', label:'Chogi · #043' },
+    { src:'/memes/chogi-meme-044.jpg', type:'image', cat:'meme', label:'Chogi · #044' },
+    { src:'/memes/chogi-meme-045.jpg', type:'image', cat:'meme', label:'Chogi · #045' },
+    { src:'/memes/chogi-meme-046.jpg', type:'image', cat:'meme', label:'Chogi · #046' },
+    { src:'/memes/chogi-meme-047.jpg', type:'image', cat:'meme', label:'Chogi · #047' },
+    { src:'/memes/chogi-meme-048.jpg', type:'image', cat:'meme', label:'Chogi · #048' },
+    { src:'/memes/chogi-meme-049.jpg', type:'image', cat:'meme', label:'Chogi · #049' },
+    { src:'/memes/chogi-meme-050.jpg', type:'image', cat:'meme', label:'Chogi · #050' },
+    { src:'/memes/chogi-meme-051.jpg', type:'image', cat:'meme', label:'Chogi · #051' },
+    { src:'/memes/chogi-meme-052.jpg', type:'image', cat:'meme', label:'Chogi · #052' },
+    { src:'/memes/chogi-meme-053.jpg', type:'image', cat:'meme', label:'Chogi · #053' },
+    { src:'/memes/chogi-meme-054.jpg', type:'image', cat:'meme', label:'Chogi · #054' },
 
-    // LORE (lab origin / experiment 7777 storyline)
-    { src:'/memes/lore-ticker-breach.jpg',   type:'image', cat:'lore',   label:'Ticker selected: $CHOGI' },
-    { src:'/memes/lore-cto-install.jpg',     type:'image', cat:'lore',   label:'Official CTO installation' },
-    { src:'/memes/lore-dome-scientists.jpg', type:'image', cat:'lore',   label:'The dome · scientists scrambling' },
-    { src:'/memes/lore-monad-chamber.jpg',   type:'image', cat:'lore',   label:'Experiment Chogi · containment chamber' },
-    { src:'/memes/lore-tube-sleeping.jpg',   type:'image', cat:'lore',   label:'Subject 7777 · in the tube' },
-
-    // ACTION
-    { src:'/memes/action-stadium.jpg',       type:'image', cat:'action', label:'Stadium starting line' },
-    { src:'/memes/action-pool-sharks.jpg',   type:'image', cat:'action', label:'Pool · sharks circling' },
-
-    // PFPS
-    { src:'/memes/pfp-chogi-purple.jpg',     type:'image', cat:'pfp',    label:'Chogi PFP · purple bg' },
-
-    // VIDEOS (always show in VIDEOS filter and ALL)
-    { src:'/memes/video-lab-origin.mp4',     poster:'/memes/video-lab-origin-poster.jpg', type:'video', cat:'video', label:'Lab origin · escape footage' },
-    { src:'/memes/video-buy-bot.mp4',        poster:'/memes/video-buy-bot-poster.jpg',    type:'video', cat:'video', label:'Buy bot · money rain' },
-    { src:'/memes/video-chogi-buy.mp4',      poster:'/memes/video-chogi-buy-poster.jpg',  type:'video', cat:'video', label:'Chogi buy · with Chog' },
-    { src:'/memes/video-chog-crowd.mp4',     poster:'/memes/video-chog-crowd-poster.jpg', type:'video', cat:'video', label:'Chogi running with the chog crowd' },
+    // VIDEOS
+    { src:'/memes/chogi-video-01.mp4', poster:'/memes/chogi-video-01-poster.jpg', type:'video', cat:'video', label:'Chogi · video #01' },
+    { src:'/memes/chogi-video-02.mp4', poster:'/memes/chogi-video-02-poster.jpg', type:'video', cat:'video', label:'Chogi · video #02' },
   ];
 
   var $ = function(s){return document.querySelector(s);};
