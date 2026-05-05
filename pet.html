@@ -638,12 +638,13 @@ main, header{position:relative;z-index:2}
   </div>
 
   <hr>
-  <small>OWNERSHIP</small>
+  <small>CHAT (BOND)</small>
   <div class="dev-row">
-    <button class="dev-btn" data-dev="give" data-val="all">GIVE ALL ITEMS</button>
+    <button class="dev-btn" data-dev="bond" data-val="on">BOND ON</button>
+    <button class="dev-btn" data-dev="bond" data-val="off">BOND OFF</button>
   </div>
   <div class="dev-row">
-    <button class="dev-btn" data-dev="equip" data-val="random">RANDOM EQUIP</button>
+    <button class="dev-btn danger" data-dev="bond" data-val="clear-history">CLEAR CHAT</button>
   </div>
 
   <hr>
@@ -1164,33 +1165,29 @@ main, header{position:relative;z-index:2}
       pet.last_watered_at = now;
       toast('STATS → '+val.toUpperCase());
     }
-    else if(action === 'give'){
-      // give all items (catalog defined in marketplace — use a hardcoded list here for self-containment)
-      pet.owned_items = [
-        'hat-pink-bow','hat-crown','hat-halo','hat-beanie','hat-cowboy','hat-witch','hat-devil-horns','hat-angel-wings',
-        'outfit-lab-coat','outfit-hoodie-black','outfit-hoodie-monad','outfit-suit','outfit-sweater','outfit-hawaiian','outfit-astronaut','outfit-holographic',
-        'boots-sneakers-white','boots-sneakers-red','boots-doc-martens','boots-cowboy','boots-roller-skates','boots-diamond',
-        'acc-sunglasses','acc-glasses','acc-backpack','acc-scarf','acc-chogi-sign','acc-phone','acc-money-bag','acc-sword'
-      ];
-      toast('GAVE 30 ITEMS');
-    }
-    else if(action === 'equip'){
-      // equip one random item from each slot from owned items
-      var byCat = {head:[],outfit:[],boots:[],acc:[]};
-      (pet.owned_items||[]).forEach(function(id){
-        if(id.startsWith('hat-')) byCat.head.push(id);
-        else if(id.startsWith('outfit-')) byCat.outfit.push(id);
-        else if(id.startsWith('boots-')) byCat.boots.push(id);
-        else if(id.startsWith('acc-')) byCat.acc.push(id);
-      });
-      var pick = function(arr){return arr.length ? arr[Math.floor(Math.random()*arr.length)] : null;};
-      pet.cosmetics = {
-        head: pick(byCat.head),
-        outfit: pick(byCat.outfit),
-        boots: pick(byCat.boots),
-        acc: pick(byCat.acc)
-      };
-      toast('RANDOM LOOK ON');
+    else if(action === 'bond'){
+      if(val === 'on'){
+        pet.bonded = true;
+        pet.bonded_at = Date.now();
+        pet.bond_tx = '0xDEV-FORCED';
+        window._chatLoaded = false; // re-trigger history load
+        toast('💜 BOND FORCED ON');
+      } else if(val === 'off'){
+        pet.bonded = false;
+        pet.bonded_at = null;
+        pet.bond_tx = null;
+        window._chatLoaded = false;
+        toast('🔒 BOND CLEARED');
+      } else if(val === 'clear-history'){
+        if(!confirm('Wipe all chat history with this pet?')) return;
+        // delete all chat rows for this wallet via the REST API (using anon key with delete policy)
+        // Note: anon doesn't have delete in the schema — we'd need to add one OR just clear local UI.
+        // For now, just empty the UI and let server cap at 30/day naturally.
+        var ch = $('chatHistory');
+        if(ch) ch.innerHTML = '<div style="font-family:var(--serif);font-style:italic;color:var(--ink-faint);text-align:center;padding:20px">cleared locally — server keeps last 20 for context</div>';
+        toast('UI CLEARED (server retains)');
+        return;
+      }
     }
     else if(action === 'reset' && val === 'pet'){
       if(!confirm('Wipe pet completely? You will need to re-hatch.')) return;
