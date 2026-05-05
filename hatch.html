@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>HATCH · Chogi Lab</title>
+<meta name="description" content="Hatch a Chogi or a Chog. Burn 10,000 $CHOGI to crack the egg. Care for your monanimal for 30 days, then mint it as a soulbound NFT — earned, not bought.">
+<link rel="canonical" href="https://chogi.xyz/hatch">
+<meta name="theme-color" content="#0a0118">
+<meta property="og:title" content="HATCH · Chogi Lab">
+<meta property="og:description" content="Burn 10K $CHOGI. Hatch your monanimal. Care for 30 days. Mint the NFT.">
+<meta property="og:image" content="https://chogi.xyz/hatch/banner.jpg">
+<meta property="og:url" content="https://chogi.xyz/hatch">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://chogi.xyz/hatch/banner.jpg">
+<link rel="icon" type="image/png" href="/chogi.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a0118;
+  --bg-2:#15102e;
+  --bg-3:#1a0436;
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.6);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --monad:#836ef9;
+  --cream:#FFF4D6;
+  --ink:#FFE9F4;
+  --ink-dim:rgba(255,233,244,.7);
+  --ink-faint:rgba(255,233,244,.45);
+  --ochre:#e8a14f;
+  --rule:rgba(168,85,247,.3);
+  --rule-strong:rgba(168,85,247,.6);
+  --display:'Bungee',sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--mono);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* ATMOSPHERIC LAB BG */
+.lab-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 25% 15%, rgba(255,20,147,.18), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 75% 90%, rgba(168,85,247,.18), transparent 60%),
+    radial-gradient(ellipse 90% 100% at 50% 50%, rgba(131,110,249,.05), transparent 70%);
+}
+.lab-bg::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(168,85,247,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,85,247,.04) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+.lab-bg::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='5'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.4 0 0 0 0 0.7 0 0 0 0.06 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity:.65;mix-blend-mode:overlay;
+}
+
+main, header{position:relative;z-index:2}
+
+/* TOP NAV */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  background:rgba(10,1,24,.7);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-inner{
+  max-width:1320px;margin:0 auto;
+  padding:13px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 6px 22px rgba(255,20,147,.35);
+}
+.brand-logo img{width:100%;height:100%;object-fit:cover}
+.brand-text{
+  font-family:var(--display);font-size:14px;letter-spacing:2px;color:var(--cream);
+}
+.nav-back{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+  padding:8px 14px;border-radius:99px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  font-weight:600;transition:.2s;text-transform:uppercase;
+}
+.nav-back:hover{border-color:var(--pink);color:var(--pink)}
+
+/* HERO */
+.hero{
+  max-width:1320px;margin:0 auto;
+  padding:48px 22px 24px;
+  text-align:center;
+}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.4em;
+  color:var(--pink);font-weight:700;
+  display:inline-flex;align-items:center;gap:14px;margin-bottom:22px;
+  text-transform:uppercase;
+}
+.eyebrow::before, .eyebrow::after{
+  content:'';width:36px;height:1px;background:var(--pink);
+  box-shadow:0 0 8px var(--pink-glow);
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(48px,9vw,118px);
+  line-height:.92;letter-spacing:0;
+  color:var(--cream);
+  text-shadow:
+    0 0 18px rgba(255,20,147,.45),
+    0 0 56px rgba(168,85,247,.3);
+  margin-bottom:14px;
+}
+.hero h1 span{
+  display:inline-block;
+  background:linear-gradient(180deg,var(--cream) 0%,var(--pink) 65%,var(--purple) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 0 22px rgba(255,20,147,.4));
+}
+.hero-sub{
+  font-family:var(--serif);font-style:italic;font-weight:400;
+  font-size:clamp(17px,2.2vw,24px);
+  color:var(--ink-dim);max-width:600px;margin:0 auto 8px;
+  line-height:1.5;
+}
+
+/* WALLET STATE STRIP */
+.wallet-strip{
+  display:flex;justify-content:center;gap:18px;flex-wrap:wrap;align-items:center;
+  margin:36px auto 0;
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  color:var(--ink-faint);font-weight:600;text-transform:uppercase;
+}
+.wallet-strip .pill{
+  padding:8px 16px;border-radius:99px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--rule);
+  display:inline-flex;align-items:center;gap:8px;
+}
+.wallet-strip .pill.live{
+  border-color:rgba(0,255,130,.4);
+  color:#5dffa0;
+}
+.wallet-strip .pill.live::before{
+  content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:#5dffa0;box-shadow:0 0 10px rgba(0,255,130,.7);
+  animation:livePulse 1.6s ease-in-out infinite;
+}
+.wallet-strip .pill b{color:var(--cream);font-weight:700}
+@keyframes livePulse{50%{opacity:.4}}
+
+/* EGG CHOICES */
+.choices{
+  max-width:1240px;margin:0 auto;
+  padding:36px 22px 80px;
+  display:grid;grid-template-columns:1fr 1fr;gap:28px;
+  position:relative;
+}
+@media(max-width:780px){
+  .choices{grid-template-columns:1fr;gap:22px;padding:24px 18px 60px}
+}
+
+.egg-card{
+  position:relative;
+  background:linear-gradient(180deg,rgba(31,22,64,.6),rgba(15,12,34,.7));
+  border:1.5px solid var(--rule);
+  border-radius:24px;
+  padding:36px 28px 28px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.35s cubic-bezier(.2,.9,.3,1);
+  isolation:isolate;
+}
+.egg-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--rule-strong);
+}
+.egg-card::before{
+  content:'';position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(ellipse at center, var(--card-glow,rgba(255,20,147,.18)) 0%, transparent 70%);
+  opacity:0;transition:.5s;
+}
+.egg-card:hover::before{opacity:1}
+
+.egg-card.chogi{--card-glow:rgba(255,20,147,.2)}
+.egg-card.chog{--card-glow:rgba(168,85,247,.2)}
+
+.egg-card .stamp{
+  position:absolute;top:20px;right:20px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;
+  font-weight:700;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(6px);
+  padding:5px 10px;border-radius:4px;
+  text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.1);
+}
+.egg-card.chogi .stamp{color:var(--pink)}
+.egg-card.chog .stamp{color:var(--purple)}
+
+.egg-card .label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.32em;
+  color:var(--ink-faint);font-weight:700;
+  text-transform:uppercase;margin-bottom:6px;
+}
+.egg-card h2{
+  font-family:var(--display);
+  font-size:clamp(28px,4vw,46px);
+  line-height:1;letter-spacing:1px;
+  color:var(--cream);
+  margin-bottom:8px;
+}
+.egg-card.chogi h2 em{color:var(--pink);font-style:normal}
+.egg-card.chog h2 em{color:var(--purple);font-style:normal}
+
+.egg-card .desc{
+  font-family:var(--serif);font-style:italic;font-size:16px;
+  color:var(--ink-dim);line-height:1.5;margin-bottom:22px;
+  max-width:340px;
+}
+
+.egg-stage{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1.1;
+  margin:8px 0 22px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  border-radius:18px;
+  background:
+    radial-gradient(ellipse at 50% 60%, var(--stage-glow,rgba(255,20,147,.18)) 0%, transparent 60%),
+    linear-gradient(180deg,rgba(15,12,34,.6),rgba(10,1,24,.9));
+  border:1px solid rgba(168,85,247,.2);
+}
+.egg-card.chogi .egg-stage{--stage-glow:rgba(255,20,147,.22)}
+.egg-card.chog .egg-stage{--stage-glow:rgba(168,85,247,.22)}
+
+/* sparkles */
+.egg-stage::before, .egg-stage::after{
+  content:'';position:absolute;
+  width:6px;height:6px;border-radius:50%;
+  background:currentColor;
+  filter:blur(.5px);
+  opacity:.6;
+  animation:sparkleFloat 3.5s ease-in-out infinite;
+}
+.egg-stage::before{top:18%;left:15%;animation-delay:.2s}
+.egg-stage::after{top:30%;right:18%;animation-delay:1.2s}
+.egg-card.chogi .egg-stage{color:var(--pink-soft)}
+.egg-card.chog .egg-stage{color:var(--purple)}
+@keyframes sparkleFloat{
+  0%,100%{opacity:.2;transform:translateY(0) scale(.8)}
+  50%{opacity:.9;transform:translateY(-12px) scale(1.2)}
+}
+
+.egg-img{
+  width:78%;max-width:340px;
+  height:auto;object-fit:contain;
+  filter:drop-shadow(0 24px 40px rgba(0,0,0,.5)) drop-shadow(0 0 26px var(--stage-glow,rgba(255,20,147,.4)));
+  animation:eggFloat 4.5s ease-in-out infinite, eggWobble 7s ease-in-out infinite;
+  position:relative;z-index:2;
+}
+@keyframes eggFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+@keyframes eggWobble{
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  25%{transform:translateY(-6px) rotate(1.5deg)}
+  50%{transform:translateY(-12px) rotate(-1deg)}
+  75%{transform:translateY(-6px) rotate(2deg)}
+}
+.egg-card:hover .egg-img{
+  animation:eggExcited .6s cubic-bezier(.36,.07,.19,.97) infinite;
+}
+@keyframes eggExcited{
+  0%,100%{transform:translateY(-6px) rotate(-3deg) scale(1.04)}
+  50%{transform:translateY(-14px) rotate(3deg) scale(1.06)}
+}
+
+/* glow ring under egg */
+.egg-stage .ring{
+  position:absolute;bottom:14%;left:50%;transform:translateX(-50%);
+  width:60%;height:24px;
+  background:radial-gradient(ellipse, var(--stage-glow) 0%, transparent 70%);
+  filter:blur(8px);
+  opacity:.7;
+}
+
+.cost-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--rule);
+  border-radius:12px;
+  margin-bottom:14px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;
+}
+.cost-row .label{color:var(--ink-faint)}
+.cost-row .amt{color:var(--cream);font-weight:700;font-size:13px;letter-spacing:.05em}
+.cost-row .amt b{color:var(--ochre);font-weight:800}
+
+.hatch-btn{
+  display:block;width:100%;
+  padding:18px 22px;
+  background:linear-gradient(135deg, var(--btn-1,var(--pink)), var(--btn-2,var(--purple)));
+  border-radius:14px;
+  font-family:var(--display);
+  font-size:15px;letter-spacing:2.5px;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(255,20,147,.35);
+  transition:.2s;
+  position:relative;overflow:hidden;
+}
+.egg-card.chogi .hatch-btn{--btn-1:var(--pink);--btn-2:#c01a73}
+.egg-card.chog  .hatch-btn{--btn-1:var(--purple);--btn-2:#5b48d6}
+.hatch-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(255,20,147,.5)}
+.hatch-btn:active{transform:translateY(0)}
+.hatch-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.hatch-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);
+  transform:translateX(-100%);transition:.6s;
+}
+.hatch-btn:hover::after{transform:translateX(100%)}
+
+/* HOW IT WORKS */
+.how{
+  max-width:1240px;margin:60px auto 0;
+  padding:0 22px 80px;
+}
+.how h3{
+  font-family:var(--display);font-size:24px;letter-spacing:2px;
+  color:var(--cream);margin-bottom:24px;text-align:center;
+}
+.how-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;
+}
+.how-card{
+  background:linear-gradient(180deg,rgba(31,22,64,.4),rgba(15,12,34,.5));
+  border:1px solid var(--rule);border-radius:14px;
+  padding:22px 20px;
+}
+.how-card .num{
+  display:inline-block;
+  font-family:var(--display);font-size:12px;letter-spacing:1px;
+  color:var(--bg);background:var(--ochre);
+  padding:4px 10px;border-radius:99px;margin-bottom:12px;
+}
+.how-card h4{
+  font-family:var(--display);font-size:14px;letter-spacing:1.2px;
+  color:var(--cream);margin-bottom:6px;
+}
+.how-card p{
+  font-family:var(--serif);font-size:15px;line-height:1.5;
+  color:var(--ink-dim);
+}
+
+/* HATCH OVERLAY */
+.hatch-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:radial-gradient(ellipse at center, rgba(20,8,50,.95), rgba(5,0,15,.99));
+  backdrop-filter:blur(12px);
+  display:none;align-items:center;justify-content:center;
+  flex-direction:column;
+  padding:20px;
+}
+.hatch-overlay.show{display:flex}
+.hatch-overlay video{
+  width:100%;max-width:520px;aspect-ratio:464/688;
+  object-fit:contain;
+  border-radius:18px;
+  box-shadow:0 0 80px rgba(255,20,147,.4),0 0 0 1px rgba(255,255,255,.1);
+}
+.hatch-status{
+  margin-top:24px;font-family:var(--display);font-size:13px;letter-spacing:2.5px;
+  color:var(--cream);text-align:center;line-height:1.6;
+}
+.hatch-status .micro{
+  display:block;margin-top:8px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.2em;color:var(--ink-faint);font-weight:600;
+}
+.hatch-status a{color:var(--pink);text-decoration:underline}
+
+/* NAME MODAL */
+.name-modal{
+  position:fixed;inset:0;z-index:300;
+  background:radial-gradient(ellipse at center, rgba(20,8,50,.92), rgba(5,0,15,.98));
+  backdrop-filter:blur(16px);
+  display:none;align-items:center;justify-content:center;
+  flex-direction:column;
+  padding:24px;animation:nameUp .5s cubic-bezier(.2,.9,.3,1);
+}
+.name-modal.show{display:flex}
+@keyframes nameUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.name-modal .born{
+  font-family:var(--display);font-size:11px;letter-spacing:3px;
+  color:var(--pink);margin-bottom:14px;
+  animation:liveText 1.5s ease-in-out infinite;
+}
+@keyframes liveText{50%{opacity:.5}}
+.name-modal h2{
+  font-family:var(--display);font-size:clamp(28px,5vw,42px);
+  line-height:1;letter-spacing:1.5px;color:var(--cream);
+  margin-bottom:8px;text-align:center;
+  text-shadow:0 0 20px var(--pink-glow);
+}
+.name-modal .pet-name{color:var(--pink)}
+.name-modal .sub{
+  font-family:var(--serif);font-style:italic;font-size:18px;
+  color:var(--ink-dim);margin-bottom:26px;text-align:center;line-height:1.5;
+  max-width:420px;
+}
+.name-input-wrap{
+  display:flex;flex-direction:column;gap:14px;width:100%;max-width:380px;
+}
+.name-modal input{
+  width:100%;padding:18px 22px;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid var(--rule-strong);
+  border-radius:14px;
+  font-family:var(--display);font-size:18px;letter-spacing:1.5px;
+  color:var(--cream);text-align:center;
+}
+.name-modal input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 4px rgba(255,20,147,.18)}
+.name-modal input::placeholder{color:var(--ink-faint);letter-spacing:1px}
+
+/* SAFETY DISCLAIMER FOOTER */
+.safety-foot{
+  border-top:1px solid var(--rule);
+  background:rgba(15,12,34,.5);
+  padding:32px 22px 36px;margin-top:30px;
+  font-family:var(--mono);font-size:11px;
+  color:var(--ink-faint);text-align:center;line-height:1.65;letter-spacing:.04em;
+}
+.safety-foot b{color:var(--ink-dim);font-weight:600}
+.safety-foot a{color:var(--pink-soft);text-decoration:underline}
+.safety-foot a:hover{color:var(--pink)}
+
+</style>
+</head>
+<body>
+
+<div class="lab-bg"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <div class="brand-logo"><img src="/chogi.png" alt="Chogi"></div>
+      <div class="brand-text">CHOGI · LAB</div>
+    </a>
+    <a class="nav-back" href="/">← back</a>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="eyebrow">Subject 7777 · Hatching Bay</div>
+  <h1>HATCH<br><span>YOUR MONANIMAL</span></h1>
+  <p class="hero-sub">Two eggs in the lab. Pick yours. Burn 10,000 $CHOGI to crack the shell. The thing inside will need you for thirty days.</p>
+
+  <div class="wallet-strip">
+    <span class="pill live">LIVE · MONAD MAINNET</span>
+    <span class="pill"><b id="ws-status">NOT CONNECTED</b></span>
+    <span class="pill" id="ws-balPill" style="display:none">BALANCE <b id="ws-bal">—</b> $CHOGI</span>
+  </div>
+</section>
+
+<section class="choices">
+
+  <article class="egg-card chogi" data-pet="chogi" tabindex="0">
+    <span class="stamp">PINK · FEMALE</span>
+    <div class="label">▸ Option A</div>
+    <h2>HATCH A <em>CHOGI</em></h2>
+    <p class="desc">Sister of the chain. Pink, fierce, sparkle-eyed. Bow stays. Non-negotiable.</p>
+
+    <div class="egg-stage">
+      <img class="egg-img" src="/hatch/egg-chogi.jpg" alt="Chogi egg">
+      <div class="ring"></div>
+    </div>
+
+    <div class="cost-row">
+      <span class="label">Hatch cost</span>
+      <span class="amt"><b>10,000</b> $CHOGI · burned</span>
+    </div>
+
+    <button class="hatch-btn" data-pet="chogi">CRACK THE PINK EGG</button>
+  </article>
+
+  <article class="egg-card chog" data-pet="chog" tabindex="0">
+    <span class="stamp">PURPLE · MALE</span>
+    <div class="label">▸ Option B</div>
+    <h2>HATCH A <em>CHOG</em></h2>
+    <p class="desc">Big brother monanimal. Purple, sharp, mainframe energy. The original spike.</p>
+
+    <div class="egg-stage">
+      <img class="egg-img" src="/hatch/egg-chog.jpg" alt="Chog egg">
+      <div class="ring"></div>
+    </div>
+
+    <div class="cost-row">
+      <span class="label">Hatch cost</span>
+      <span class="amt"><b>10,000</b> $CHOGI · burned</span>
+    </div>
+
+    <button class="hatch-btn" data-pet="chog">CRACK THE PURPLE EGG</button>
+  </article>
+
+</section>
+
+<section class="how">
+  <h3>HOW THE LAB WORKS</h3>
+  <div class="how-grid">
+    <div class="how-card">
+      <span class="num">01</span>
+      <h4>BURN TO HATCH</h4>
+      <p>Pay 10K $CHOGI to the dead address. Egg cracks. A baby Chogi or Chog appears in your dashboard.</p>
+    </div>
+    <div class="how-card">
+      <span class="num">02</span>
+      <h4>FEED FOR 30 DAYS</h4>
+      <p>Buy food and water from the marketplace using $CHOGI burns. Keep hunger and thirst alive. They grow through baby → kid → teen → adult.</p>
+    </div>
+    <div class="how-card">
+      <span class="num">03</span>
+      <h4>CARE = PERSONALITY</h4>
+      <p>How you raise them shapes who they become. Loyal, Chaotic, Glutton, Feral, or — if you really commit — Prime.</p>
+    </div>
+    <div class="how-card">
+      <span class="num">04</span>
+      <h4>MINT FOR FREE</h4>
+      <p>Survive to day 30 and the soulbound NFT mint unlocks. Free. Earned. Permanent on Monad.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- HATCH OVERLAY -->
+<div class="hatch-overlay" id="hatchOverlay">
+  <video id="hatchVideo" muted playsinline preload="auto"></video>
+  <div class="hatch-status" id="hatchStatus">
+    Confirm in your wallet…
+    <span class="micro" id="hatchMicro">10,000 $CHOGI → 0x000…dead</span>
+  </div>
+</div>
+
+<!-- NAME MODAL -->
+<div class="name-modal" id="nameModal">
+  <div class="born">▸ NEWLY HATCHED · <span id="bornType">CHOGI</span></div>
+  <h2>SHE'S OUT.<br>GIVE HER A <span class="pet-name">NAME.</span></h2>
+  <p class="sub">This becomes her permanent identity. It travels onto her NFT in 30 days.</p>
+  <div class="name-input-wrap">
+    <input type="text" id="petName" maxlength="22" placeholder="EXPERIMENT 7778" autocomplete="off" autocapitalize="characters">
+    <button class="hatch-btn" id="claimBtn" style="background:linear-gradient(135deg,var(--pink),var(--purple))">CLAIM &amp; ENTER LAB →</button>
+  </div>
+</div>
+
+<!-- SAFETY FOOT -->
+<footer class="safety-foot">
+  <p style="margin-bottom:8px"><b>Self-custody.</b> chogi.xyz never sees your keys, seed phrase, or password. The 10K burn is signed in your own wallet to the public dead address: <code>0x000…dead</code>.</p>
+  <p>Open source · <a href="https://github.com/PettyMiggzy/chogi" target="_blank" rel="noopener">github</a> · <a href="/security">security &amp; transparency</a></p>
+</footer>
+
+<script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/wallet-helper.js" defer></script>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ─── CHAIN / TOKEN CONFIG ─── */
+  var TOKEN     = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var DEAD      = '0x000000000000000000000000000000000000dead';
+  var CHAIN_HEX = '0x8f';
+  var RPC       = 'https://rpc.monad.xyz';
+  var EXPLORER  = 'https://monadexplorer.com/tx/';
+  var DEC       = 18;
+  var ONE       = 10n ** 18n;
+  var HATCH_COST = 10000n * ONE;  // 10,000 $CHOGI
+
+  var $ = function(id){return document.getElementById(id);};
+  var account = null;
+
+  /* ─── helpers ─── */
+  function pad32(hex){ return hex.toLowerCase().replace('0x','').padStart(64,'0'); }
+  function fmtBal(big){
+    var n = Number(big / 10n**14n) / 10000;
+    if(n >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if(n >= 1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toFixed(2);
+  }
+  function rpcCall(data){
+    return fetch(RPC, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({jsonrpc:'2.0', method:'eth_call', params:[{to:TOKEN, data:data}, 'latest'], id:1})
+    }).then(function(r){return r.json();}).then(function(j){return BigInt(j.result || '0x0');});
+  }
+
+  /* ─── localStorage pet store ─── */
+  var STORE_KEY = 'chogi_pet_v1';
+  function getPet(addr){
+    try{
+      var all = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+      return addr ? all[addr.toLowerCase()] : all;
+    }catch(e){return null;}
+  }
+  function savePet(addr, pet){
+    try{
+      var all = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+      all[addr.toLowerCase()] = pet;
+      localStorage.setItem(STORE_KEY, JSON.stringify(all));
+    }catch(e){}
+  }
+
+  /* ─── connect ─── */
+  async function connect(){
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('No wallet detected. Install MetaMask or Rabby.');
+      return false;
+    }
+    try{
+      var accounts = await window.ethereum.request({method:'eth_requestAccounts'});
+      account = accounts[0];
+      var chain = await window.ethereum.request({method:'eth_chainId'});
+      if(chain !== CHAIN_HEX){
+        try{
+          await window.ethereum.request({
+            method:'wallet_switchEthereumChain',
+            params:[{chainId:CHAIN_HEX}]
+          });
+        }catch(e){
+          if(e.code === 4902){
+            await window.ethereum.request({
+              method:'wallet_addEthereumChain',
+              params:[{
+                chainId:CHAIN_HEX,
+                chainName:'Monad',
+                nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+                rpcUrls:[RPC],
+                blockExplorerUrls:['https://monadexplorer.com']
+              }]
+            });
+          } else throw e;
+        }
+      }
+      $('ws-status').textContent = account.slice(0,6)+'…'+account.slice(-4);
+      refreshBalance();
+      // if user already has a pet, redirect
+      var existing = getPet(account);
+      if(existing){
+        if(confirm('You already have a pet ('+existing.name+', '+existing.type+'). Open dashboard?')){
+          window.location.href = '/pet';
+        }
+      }
+      return true;
+    }catch(e){
+      console.error(e);
+      alert(e.message || 'Connect failed');
+      return false;
+    }
+  }
+
+  async function refreshBalance(){
+    if(!account) return;
+    try{
+      var bal = await rpcCall('0x70a08231' + pad32(account));
+      $('ws-bal').textContent = fmtBal(bal);
+      $('ws-balPill').style.display = '';
+      $('ws-balPill').dataset.raw = bal.toString();
+    }catch(e){}
+  }
+
+  /* ─── HATCH FLOW ─── */
+  async function hatch(petType){
+    if(!account){
+      var ok = await connect();
+      if(!ok) return;
+    }
+
+    // existing pet check
+    var existing = getPet(account);
+    if(existing){
+      alert('You already have a '+existing.type+' named '+existing.name+'. Visit /pet to see them.');
+      window.location.href = '/pet';
+      return;
+    }
+
+    // balance check
+    var bal = BigInt($('ws-balPill').dataset.raw || '0');
+    if(bal < HATCH_COST){
+      alert('You need at least 10,000 $CHOGI to hatch. Current balance: '+fmtBal(bal));
+      return;
+    }
+
+    // build burn transaction
+    var data = '0xa9059cbb' + pad32(DEAD) + HATCH_COST.toString(16).padStart(64, '0');
+
+    // show overlay
+    var overlay = $('hatchOverlay');
+    var video = $('hatchVideo');
+    var statusEl = $('hatchStatus');
+    var microEl = $('hatchMicro');
+
+    video.src = '/hatch/hatch-anim-' + petType + '.mp4';
+    video.load();
+    overlay.classList.add('show');
+    statusEl.firstChild.textContent = 'Confirm in your wallet…';
+    microEl.textContent = '10,000 $CHOGI → 0x000…dead';
+
+    try{
+      var txHash = await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from: account, to: TOKEN, data: data, value: '0x0'}]
+      });
+
+      // start playing video right away — it's a 6s anim, tx will likely confirm during/after
+      video.play().catch(function(){});
+
+      statusEl.firstChild.textContent = 'BURNING…';
+      microEl.innerHTML = '<a href="'+EXPLORER+txHash+'" target="_blank" rel="noopener">'+txHash.slice(0,10)+'…'+txHash.slice(-6)+'</a>';
+
+      // poll for confirmation
+      var receipt = null, attempts = 0;
+      while(!receipt && attempts < 60){
+        await new Promise(function(r){setTimeout(r, 2000);});
+        attempts++;
+        try{
+          var res = await fetch(RPC, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({jsonrpc:'2.0', method:'eth_getTransactionReceipt', params:[txHash], id:1})
+          }).then(function(r){return r.json();});
+          receipt = res.result;
+        }catch(e){}
+      }
+
+      if(!receipt){
+        statusEl.firstChild.textContent = 'TX TIMEOUT — CHECK EXPLORER';
+        return;
+      }
+      if(receipt.status !== '0x1'){
+        statusEl.firstChild.textContent = 'TX FAILED';
+        return;
+      }
+
+      // ─── tx confirmed, hatch complete ───
+      statusEl.firstChild.textContent = 'HATCHED.';
+      microEl.textContent = 'shell cracked · meet your '+petType;
+
+      // wait for video to be near done if not already
+      var waitVid = new Promise(function(resolve){
+        if(video.ended || video.currentTime > 4) return resolve();
+        var to = setTimeout(resolve, 3500);
+        video.onended = function(){clearTimeout(to); resolve();};
+      });
+      await waitVid;
+
+      // create pet record
+      var pet = {
+        type: petType,
+        name: '',
+        born_at: Date.now(),
+        last_fed_at: Date.now(),
+        last_watered_at: Date.now(),
+        hunger: 100,
+        thirst: 100,
+        happiness: 80,
+        stage: 'baby',
+        days_alive: 1,
+        total_burned: 10000,
+        feed_count: 0,
+        water_count: 0,
+        hungry_events: 0,
+        thirsty_events: 0,
+        wallet: account,
+        hatch_tx: txHash,
+        cosmetics: {head:null, outfit:null, boots:null, accessory:null},
+        owned_items: [],
+      };
+      // hold pet locally until name is set
+      window._pendingPet = pet;
+
+      // hide overlay, show name modal
+      setTimeout(function(){
+        overlay.classList.remove('show');
+        $('bornType').textContent = petType.toUpperCase();
+        $('nameModal').classList.add('show');
+        $('petName').focus();
+      }, 800);
+
+    }catch(e){
+      console.error(e);
+      statusEl.firstChild.textContent = 'CANCELLED';
+      microEl.textContent = e.message || 'transaction not sent';
+      setTimeout(function(){overlay.classList.remove('show');}, 2400);
+    }
+  }
+
+  /* ─── claim with name ─── */
+  function claim(){
+    var pet = window._pendingPet;
+    if(!pet){alert('Hatch a pet first.');return;}
+    var name = $('petName').value.trim();
+    if(!name){
+      // suggest default
+      name = pet.type === 'chogi' ? 'Experiment 7778' : 'Experiment 7779';
+    }
+    pet.name = name.slice(0, 22);
+    savePet(account, pet);
+    window.location.href = '/pet';
+  }
+
+  /* ─── wire up ─── */
+  document.querySelectorAll('.hatch-btn[data-pet]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      hatch(btn.dataset.pet);
+    });
+  });
+  $('claimBtn').addEventListener('click', claim);
+  $('petName').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') claim();
+  });
+
+  // auto-connect if previously connected
+  if(window.ethereum && window.ethereum.selectedAddress){
+    setTimeout(connect, 500);
+  }
+})();
+</script>
+
+</body>
+</html>

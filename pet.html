@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>YOUR PET · Chogi Lab</title>
+<meta name="description" content="Your hatched monanimal. Care for them. Feed them. Watch them grow.">
+<meta name="theme-color" content="#0a0118">
+<link rel="canonical" href="https://chogi.xyz/pet">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/chogi.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a0118;
+  --bg-2:#15102e;
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --purple:#A855F7;
+  --monad:#836ef9;
+  --cream:#FFF4D6;
+  --ink:#FFE9F4;
+  --ink-dim:rgba(255,233,244,.7);
+  --ink-faint:rgba(255,233,244,.45);
+  --ochre:#e8a14f;
+  --green:#5dffa0;
+  --red:#ff6b8a;
+  --rule:rgba(168,85,247,.3);
+  --rule-strong:rgba(168,85,247,.6);
+  --display:'Bungee',sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--mono);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* atmospheric bg */
+.lab-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 25% 15%, rgba(255,20,147,.15), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 75% 90%, rgba(168,85,247,.15), transparent 60%);
+}
+.lab-bg::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='5'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.4 0 0 0 0 0.7 0 0 0 0.06 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity:.6;mix-blend-mode:overlay;
+}
+main, header{position:relative;z-index:2}
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  background:rgba(10,1,24,.7);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-inner{
+  max-width:1200px;margin:0 auto;
+  padding:13px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--pink),var(--purple));overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 6px 22px rgba(255,20,147,.35)}
+.brand-logo img{width:100%;height:100%;object-fit:cover}
+.brand-text{font-family:var(--display);font-size:13px;letter-spacing:2px;color:var(--cream)}
+.nav-links{display:flex;gap:8px}
+.nav-links a{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+  padding:7px 12px;border-radius:99px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  font-weight:600;text-transform:uppercase;transition:.2s;
+}
+.nav-links a:hover{border-color:var(--pink);color:var(--pink)}
+.nav-links a.active{background:rgba(255,20,147,.12);border-color:var(--pink);color:var(--pink)}
+@media(max-width:560px){.nav-links a:not(.active){display:none}}
+
+/* NO PET STATE */
+.empty{
+  max-width:560px;margin:0 auto;padding:80px 22px;text-align:center;
+}
+.empty h1{
+  font-family:var(--display);font-size:38px;letter-spacing:2px;
+  color:var(--cream);margin-bottom:14px;
+}
+.empty p{
+  font-family:var(--serif);font-style:italic;font-size:18px;
+  color:var(--ink-dim);line-height:1.5;margin-bottom:30px;
+}
+.empty .cta{
+  display:inline-block;padding:18px 32px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  border-radius:99px;
+  font-family:var(--display);font-size:14px;letter-spacing:2.5px;color:#fff;
+  box-shadow:0 12px 30px rgba(255,20,147,.35);transition:.2s;
+}
+.empty .cta:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(255,20,147,.5)}
+
+/* DASHBOARD */
+.dash{
+  max-width:1200px;margin:0 auto;padding:32px 22px 80px;
+}
+.pet-head{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:24px;flex-wrap:wrap;gap:14px;
+}
+.pet-titleblock .label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.32em;color:var(--ink-faint);
+  font-weight:700;text-transform:uppercase;margin-bottom:4px;
+}
+.pet-titleblock h1{
+  font-family:var(--display);font-size:clamp(34px,5.5vw,58px);
+  line-height:1;letter-spacing:1.5px;color:var(--cream);
+  text-shadow:0 0 18px var(--name-glow,rgba(255,20,147,.4));
+}
+.pet-meta{
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  color:var(--ink-faint);font-weight:600;text-transform:uppercase;
+  display:flex;gap:18px;flex-wrap:wrap;
+}
+.pet-meta b{color:var(--cream);font-weight:700}
+
+/* MAIN GRID */
+.dash-grid{
+  display:grid;grid-template-columns:1.1fr 1fr;gap:22px;
+}
+@media(max-width:880px){.dash-grid{grid-template-columns:1fr}}
+
+/* PORTRAIT */
+.portrait{
+  background:linear-gradient(180deg,rgba(31,22,64,.6),rgba(15,12,34,.7));
+  border:1.5px solid var(--rule);
+  border-radius:24px;
+  padding:24px;
+  position:relative;overflow:hidden;
+}
+.portrait::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background:radial-gradient(ellipse at 50% 40%, var(--portrait-glow,rgba(255,20,147,.2)), transparent 60%);
+}
+.portrait-inner{position:relative;z-index:1}
+.stage-stamp{
+  position:absolute;top:14px;right:14px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;
+  color:var(--cream);background:rgba(0,0,0,.55);
+  padding:5px 10px;border-radius:4px;
+  font-weight:700;text-transform:uppercase;backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.08);
+}
+.day-stamp{
+  position:absolute;top:14px;left:14px;
+  font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+  color:#1a0f00;background:var(--ochre);
+  padding:6px 11px;border-radius:4px;
+}
+.pet-img-wrap{
+  width:100%;aspect-ratio:1/1;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center, rgba(168,85,247,.1), transparent 70%);
+  border-radius:18px;
+  margin-bottom:18px;
+  position:relative;overflow:hidden;
+}
+.pet-img-wrap::after{
+  content:'';position:absolute;left:50%;bottom:14%;transform:translateX(-50%);
+  width:70%;height:30px;
+  background:radial-gradient(ellipse, var(--portrait-glow,rgba(255,20,147,.4)), transparent 70%);
+  filter:blur(10px);opacity:.7;
+}
+.pet-img{
+  width:80%;height:80%;object-fit:contain;
+  filter:drop-shadow(0 18px 30px rgba(0,0,0,.5));
+  animation:petBob 4s ease-in-out infinite;
+  position:relative;z-index:1;
+}
+@keyframes petBob{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+/* STAT BARS */
+.stats{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.stat{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--rule);
+  border-radius:12px;
+  padding:13px 16px;
+}
+.stat-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  font-weight:700;text-transform:uppercase;
+}
+.stat-row .lbl{color:var(--ink-faint);display:flex;align-items:center;gap:8px}
+.stat-row .ico{font-size:14px}
+.stat-row .pct{color:var(--cream)}
+.stat-row .pct.crit{color:var(--red);animation:critBlink 1.2s ease-in-out infinite}
+.stat-row .pct.warn{color:var(--ochre)}
+.stat-row .pct.good{color:var(--green)}
+@keyframes critBlink{50%{opacity:.4}}
+.bar{
+  height:10px;background:rgba(168,85,247,.12);
+  border-radius:99px;overflow:hidden;
+  border:1px solid rgba(168,85,247,.18);
+  position:relative;
+}
+.bar-fill{
+  height:100%;border-radius:99px;
+  transition:width .8s cubic-bezier(.22,.95,.3,1), background .5s;
+  position:relative;overflow:hidden;
+}
+.bar-fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+  animation:barShine 2.5s linear infinite;
+}
+@keyframes barShine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* RIGHT COL */
+.side-col{display:flex;flex-direction:column;gap:22px}
+.panel{
+  background:linear-gradient(180deg,rgba(31,22,64,.5),rgba(15,12,34,.6));
+  border:1px solid var(--rule);
+  border-radius:18px;
+  padding:22px 20px;
+}
+.panel h3{
+  font-family:var(--display);font-size:13px;letter-spacing:2px;
+  color:var(--cream);margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel h3 .extra{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  color:var(--ochre);font-weight:700;
+}
+
+/* GROWTH PROGRESS */
+.growth{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:14px;padding:10px 0;
+}
+.stage-pip{
+  flex:1;text-align:center;font-family:var(--mono);font-size:9px;
+  letter-spacing:.13em;color:var(--ink-faint);font-weight:700;
+  text-transform:uppercase;position:relative;
+}
+.stage-pip::before{
+  content:'';display:block;margin:0 auto 6px;
+  width:14px;height:14px;border-radius:50%;
+  background:rgba(168,85,247,.15);
+  border:1.5px solid rgba(168,85,247,.4);
+  transition:.4s;
+}
+.stage-pip.passed{color:var(--ochre)}
+.stage-pip.passed::before{background:var(--ochre);border-color:var(--ochre)}
+.stage-pip.current{color:var(--cream)}
+.stage-pip.current::before{
+  background:var(--pink);border-color:var(--pink);
+  box-shadow:0 0 0 4px rgba(255,20,147,.18), 0 0 18px var(--pink);
+  animation:currentPulse 2s ease-in-out infinite;
+}
+@keyframes currentPulse{50%{transform:scale(1.15)}}
+.stage-bar{
+  height:3px;background:rgba(168,85,247,.15);
+  border-radius:99px;margin:8px 0 12px;overflow:hidden;
+}
+.stage-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--ochre),var(--pink));
+  border-radius:99px;transition:width 1.2s cubic-bezier(.22,.95,.3,1);
+}
+
+/* FEED BUTTONS */
+.feed-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+}
+.feed-btn{
+  padding:14px 8px;border-radius:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--rule);
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  transition:.2s;color:var(--cream);
+  text-align:center;
+}
+.feed-btn:hover{border-color:var(--rule-strong);background:rgba(255,20,147,.08);transform:translateY(-2px)}
+.feed-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.feed-btn .icon{font-size:24px;line-height:1}
+.feed-btn .name{font-family:var(--display);font-size:10px;letter-spacing:1.2px}
+.feed-btn .cost{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ochre);font-weight:700}
+
+.placeholder-note{
+  font-family:var(--mono);font-size:10px;letter-spacing:.13em;
+  color:var(--ink-faint);text-transform:uppercase;font-weight:600;
+  margin-top:14px;text-align:center;line-height:1.5;
+}
+
+/* LOADOUT */
+.loadout{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+}
+.slot{
+  aspect-ratio:1;border-radius:11px;
+  background:rgba(0,0,0,.3);
+  border:1px dashed rgba(168,85,247,.3);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:4px;padding:6px;
+}
+.slot .ico{font-size:18px;opacity:.4}
+.slot .lbl{
+  font-family:var(--mono);font-size:8px;letter-spacing:.13em;
+  color:var(--ink-faint);font-weight:700;text-transform:uppercase;
+}
+
+/* MINT BUTTON */
+.mint-cta{
+  display:block;width:100%;padding:18px 22px;margin-top:14px;
+  background:linear-gradient(135deg,var(--ochre),#c97f30);
+  color:#1a0f00;border-radius:14px;
+  font-family:var(--display);font-size:13px;letter-spacing:2.5px;
+  box-shadow:0 12px 30px rgba(232,161,79,.3);
+  transition:.2s;
+}
+.mint-cta:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(232,161,79,.5)}
+.mint-cta:disabled{
+  opacity:.45;cursor:not-allowed;
+  background:rgba(232,161,79,.15);color:var(--ochre);
+  box-shadow:none;transform:none;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  z-index:200;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;padding:14px 22px;border-radius:99px;
+  font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+  box-shadow:0 14px 30px rgba(0,0,0,.4),0 0 26px rgba(255,20,147,.25);
+  transition:.4s cubic-bezier(.2,.9,.3,1);
+  max-width:90%;text-align:center;
+  pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* HOLO RAINBOW shift on prime */
+.pet-img.prime{
+  animation:petBob 4s ease-in-out infinite, holoShift 6s linear infinite;
+}
+@keyframes holoShift{
+  0%,100%{filter:drop-shadow(0 18px 30px rgba(0,0,0,.5)) hue-rotate(0deg)}
+  50%{filter:drop-shadow(0 18px 30px rgba(0,0,0,.5)) hue-rotate(15deg) brightness(1.1)}
+}
+</style>
+</head>
+<body>
+
+<div class="lab-bg"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <div class="brand-logo"><img src="/chogi.png" alt="Chogi"></div>
+      <div class="brand-text">CHOGI · LAB</div>
+    </a>
+    <div class="nav-links">
+      <a href="/pet" class="active">PET</a>
+      <a href="/marketplace">MARKET</a>
+      <a href="/hatch">HATCH</a>
+      <a href="/">HOME</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- EMPTY STATE -->
+<section class="empty" id="emptyState" style="display:none">
+  <h1>NO PET YET.</h1>
+  <p>The lab is empty. Crack your first egg to begin the experiment.</p>
+  <a href="/hatch" class="cta">→ HATCH ONE</a>
+</section>
+
+<!-- DASHBOARD -->
+<section class="dash" id="dashState" style="display:none">
+
+  <div class="pet-head">
+    <div class="pet-titleblock">
+      <div class="label">▸ Subject <span id="subjectId">7777</span> · <span id="petTypeLbl">CHOGI</span></div>
+      <h1 id="petName">…</h1>
+    </div>
+    <div class="pet-meta">
+      <span>WALLET <b id="walletShort">—</b></span>
+      <span>BORN <b id="bornDate">—</b></span>
+      <span>BURNED <b id="totalBurned">—</b></span>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+
+    <!-- PORTRAIT + STATS -->
+    <div class="portrait">
+      <span class="day-stamp" id="dayStamp">DAY 1 / 30</span>
+      <span class="stage-stamp" id="stageStamp">BABY</span>
+
+      <div class="portrait-inner">
+        <div class="pet-img-wrap">
+          <img class="pet-img" id="petImg" src="/pet-assets/baby-chogi.jpg" alt="">
+        </div>
+
+        <!-- GROWTH PROGRESS -->
+        <div class="stage-bar"><div class="stage-bar-fill" id="stageBarFill" style="width:0%"></div></div>
+        <div class="growth" id="growthPips"></div>
+
+        <!-- STATS -->
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-row">
+              <span class="lbl"><span class="ico">🍓</span> HUNGER</span>
+              <span class="pct" id="hungerPct">—</span>
+            </div>
+            <div class="bar"><div class="bar-fill" id="hungerBar" style="width:100%;background:linear-gradient(90deg,#ff6b8a,var(--pink),var(--ochre))"></div></div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <span class="lbl"><span class="ico">💧</span> THIRST</span>
+              <span class="pct" id="thirstPct">—</span>
+            </div>
+            <div class="bar"><div class="bar-fill" id="thirstBar" style="width:100%;background:linear-gradient(90deg,#5dccff,var(--monad))"></div></div>
+          </div>
+          <div class="stat">
+            <div class="stat-row">
+              <span class="lbl"><span class="ico">✨</span> HAPPINESS</span>
+              <span class="pct" id="happyPct">—</span>
+            </div>
+            <div class="bar"><div class="bar-fill" id="happyBar" style="width:100%;background:linear-gradient(90deg,var(--purple),var(--pink),var(--ochre))"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDE -->
+    <div class="side-col">
+
+      <div class="panel">
+        <h3>QUICK FEED <span class="extra">↓ instant burn</span></h3>
+        <div class="feed-grid">
+          <button class="feed-btn" data-feed="snack">
+            <span class="icon">🍓</span>
+            <span class="name">SNACK</span>
+            <span class="cost">1,000 $CHOGI</span>
+          </button>
+          <button class="feed-btn" data-feed="meal">
+            <span class="icon">🍱</span>
+            <span class="name">MEAL</span>
+            <span class="cost">5,000 $CHOGI</span>
+          </button>
+          <button class="feed-btn" data-feed="feast">
+            <span class="icon">🎂</span>
+            <span class="name">FEAST</span>
+            <span class="cost">25,000 $CHOGI</span>
+          </button>
+          <button class="feed-btn" data-feed="tap">
+            <span class="icon">💧</span>
+            <span class="name">TAP</span>
+            <span class="cost">500 $CHOGI</span>
+          </button>
+          <button class="feed-btn" data-feed="spring">
+            <span class="icon">💎</span>
+            <span class="name">SPRING</span>
+            <span class="cost">2,000 $CHOGI</span>
+          </button>
+          <button class="feed-btn" data-feed="sparkle">
+            <span class="icon">🌸</span>
+            <span class="name">SPARKLE</span>
+            <span class="cost">8,000 $CHOGI</span>
+          </button>
+        </div>
+        <div class="placeholder-note">▸ Real food art ships in marketplace v1.1 · placeholder icons for now</div>
+      </div>
+
+      <div class="panel">
+        <h3>LOADOUT <span class="extra"><a href="/marketplace" style="color:inherit">→ shop</a></span></h3>
+        <div class="loadout">
+          <div class="slot" id="slotHead"><span class="ico">🎀</span><span class="lbl">HEAD</span></div>
+          <div class="slot" id="slotOutfit"><span class="ico">👕</span><span class="lbl">OUTFIT</span></div>
+          <div class="slot" id="slotBoots"><span class="ico">👟</span><span class="lbl">BOOTS</span></div>
+          <div class="slot" id="slotAcc"><span class="ico">🎒</span><span class="lbl">ACC</span></div>
+        </div>
+        <div class="placeholder-note">▸ Marketplace launching with the next push</div>
+      </div>
+
+      <div class="panel">
+        <h3>NFT MINT <span class="extra" id="mintExtra">LOCKED · DAY 30</span></h3>
+        <p style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-dim);line-height:1.5;margin-bottom:6px">Survive 30 days of care. Personality bakes from your behavior. Mint is free — earned, not bought.</p>
+        <button class="mint-cta" id="mintBtn" disabled>MINT LOCKED</button>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/wallet-helper.js" defer></script>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ─── CHAIN CONFIG ─── */
+  var TOKEN     = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var DEAD      = '0x000000000000000000000000000000000000dead';
+  var CHAIN_HEX = '0x8f';
+  var RPC       = 'https://rpc.monad.xyz';
+  var EXPLORER  = 'https://monadexplorer.com/tx/';
+  var ONE       = 10n ** 18n;
+
+  /* ─── FEED CATALOG (placeholder until marketplace v1) ─── */
+  var FEED = {
+    snack:   {kind:'food',  cost: 1000n*ONE, hunger: 15, happy: 1, water: 0, label:'SNACK'},
+    meal:    {kind:'food',  cost: 5000n*ONE, hunger: 50, happy: 5, water: 0, label:'MEAL'},
+    feast:   {kind:'food',  cost:25000n*ONE, hunger:100, happy:20, water:10, label:'FEAST'},
+    tap:     {kind:'water', cost:  500n*ONE, hunger: 0,  happy: 0, water:20, label:'TAP WATER'},
+    spring:  {kind:'water', cost: 2000n*ONE, hunger: 0,  happy: 1, water:50, label:'SPRING WATER'},
+    sparkle: {kind:'water', cost: 8000n*ONE, hunger: 0,  happy:10, water:100,label:'SPARKLE WATER'}
+  };
+
+  /* ─── DECAY RATES ─── */
+  var DECAY = {
+    hunger: 4,    // % per hour
+    thirst: 5,    // % per hour
+    happy:  2     // % per hour
+  };
+
+  var $ = function(id){return document.getElementById(id);};
+  var account = null;
+  var pet = null;
+
+  /* ─── helpers ─── */
+  function pad32(hex){return hex.toLowerCase().replace('0x','').padStart(64,'0');}
+  function fmtBig(n){
+    if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+    if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+  function fmtDate(ts){
+    var d = new Date(ts);
+    var mo = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return mo[d.getMonth()]+' '+d.getDate();
+  }
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function toast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._to);
+    t._to = setTimeout(function(){t.classList.remove('show');}, 2800);
+  }
+
+  /* ─── localStorage pet store ─── */
+  var STORE_KEY = 'chogi_pet_v1';
+  function loadAll(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){return{};}}
+  function saveAll(all){try{localStorage.setItem(STORE_KEY,JSON.stringify(all));}catch(e){}}
+  function getPet(addr){
+    var all = loadAll();
+    return addr ? all[addr.toLowerCase()] : null;
+  }
+  function savePet(addr, p){
+    var all = loadAll();
+    all[addr.toLowerCase()] = p;
+    saveAll(all);
+  }
+
+  /* ─── DECAY CALCULATOR (lazy on read) ─── */
+  function applyDecay(p){
+    var now = Date.now();
+    var hoursSinceFed = (now - (p.last_fed_at || p.born_at)) / 3.6e6;
+    var hoursSinceWatered = (now - (p.last_watered_at || p.born_at)) / 3.6e6;
+    var hoursSinceUpdated = (now - (p.last_updated_at || p.born_at)) / 3.6e6;
+
+    var hunger = clamp(p.hunger - DECAY.hunger * hoursSinceUpdated, 0, 100);
+    var thirst = clamp(p.thirst - DECAY.thirst * hoursSinceUpdated, 0, 100);
+    var happy  = clamp(p.happiness - DECAY.happy * hoursSinceUpdated, 0, 100);
+
+    // happiness penalty if either crucial stat is low
+    if(hunger < 20 || thirst < 20) happy = clamp(happy - 15, 0, 100);
+
+    // count hungry/thirsty events
+    if(p.hunger >= 20 && hunger < 20) p.hungry_events = (p.hungry_events||0) + 1;
+    if(p.thirst >= 20 && thirst < 20) p.thirsty_events = (p.thirsty_events||0) + 1;
+
+    p.hunger = hunger;
+    p.thirst = thirst;
+    p.happiness = happy;
+    p.last_updated_at = now;
+
+    // STAGE
+    var daysAlive = Math.floor((now - p.born_at) / 86400000) + 1;
+    p.days_alive = daysAlive;
+    if(daysAlive < 8) p.stage = 'baby';
+    else if(daysAlive < 16) p.stage = 'kid';
+    else if(daysAlive < 24) p.stage = 'teen';
+    else p.stage = 'adult';
+
+    return p;
+  }
+
+  /* ─── RENDER ─── */
+  function bandClass(v){
+    if(v < 20) return 'crit';
+    if(v < 50) return 'warn';
+    return 'good';
+  }
+
+  function calcPersonality(p){
+    // simple v1 — can be much smarter later. Returns one of: loyal, chaotic, glutton, feral, prime
+    var burned = p.total_burned || 0;
+    if(burned >= 5000000) return 'prime';
+    if((p.hungry_events||0) + (p.thirsty_events||0) >= 6) return 'feral';
+    var feeds = p.feed_count || 0;
+    var avgFeedSize = feeds > 0 ? (p.total_burned - 10000) / feeds : 0; // exclude hatch cost
+    if(avgFeedSize > 15000) return 'glutton';
+    if((p.hungry_events||0) >= 2) return 'chaotic';
+    return 'loyal';
+  }
+
+  function render(){
+    if(!pet){
+      $('emptyState').style.display = 'block';
+      $('dashState').style.display = 'none';
+      return;
+    }
+    $('emptyState').style.display = 'none';
+    $('dashState').style.display = 'block';
+
+    applyDecay(pet);
+    savePet(account, pet);
+
+    // header
+    $('petName').textContent = pet.name || 'UNNAMED';
+    $('petTypeLbl').textContent = (pet.type||'chogi').toUpperCase();
+    $('subjectId').textContent = (parseInt(pet.born_at/1000) % 9999).toString().padStart(4,'0');
+    $('walletShort').textContent = account.slice(0,6)+'…'+account.slice(-4);
+    $('bornDate').textContent = fmtDate(pet.born_at);
+    $('totalBurned').textContent = fmtBig(pet.total_burned||0)+' $CHOGI';
+
+    // titleblock glow color matches pet
+    var col = pet.type === 'chog' ? 'rgba(168,85,247,.5)' : 'rgba(255,20,147,.5)';
+    $('petName').style.setProperty('--name-glow', col);
+    document.querySelector('.portrait').style.setProperty('--portrait-glow',
+      pet.type === 'chog' ? 'rgba(168,85,247,.25)' : 'rgba(255,20,147,.22)');
+
+    // image
+    var stage = pet.stage;
+    var imgSrc;
+    if(stage === 'adult'){
+      var personality = calcPersonality(pet);
+      imgSrc = '/pet-assets/adult-' + personality + '-' + pet.type + '.jpg';
+      $('petImg').classList.toggle('prime', personality === 'prime');
+    } else {
+      imgSrc = '/pet-assets/' + stage + '-' + pet.type + '.jpg';
+      $('petImg').classList.remove('prime');
+    }
+    $('petImg').src = imgSrc;
+    $('petImg').alt = pet.name + ' · ' + stage;
+
+    // stamps
+    $('dayStamp').textContent = 'DAY '+pet.days_alive+' / 30';
+    $('stageStamp').textContent = stage.toUpperCase() + (stage === 'adult' ? ' · ' + calcPersonality(pet).toUpperCase() : '');
+
+    // stats
+    $('hungerPct').textContent = Math.floor(pet.hunger)+'%';
+    $('hungerPct').className = 'pct ' + bandClass(pet.hunger);
+    $('hungerBar').style.width = pet.hunger + '%';
+
+    $('thirstPct').textContent = Math.floor(pet.thirst)+'%';
+    $('thirstPct').className = 'pct ' + bandClass(pet.thirst);
+    $('thirstBar').style.width = pet.thirst + '%';
+
+    $('happyPct').textContent = Math.floor(pet.happiness)+'%';
+    $('happyPct').className = 'pct ' + bandClass(pet.happiness);
+    $('happyBar').style.width = pet.happiness + '%';
+
+    // growth pips
+    var stages = ['baby','kid','teen','adult'];
+    var idx = stages.indexOf(stage);
+    var pipsHtml = stages.map(function(s,i){
+      var cls = i < idx ? 'passed' : (i === idx ? 'current' : '');
+      return '<div class="stage-pip '+cls+'">'+s+'</div>';
+    }).join('');
+    $('growthPips').innerHTML = pipsHtml;
+    $('stageBarFill').style.width = ((pet.days_alive / 30) * 100) + '%';
+
+    // mint
+    if(stage === 'adult'){
+      $('mintBtn').disabled = false;
+      $('mintBtn').textContent = 'MINT NFT (FREE)';
+      $('mintExtra').textContent = 'READY · DAY '+pet.days_alive;
+      $('mintExtra').style.color = 'var(--green)';
+    } else {
+      $('mintBtn').disabled = true;
+      $('mintBtn').textContent = 'MINT LOCKED · DAY '+pet.days_alive+' / 30';
+      $('mintExtra').textContent = 'LOCKED · ' + (30 - pet.days_alive) + ' days left';
+    }
+  }
+
+  /* ─── CONNECT ─── */
+  async function connect(){
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('Install MetaMask or Rabby.');
+      return false;
+    }
+    try{
+      var accounts = await window.ethereum.request({method:'eth_requestAccounts'});
+      account = accounts[0];
+      var chain = await window.ethereum.request({method:'eth_chainId'});
+      if(chain !== CHAIN_HEX){
+        try{
+          await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
+        }catch(e){
+          if(e.code === 4902){
+            await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+              chainId:CHAIN_HEX,chainName:'Monad',
+              nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+              rpcUrls:[RPC],blockExplorerUrls:['https://monadexplorer.com']
+            }]});
+          } else throw e;
+        }
+      }
+      pet = getPet(account);
+      render();
+      return true;
+    }catch(e){
+      console.error(e); return false;
+    }
+  }
+
+  /* ─── FEED via burn ─── */
+  async function feed(kind){
+    if(!account){alert('Connect a wallet first.');return;}
+    if(!pet){alert('No pet found. Hatch one first.');window.location.href='/hatch';return;}
+
+    var item = FEED[kind];
+    if(!item){return;}
+
+    var data = '0xa9059cbb' + pad32(DEAD) + item.cost.toString(16).padStart(64,'0');
+
+    document.querySelectorAll('.feed-btn').forEach(function(b){b.disabled=true;});
+    toast('CONFIRM IN WALLET…');
+
+    try{
+      var txHash = await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from:account,to:TOKEN,data:data,value:'0x0'}]
+      });
+
+      toast('🔥 BURNING — '+txHash.slice(0,8)+'…');
+
+      // optimistic UI update — apply effect immediately
+      pet.hunger = clamp(pet.hunger + item.hunger, 0, 100);
+      pet.thirst = clamp(pet.thirst + item.water,  0, 100);
+      pet.happiness = clamp(pet.happiness + item.happy, 0, 100);
+      pet.total_burned = (pet.total_burned||0) + Number(item.cost / ONE);
+      if(item.kind === 'food'){
+        pet.last_fed_at = Date.now();
+        pet.feed_count = (pet.feed_count||0) + 1;
+      } else {
+        pet.last_watered_at = Date.now();
+        pet.water_count = (pet.water_count||0) + 1;
+      }
+      pet.last_updated_at = Date.now();
+      savePet(account, pet);
+      render();
+
+      // wait a beat for confirmation, but don't block the UI on it
+      setTimeout(function(){
+        toast('✓ FED ' + item.label);
+        document.querySelectorAll('.feed-btn').forEach(function(b){b.disabled=false;});
+      }, 2400);
+
+    }catch(e){
+      console.error(e);
+      toast(e.message ? 'CANCELLED' : 'TX FAILED');
+      document.querySelectorAll('.feed-btn').forEach(function(b){b.disabled=false;});
+    }
+  }
+
+  /* ─── MINT (placeholder for now — contract not deployed yet) ─── */
+  $('mintBtn').addEventListener('click', function(){
+    if(this.disabled) return;
+    toast('NFT CONTRACT DEPLOYS WHEN FIRST PETS HIT DAY 30');
+  });
+
+  /* ─── WIRE UP ─── */
+  document.querySelectorAll('.feed-btn').forEach(function(b){
+    b.addEventListener('click', function(){feed(b.dataset.feed);});
+  });
+
+  /* ─── INIT ─── */
+  if(window.ethereum && window.ethereum.selectedAddress){
+    connect();
+  } else {
+    // try to render whatever pet we can find without wallet (read-only)
+    var all = loadAll();
+    var keys = Object.keys(all);
+    if(keys.length){
+      account = keys[0];
+      pet = all[keys[0]];
+      render();
+    } else {
+      $('emptyState').style.display='block';
+      $('dashState').style.display='none';
+    }
+    // attempt to connect in background after a moment
+    setTimeout(connect, 500);
+  }
+
+  // re-render every 60s for live decay
+  setInterval(render, 60000);
+
+  // listen for account changes
+  if(window.ethereum && window.ethereum.on){
+    window.ethereum.on('accountsChanged', function(accs){
+      if(accs && accs[0]){
+        account = accs[0];
+        pet = getPet(account);
+        render();
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
