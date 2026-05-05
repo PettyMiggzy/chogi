@@ -434,8 +434,51 @@ main, header{position:relative;z-index:2}
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
 
-/* HOLO RAINBOW shift on prime */
-.pet-img.prime{
+/* DEV PANEL — only visible with ?dev=1 */
+.dev-panel{
+  position:fixed;top:78px;right:14px;z-index:60;
+  background:rgba(20,8,50,.95);backdrop-filter:blur(14px);
+  border:1.5px solid var(--ochre);
+  border-radius:12px;padding:14px 16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+  color:var(--ink);font-weight:600;text-transform:uppercase;
+  box-shadow:0 14px 40px rgba(0,0,0,.6),0 0 26px rgba(232,161,79,.2);
+  width:240px;
+  display:none;
+}
+.dev-panel.show{display:block}
+.dev-panel .dev-label{
+  color:var(--ochre);font-size:9px;letter-spacing:.32em;
+  margin-bottom:10px;border-bottom:1px solid var(--rule);padding-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.dev-panel .dev-label .x{
+  color:var(--red);cursor:pointer;font-size:14px;letter-spacing:0;
+}
+.dev-panel .dev-row{
+  display:flex;gap:4px;margin-bottom:6px;
+}
+.dev-panel .dev-btn{
+  flex:1;padding:7px 6px;border-radius:6px;
+  background:rgba(232,161,79,.1);
+  border:1px solid rgba(232,161,79,.4);
+  color:var(--ochre);
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  font-weight:700;text-transform:uppercase;
+  cursor:pointer;transition:.15s;
+}
+.dev-panel .dev-btn:hover{background:rgba(232,161,79,.25);border-color:var(--ochre)}
+.dev-panel .dev-btn.danger{
+  background:rgba(255,107,138,.1);border-color:rgba(255,107,138,.4);color:var(--red);
+}
+.dev-panel .dev-btn.danger:hover{background:rgba(255,107,138,.25);border-color:var(--red)}
+.dev-panel hr{
+  border:none;border-top:1px solid var(--rule);margin:10px 0;
+}
+.dev-panel small{
+  display:block;color:var(--ink-faint);font-size:8.5px;
+  letter-spacing:.13em;margin-bottom:5px;font-weight:600;
+}
   animation:petBob 4s ease-in-out infinite, holoShift 6s linear infinite;
 }
 @keyframes holoShift{
@@ -601,6 +644,58 @@ main, header{position:relative;z-index:2}
 </main>
 
 <div class="toast" id="toast"></div>
+
+<!-- DEV PANEL — wallet-gated, only visible to deployer wallet -->
+<div class="dev-panel" id="devPanel">
+  <div class="dev-label">
+    ▸ DEV TOOLS
+    <span class="x" id="devClose" title="hide">×</span>
+  </div>
+
+  <small>FAST-FORWARD STAGE</small>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="stage" data-val="baby">BABY</button>
+    <button class="dev-btn" data-dev="stage" data-val="kid">KID</button>
+    <button class="dev-btn" data-dev="stage" data-val="teen">TEEN</button>
+    <button class="dev-btn" data-dev="stage" data-val="adult">ADULT</button>
+  </div>
+
+  <small>FORCE PERSONALITY (adult only)</small>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="pers" data-val="loyal">LOYAL</button>
+    <button class="dev-btn" data-dev="pers" data-val="chaotic">CHAOTIC</button>
+    <button class="dev-btn" data-dev="pers" data-val="glutton">GLUTTON</button>
+  </div>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="pers" data-val="feral">FERAL</button>
+    <button class="dev-btn" data-dev="pers" data-val="prime">PRIME ★</button>
+    <button class="dev-btn" data-dev="pers" data-val="reset">CLEAR</button>
+  </div>
+
+  <hr>
+  <small>STATS</small>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="stats" data-val="full">FULL</button>
+    <button class="dev-btn" data-dev="stats" data-val="half">HALF</button>
+    <button class="dev-btn" data-dev="stats" data-val="low">LOW</button>
+    <button class="dev-btn" data-dev="stats" data-val="zero">0</button>
+  </div>
+
+  <hr>
+  <small>OWNERSHIP</small>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="give" data-val="all">GIVE ALL ITEMS</button>
+  </div>
+  <div class="dev-row">
+    <button class="dev-btn" data-dev="equip" data-val="random">RANDOM EQUIP</button>
+  </div>
+
+  <hr>
+  <small>NUKE</small>
+  <div class="dev-row">
+    <button class="dev-btn danger" data-dev="reset" data-val="pet">RESET PET</button>
+  </div>
+</div>
 
 <script src="/js/safety-disclaimer.js" defer></script>
 <script src="/js/pet-store.js" defer></script>
@@ -861,6 +956,7 @@ main, header{position:relative;z-index:2}
       // try local first (instant), then refresh from cloud
       pet = getPet(account);
       render();
+      maybeShowDevPanel();
       if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
         var fresh = await window.ChogiPetStore.fetch(account);
         if(fresh){
@@ -971,6 +1067,134 @@ main, header{position:relative;z-index:2}
   // re-render every 60s for live decay
   setInterval(render, 60000);
 
+  /* ─── DEV PANEL (wallet-gated to deployer) ─── */
+  var DEV_WALLET = '0xb9d4b73be18914c6d64bee65a806648370be467f';
+  function maybeShowDevPanel(){
+    if(!account) return;
+    if(account.toLowerCase() !== DEV_WALLET) return;
+    document.getElementById('devPanel').classList.add('show');
+  }
+  function hideDevPanel(){
+    document.getElementById('devPanel').classList.remove('show');
+  }
+  document.getElementById('devClose').addEventListener('click', hideDevPanel);
+
+  function devAction(action, val){
+    if(!pet || !account) return;
+    var now = Date.now();
+
+    if(action === 'stage'){
+      // set days_alive to the start of that stage and back-date born_at
+      var dayMap = {baby:1, kid:8, teen:16, adult:24};
+      var targetDay = dayMap[val] || 1;
+      pet.born_at = now - (targetDay - 1) * 86400000;
+      pet.days_alive = targetDay;
+      pet.stage = val;
+      toast('STAGE → '+val.toUpperCase());
+    }
+    else if(action === 'pers'){
+      // force a personality by setting the right behavior flags
+      // also set stage to adult so the variant renders
+      pet.born_at = now - 23 * 86400000; // 24 days ago = adult
+      pet.days_alive = 24;
+      pet.stage = 'adult';
+      if(val === 'reset'){
+        pet.total_burned = 10000;
+        pet.feed_count = 0;
+        pet.hungry_events = 0;
+        pet.thirsty_events = 0;
+        toast('BEHAVIOR CLEARED');
+      } else if(val === 'prime'){
+        pet.total_burned = 5000001;
+        toast('PERSONALITY → PRIME ★');
+      } else if(val === 'feral'){
+        pet.hungry_events = 4;
+        pet.thirsty_events = 4;
+        pet.total_burned = 50000;
+        pet.feed_count = 5;
+        toast('PERSONALITY → FERAL');
+      } else if(val === 'glutton'){
+        pet.feed_count = 3;
+        pet.total_burned = 60000;
+        pet.hungry_events = 0;
+        pet.thirsty_events = 0;
+        toast('PERSONALITY → GLUTTON');
+      } else if(val === 'chaotic'){
+        pet.hungry_events = 3;
+        pet.thirsty_events = 0;
+        pet.feed_count = 8;
+        pet.total_burned = 80000;
+        toast('PERSONALITY → CHAOTIC');
+      } else { // loyal
+        pet.hungry_events = 0;
+        pet.thirsty_events = 0;
+        pet.feed_count = 12;
+        pet.total_burned = 120000;
+        toast('PERSONALITY → LOYAL');
+      }
+    }
+    else if(action === 'stats'){
+      var v = {full:100, half:50, low:15, zero:0}[val];
+      pet.hunger = v;
+      pet.thirst = v;
+      pet.happiness = v;
+      pet.last_updated_at = now;
+      pet.last_fed_at = now;
+      pet.last_watered_at = now;
+      toast('STATS → '+val.toUpperCase());
+    }
+    else if(action === 'give'){
+      // give all items (catalog defined in marketplace — use a hardcoded list here for self-containment)
+      pet.owned_items = [
+        'hat-pink-bow','hat-crown','hat-halo','hat-beanie','hat-cowboy','hat-witch','hat-devil-horns','hat-angel-wings',
+        'outfit-lab-coat','outfit-hoodie-black','outfit-hoodie-monad','outfit-suit','outfit-sweater','outfit-hawaiian','outfit-astronaut','outfit-holographic',
+        'boots-sneakers-white','boots-sneakers-red','boots-doc-martens','boots-cowboy','boots-roller-skates','boots-diamond',
+        'acc-sunglasses','acc-glasses','acc-backpack','acc-scarf','acc-chogi-sign','acc-phone','acc-money-bag','acc-sword'
+      ];
+      toast('GAVE 30 ITEMS');
+    }
+    else if(action === 'equip'){
+      // equip one random item from each slot from owned items
+      var byCat = {head:[],outfit:[],boots:[],acc:[]};
+      (pet.owned_items||[]).forEach(function(id){
+        if(id.startsWith('hat-')) byCat.head.push(id);
+        else if(id.startsWith('outfit-')) byCat.outfit.push(id);
+        else if(id.startsWith('boots-')) byCat.boots.push(id);
+        else if(id.startsWith('acc-')) byCat.acc.push(id);
+      });
+      var pick = function(arr){return arr.length ? arr[Math.floor(Math.random()*arr.length)] : null;};
+      pet.cosmetics = {
+        head: pick(byCat.head),
+        outfit: pick(byCat.outfit),
+        boots: pick(byCat.boots),
+        acc: pick(byCat.acc)
+      };
+      toast('RANDOM LOOK ON');
+    }
+    else if(action === 'reset' && val === 'pet'){
+      if(!confirm('Wipe pet completely? You will need to re-hatch.')) return;
+      try {
+        var all = JSON.parse(localStorage.getItem('chogi_pet_v1') || '{}');
+        delete all[account.toLowerCase()];
+        localStorage.setItem('chogi_pet_v1', JSON.stringify(all));
+      } catch(e){}
+      // also try cloud delete via upsert with deletion flag — for now, just nuke local + reload
+      pet = null;
+      toast('PET WIPED — REDIRECTING');
+      setTimeout(function(){window.location.href='/hatch';}, 1200);
+      return;
+    }
+
+    savePet(account, pet);
+    render();
+  }
+
+  document.querySelectorAll('.dev-panel .dev-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      devAction(b.dataset.dev, b.dataset.val);
+    });
+  });
+
   // listen for account changes
   if(window.ethereum && window.ethereum.on){
     window.ethereum.on('accountsChanged', async function(accs){
@@ -978,6 +1202,8 @@ main, header{position:relative;z-index:2}
         account = accs[0];
         pet = getPet(account);
         render();
+        if(account.toLowerCase() === DEV_WALLET) maybeShowDevPanel();
+        else hideDevPanel();
         if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
           var fresh = await window.ChogiPetStore.fetch(account);
           if(fresh){pet = fresh; render();}
