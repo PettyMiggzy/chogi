@@ -289,11 +289,11 @@ footer a{color:var(--pink);text-decoration:none;}
   var BURNER     = '0x9D386e1728Ba226C4bBC792dbFb676CE798174E2';
   var CHOGI      = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
   var WMON       = '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A';
-  var QUOTER     = '0x661e93cca42afacb172121ef892830ca3b70f08d'; // QuoterV2
+  var POOL       = '0x75C3Ab752e313544f00F08fC945FCe7d22EF4F0D'; // Capricorn V3 CHOGI/WMON 1%
+  var POOL_FEE   = 10000;  // 1%
   var CHAIN_HEX  = '0x8f';
   var RPC        = 'https://rpc.monad.xyz';
   var EXPLORER   = 'https://monadexplorer.com/tx/';
-  var FEE_TIERS  = [500, 3000, 10000];
 
   var $ = function(id){ return document.getElementById(id); };
   var rp = new ethers.JsonRpcProvider(RPC);
@@ -304,8 +304,11 @@ footer a{color:var(--pink);text-decoration:none;}
   var burnBps = 100n;
   var bestQuote = null;
 
-  var QUOTER_ABI = [
-    'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96)) returns (uint256, uint160, uint32, uint256)'
+  var POOL_ABI = [
+    'function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)',
+    'function liquidity() view returns (uint128)',
+    'function token0() view returns (address)',
+    'function token1() view returns (address)'
   ];
   var BURNER_ABI = [
     'function buyChogiAndBurn(uint24 fee,uint256 minOutToUser) payable returns (uint256)',
@@ -426,29 +429,49 @@ footer a{color:var(--pink);text-decoration:none;}
   });
 
   var quoteSeq = 0;
+  // Compute swap output directly from the pool's slot0 — no QuoterV2 needed.
+  // Token0 = WMON, Token1 = CHOGI.
+  // sqrtPriceX96 is sqrt(token1/token0 * 2^96), so:
+  //   price (CHOGI per WMON) = (sqrtPriceX96 / 2^96)^2
+  // For the buy direction (WMON in -> CHOGI out): out = in * price * (1 - feeBps)
+  // For the sell direction (CHOGI in -> WMON out): out = in / price * (1 - feeBps)
+  // This is a "spot price" estimate ignoring price impact for small trades.
+  // Good enough for UI quotes; the real swap uses minOutToUser slippage protection.
   async function quote(amountInBig){
     if(amountInBig === 0n) return null;
     var seq = ++quoteSeq;
-    var quoter = new ethers.Contract(QUOTER, QUOTER_ABI, rp);
-    var tokenIn  = mode === 'buy' ? WMON : CHOGI;
-    var tokenOut = mode === 'buy' ? CHOGI : WMON;
+    var pool = new ethers.Contract(POOL, POOL_ABI, rp);
 
-    // For sells the contract burns burnBps from input BEFORE swap
+    // For sells the burner contract burns burnBps from input BEFORE swap
     var swapAmt = mode === 'buy' ? amountInBig : (amountInBig - (amountInBig * burnBps) / 10000n);
     if(swapAmt === 0n) return null;
 
-    var best = null;
-    for(var i = 0; i < FEE_TIERS.length; i++){
-      try{
-        var r = await quoter.quoteExactInputSingle.staticCall({
-          tokenIn: tokenIn, tokenOut: tokenOut,
-          amountIn: swapAmt, fee: FEE_TIERS[i], sqrtPriceLimitX96: 0n
-        });
-        if(seq !== quoteSeq) return null;
-        if(!best || r[0] > best.amountOut) best = { fee: FEE_TIERS[i], amountOut: r[0] };
-      }catch(e){}
+    try{
+      var s = await pool.slot0();
+      if(seq !== quoteSeq) return null;
+      var sqrtPriceX96 = BigInt(s.sqrtPriceX96 || s[0]);
+      // price scaled by 2^192 = sqrtPriceX96^2
+      // out_chogi (per 1 wmon, both 18 decimals) = sqrtPriceX96^2 / 2^192
+      // For a buy: amountInBig (wmon) * price = chogi out
+      // We work with bigints — multiply first, divide last to preserve precision
+      var Q96 = 1n << 96n;
+      var priceX192 = sqrtPriceX96 * sqrtPriceX96; // CHOGI/WMON in Q192
+      var grossOut;
+      if(mode === 'buy'){
+        // CHOGI out = WMON in * price = swapAmt * priceX192 / 2^192
+        grossOut = (swapAmt * priceX192) >> 192n;
+      } else {
+        // WMON out = CHOGI in / price = swapAmt * 2^192 / priceX192
+        if(priceX192 === 0n) return null;
+        grossOut = (swapAmt << 192n) / priceX192;
+      }
+      // Apply pool fee (1% = 10000 bps of 1_000_000)
+      var afterFee = grossOut - (grossOut * BigInt(POOL_FEE)) / 1000000n;
+      return { fee: POOL_FEE, amountOut: afterFee };
+    }catch(e){
+      console.warn('quote failed:', e.message);
+      return null;
     }
-    return best;
   }
 
   function paintAction(){
