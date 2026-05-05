@@ -218,10 +218,13 @@
     pet.last_updated_at = Date.now();
     saveLocal(wallet, pet);
     if(sbConfigured()){
-      // fire and forget — don't block the UI
-      sbUpsert(wallet, pet).catch(function(e){
-        console.warn('cloud save deferred (offline?):', e);
-      });
+      // await the cloud upsert so callers can wait if needed
+      try {
+        return await sbUpsert(wallet, pet);
+      } catch(e){
+        console.warn('cloud save failed, kept locally:', e);
+        return false;
+      }
     }
     return true;
   }

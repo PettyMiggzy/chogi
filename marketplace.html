@@ -786,6 +786,12 @@ main, header{position:relative;z-index:2}
       renderGrid();
       renderShelf();
 
+      // explicit cloud confirmation to make sure equip/owned state persists
+      await savePet(account, pet);
+      renderTabs();
+      renderGrid();
+      renderShelf();
+
       setTimeout(function(){
         toast(item.cat === 'food' ? '✓ FED ' + item.name : '✓ OWNED ' + item.name);
       }, 2200);
@@ -798,26 +804,30 @@ main, header{position:relative;z-index:2}
   $('cfConfirm').addEventListener('click', buy);
 
   /* ─── equip / unequip ─── */
-  function equip(id){
-    if(!pet){return;}
+  async function equip(id){
+    if(!pet){toast('CONNECT WALLET FIRST');return;}
     var item = ITEMS.find(function(it){return it.id === id;});
     if(!item || !item.slot) return;
+    if(!pet.owned_items || pet.owned_items.indexOf(id) === -1){
+      toast('YOU DONT OWN THIS YET');
+      return;
+    }
     pet.cosmetics = pet.cosmetics || {};
     pet.cosmetics[item.slot] = item.id;
-    savePet(account, pet);
     renderGrid();
     renderShelf();
     toast('✓ EQUIPPED ' + item.name);
+    await savePet(account, pet);
   }
-  function unequip(id){
+  async function unequip(id){
     if(!pet){return;}
     var item = ITEMS.find(function(it){return it.id === id;});
     if(!item || !item.slot) return;
     if(pet.cosmetics) pet.cosmetics[item.slot] = null;
-    savePet(account, pet);
     renderGrid();
     renderShelf();
     toast('✓ UNEQUIPPED ' + item.name);
+    await savePet(account, pet);
   }
 
   /* ─── connect ─── */
