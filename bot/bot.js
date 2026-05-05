@@ -316,17 +316,23 @@ function recordBurn(burn) {
   const amt = Number(burn.chogiHuman) || 0;
   if (!Number.isFinite(amt) || amt <= 0) return;
   const from = (burn.from || '').toLowerCase();
+  const tx = burn.txHash;
 
   // self-heal: if stats got corrupted previously (NaN total), reset before adding
   if (!Number.isFinite(burnStats.total)) {
     console.warn('[burnStats] detected corrupted total, resetting');
-    burnStats = { total: 0, count: 0, byWallet: {}, recent: [] };
+    burnStats = { total: 0, count: 0, byWallet: {}, recent: [], seenTx: {} };
   }
+  if (!burnStats.seenTx) burnStats.seenTx = {};
+
+  // dedup by tx hash so backfill + live don't double-count
+  if (tx && burnStats.seenTx[tx]) return;
 
   burnStats.total = (Number(burnStats.total) || 0) + amt;
   burnStats.count = (Number(burnStats.count) || 0) + 1;
   burnStats.byWallet[from] = (Number(burnStats.byWallet[from]) || 0) + amt;
-  burnStats.recent.unshift({ from, amt, tx: burn.txHash, t: Date.now() });
+  burnStats.recent.unshift({ from, amt, tx, t: Date.now() });
+  if (tx) burnStats.seenTx[tx] = true;
   if (burnStats.recent.length > 200) burnStats.recent = burnStats.recent.slice(0, 200);
   saveBurnStats(burnStats);
 }
