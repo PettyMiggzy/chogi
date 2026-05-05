@@ -592,8 +592,8 @@ main, header{position:relative;z-index:2}
 <!-- NAME MODAL -->
 <div class="name-modal" id="nameModal">
   <div class="born">▸ NEWLY HATCHED · <span id="bornType">CHOGI</span></div>
-  <h2>SHE'S OUT.<br>GIVE HER A <span class="pet-name">NAME.</span></h2>
-  <p class="sub">This becomes her permanent identity. It travels onto her NFT in 30 days.</p>
+  <h2 id="modalHeadline">SHE'S OUT.<br>GIVE HER A <span class="pet-name" id="modalNameAccent">NAME.</span></h2>
+  <p class="sub" id="modalSub">This becomes her permanent identity. It travels onto her NFT in 30 days.</p>
   <div class="name-input-wrap">
     <input type="text" id="petName" maxlength="22" placeholder="EXPERIMENT 7778" autocomplete="off" autocapitalize="characters">
     <button class="hatch-btn" id="claimBtn" style="background:linear-gradient(135deg,var(--pink),var(--purple))">CLAIM &amp; ENTER LAB →</button>
@@ -701,6 +701,27 @@ main, header{position:relative;z-index:2}
   /* ─── HATCH FLOW ─── */
   var DEV_WALLET = '0xb9d4b73be18914c6d64bee65a806648370be467f';
 
+  /* ─── paint name modal copy + colors based on pet type ─── */
+  function paintNameModal(petType){
+    var isChog = petType === 'chog';
+    var displayType = isChog ? 'CHOG' : 'CHOGI';
+    $('bornType').textContent = displayType;
+
+    if(isChog){
+      // male chog — purple accent, no pink anywhere
+      $('modalHeadline').innerHTML = "HE'S OUT.<br>GIVE HIM A <span class=\"pet-name\" id=\"modalNameAccent\" style=\"color:#A855F7\">NAME.</span>";
+      $('modalSub').textContent = 'This becomes his permanent identity. It travels onto his NFT in 30 days.';
+      var btn = $('claimBtn');
+      if(btn) btn.style.background = 'linear-gradient(135deg,#A855F7,#6D28D9)';
+    } else {
+      // female chogi — pink accent (default)
+      $('modalHeadline').innerHTML = "SHE'S OUT.<br>GIVE HER A <span class=\"pet-name\" id=\"modalNameAccent\" style=\"color:var(--pink)\">NAME.</span>";
+      $('modalSub').textContent = 'This becomes her permanent identity. It travels onto her NFT in 30 days.';
+      var btn = $('claimBtn');
+      if(btn) btn.style.background = 'linear-gradient(135deg,var(--pink),var(--purple))';
+    }
+  }
+
   async function hatch(petType){
     if(!account){
       var ok = await connect();
@@ -765,6 +786,7 @@ main, header{position:relative;z-index:2}
 
       setTimeout(function(){
         overlay.classList.remove('show');
+        paintNameModal(petType);
         $('nameModal').classList.add('show');
         $('petName').focus();
       }, 800);
@@ -869,7 +891,7 @@ main, header{position:relative;z-index:2}
       // hide overlay, show name modal
       setTimeout(function(){
         overlay.classList.remove('show');
-        $('bornType').textContent = petType.toUpperCase();
+        paintNameModal(petType);
         $('nameModal').classList.add('show');
         $('petName').focus();
       }, 800);
