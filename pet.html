@@ -1034,7 +1034,10 @@ main, header{position:relative;z-index:2}
     ch.scrollTop = ch.scrollHeight;
 
     try {
-      var r = await fetch('/api/chat-pet', {
+      // use absolute www URL to dodge the chogi.xyz -> www.chogi.xyz redirect
+      // (307 redirects can drop POST bodies in some clients)
+      var apiBase = (window.location.host.startsWith('www.') ? '' : 'https://www.chogi.xyz');
+      var r = await fetch(apiBase + '/api/chat-pet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wallet: account, message: msg, pet: pet })
