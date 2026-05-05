@@ -133,8 +133,13 @@ export function startDexWatcher({ onBuy, onBurn }) {
 
     try {
       const erc = new ethers.Contract(config.token, ERC20_ABI, httpProvider);
-      chogiDecimals = await erc.decimals();
-    } catch {}
+      const dec = await erc.decimals();
+      // ethers v6 returns BigInt — coerce to Number so 10**dec works
+      chogiDecimals = Number(dec);
+      console.log('[dexWatcher] CHOGI decimals:', chogiDecimals);
+    } catch (e) {
+      console.warn('[dexWatcher] decimals fetch failed, using 18:', e.message);
+    }
     if (state.lastBlock === 0) {
       state.lastBlock = await httpProvider.getBlockNumber();
       saveState(state);
@@ -169,14 +174,18 @@ export function startDexWatcher({ onBuy, onBurn }) {
         else return null;
       }
 
+      const dec = Number(chogiDecimals) || 18;
+      const wDec = Number(wmonDecimals) || 18;
+      const chogiH = Number(chogiAmount) / Math.pow(10, dec);
+      const monH = Number(monAmount) / Math.pow(10, wDec);
       return {
         isBuy,
         sender: sender.toLowerCase(),
         recipient: recipient.toLowerCase(),
         chogiAmount,
         monAmount,
-        chogiHuman: Number(chogiAmount) / 10**chogiDecimals,
-        monHuman:   Number(monAmount)   / 10**wmonDecimals,
+        chogiHuman: Number.isFinite(chogiH) ? chogiH : 0,
+        monHuman:   Number.isFinite(monH)   ? monH   : 0,
         txHash: log.transactionHash,
         blockNumber: log.blockNumber,
       };
@@ -191,15 +200,20 @@ export function startDexWatcher({ onBuy, onBurn }) {
       const fromAddr = '0x' + log.topics[1].slice(-40);
       const toAddr   = '0x' + log.topics[2].slice(-40);
       const value    = BigInt(log.data);
+      const dec      = Number(chogiDecimals) || 18;
+      const human    = Number(value) / Math.pow(10, dec);
       return {
         from: fromAddr.toLowerCase(),
         to:   toAddr.toLowerCase(),
         amount: value,
-        chogiHuman: Number(value) / 10**chogiDecimals,
+        chogiHuman: Number.isFinite(human) ? human : 0,
         txHash: log.transactionHash,
         blockNumber: log.blockNumber,
       };
-    } catch { return null; }
+    } catch (e) {
+      console.warn('[dexWatcher] parseTransfer err:', e.message);
+      return null;
+    }
   }
 
   // ── handle a swap log ─────────────────────────────────────────

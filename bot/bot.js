@@ -314,13 +314,19 @@ let burnStats = loadBurnStats();
 
 function recordBurn(burn) {
   const amt = Number(burn.chogiHuman) || 0;
-  if (amt <= 0) return;
+  if (!Number.isFinite(amt) || amt <= 0) return;
   const from = (burn.from || '').toLowerCase();
-  burnStats.total = (burnStats.total || 0) + amt;
-  burnStats.count = (burnStats.count || 0) + 1;
-  burnStats.byWallet[from] = (burnStats.byWallet[from] || 0) + amt;
+
+  // self-heal: if stats got corrupted previously (NaN total), reset before adding
+  if (!Number.isFinite(burnStats.total)) {
+    console.warn('[burnStats] detected corrupted total, resetting');
+    burnStats = { total: 0, count: 0, byWallet: {}, recent: [] };
+  }
+
+  burnStats.total = (Number(burnStats.total) || 0) + amt;
+  burnStats.count = (Number(burnStats.count) || 0) + 1;
+  burnStats.byWallet[from] = (Number(burnStats.byWallet[from]) || 0) + amt;
   burnStats.recent.unshift({ from, amt, tx: burn.txHash, t: Date.now() });
-  // cap recent to 200
   if (burnStats.recent.length > 200) burnStats.recent = burnStats.recent.slice(0, 200);
   saveBurnStats(burnStats);
 }
@@ -349,15 +355,28 @@ function burnStatsBlock() {
 }
 
 async function handleBurn(burn) {
-  // Always record stats (even small burns)
-  recordBurn(burn);
-  if (burn.chogiHuman < MIN_BURN_CHOGI) {
-    console.log(`[burn] tracked but skipped alert, ${burn.chogiHuman.toFixed(0)} < ${MIN_BURN_CHOGI} min`);
+  // Sanity: refuse weird/zero amounts (was producing NaN entries before fix)
+  const amt = Number(burn.chogiHuman);
+  if (!Number.isFinite(amt) || amt <= 0) {
+    console.warn(`[burn] skipped invalid amount: ${burn.chogiHuman} from ${burn.from}`);
     return;
   }
-  const msg = composeBurnMsg(burn);
+  // Filter out the pool itself burning swap fees (auto-burn dust spam)
+  // The pool address shouldn't count as a "burn alert" — those are protocol burns
+  if ((burn.from || '').toLowerCase() === config.pool.toLowerCase()) {
+    console.log(`[burn] skipping pool fee auto-burn: ${amt.toFixed(0)}`);
+    // still track it as a stat though, useful info
+    recordBurn({ ...burn, chogiHuman: amt, isPoolBurn: true });
+    return;
+  }
+  recordBurn({ ...burn, chogiHuman: amt });
+  if (amt < MIN_BURN_CHOGI) {
+    console.log(`[burn] tracked but skipped alert, ${amt.toFixed(0)} < ${MIN_BURN_CHOGI} min`);
+    return;
+  }
+  const msg = composeBurnMsg({ ...burn, chogiHuman: amt });
   await safeSend(msg);
-  console.log(`[burn] alerted · ${burn.chogiHuman.toFixed(0)} CHOGI · ${short(burn.from)}`);
+  console.log(`[burn] alerted · ${amt.toFixed(0)} CHOGI · ${short(burn.from)}`);
 }
 
 // ── Slash commands ───────────────────────────────────────────
@@ -432,6 +451,13 @@ bot.command('holders', async (ctx) => {
 
 bot.command('burnstats', async (ctx) => {
   ctx.reply(burnStatsBlock(), { parse_mode: 'Markdown', disable_web_page_preview: true });
+});
+
+bot.command('burnreset', async (ctx) => {
+  if (!isAdmin(ctx)) return;
+  burnStats = { total: 0, count: 0, byWallet: {}, recent: [] };
+  saveBurnStats(burnStats);
+  ctx.reply('🧹 burn stats reset · backfill from chain on next bot restart will repopulate', { parse_mode: 'Markdown' });
 });
 
 // ── Admin commands ──────────────────────────────────────────
