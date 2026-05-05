@@ -109,6 +109,16 @@ main, header{position:relative;z-index:2}
   font-weight:600;transition:.2s;text-transform:uppercase;
 }
 .nav-back:hover{border-color:var(--pink);color:var(--pink)}
+.nav-links{display:flex;gap:8px}
+.nav-links a{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+  padding:7px 12px;border-radius:99px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  font-weight:600;text-transform:uppercase;transition:.2s;
+}
+.nav-links a:hover{border-color:var(--pink);color:var(--pink)}
+.nav-links a.active{background:rgba(255,20,147,.12);border-color:var(--pink);color:var(--pink)}
+@media(max-width:680px){.nav-links a:not(.active){display:none}}
 
 /* HERO */
 .hero{
@@ -476,7 +486,12 @@ main, header{position:relative;z-index:2}
       <div class="brand-logo"><img src="/chogi.png" alt="Chogi"></div>
       <div class="brand-text">CHOGI · LAB</div>
     </a>
-    <a class="nav-back" href="/">← back</a>
+    <div class="nav-links">
+      <a href="/pet">PET</a>
+      <a href="/marketplace">MARKET</a>
+      <a href="/hatch" class="active">HATCH</a>
+      <a href="/">HOME</a>
+    </div>
   </div>
 </header>
 
