@@ -337,27 +337,67 @@ function recordBurn(burn) {
   saveBurnStats(burnStats);
 }
 
-function burnStatsBlock() {
-  const total = burnStats.total || 0;
-  const count = burnStats.count || 0;
+// Pull the on-chain truth: how much $CHOGI sits at the dead address?
+// This is the authoritative total burned across all time, regardless of
+// when the bot was running.
+async function fetchOnchainBurnTotals() {
+  const RPC = (process.env.RPC_URL || '').trim() || config.rpcHttp;
+  const pad = (h) => h.toLowerCase().replace('0x', '').padStart(64, '0');
+  async function call(data) {
+    const r = await fetch(RPC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', id: 1, params: [{ to: config.token, data }, 'latest'] })
+    });
+    const j = await r.json();
+    return BigInt(j.result || '0x0');
+  }
+  try {
+    const [supply, deadBal] = await Promise.all([
+      call('0x18160ddd'),                            // totalSupply()
+      call('0x70a08231' + pad(config.dead)),         // balanceOf(dead)
+    ]);
+    const total = Number(supply) / 1e18;
+    const burned = Number(deadBal) / 1e18;
+    const pct = supply > 0n ? Number((deadBal * 1000000n) / supply) / 10000 : 0;
+    return { totalSupply: total, burnedAllTime: burned, pctBurned: pct };
+  } catch (e) {
+    console.warn('[burnStats] onchain fetch failed:', e.message);
+    return null;
+  }
+}
+
+async function burnStatsBlock() {
   const last24h = (burnStats.recent || []).filter(r => Date.now() - r.t < 86400000);
   const burned24h = last24h.reduce((s, r) => s + r.amt, 0);
   const top = Object.entries(burnStats.byWallet || {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
-  const topLines = top.map(([w, a], i) => `${i + 1}. ${short(w)} · ${fmtNum(a)} CHOGI`).join('\n') || '(no burns yet)';
-  return [
-    `🔥 *CHOGI BURN STATS*`,
-    ``,
-    `🌋 Total burned: *${fmtNum(total)} CHOGI*`,
-    `📊 Burn count: *${count}* tx`,
-    `⏱ Last 24h: *${fmtNum(burned24h)} CHOGI* across ${last24h.length} burns`,
-    ``,
-    `*🏆 TOP BURNERS*`,
-    topLines,
-    ``,
-    `[🔥 Burn yours](${config.burnUrl})`,
-  ].join('\n');
+  const topLines = top.map(([w, a], i) => `${i + 1}. ${short(w)} · ${fmtNum(a)} CHOGI`).join('\n') || '(no top burners tracked yet — bot started recently)';
+
+  // Authoritative all-time total from chain
+  const onchain = await fetchOnchainBurnTotals();
+
+  const lines = [`🔥 *CHOGI BURN STATS*`, ``];
+
+  if (onchain) {
+    lines.push(`🌋 Total burned: *${fmtNum(onchain.burnedAllTime)} CHOGI*`);
+    lines.push(`📈 ${onchain.pctBurned.toFixed(4)}% of *${fmtNum(onchain.totalSupply)}* supply`);
+  } else {
+    // fallback to bot-tracked total if chain call failed
+    lines.push(`🌋 Total burned: *${fmtNum(burnStats.total || 0)} CHOGI* (bot-tracked)`);
+  }
+
+  lines.push(``);
+  lines.push(`⏱ Last 24h: *${fmtNum(burned24h)} CHOGI* across ${last24h.length} burns`);
+  lines.push(`📊 Bot-logged burns: *${burnStats.count || 0}* tx`);
+  lines.push(``);
+  lines.push(`*🏆 TOP BURNERS* (since bot online)`);
+  lines.push(topLines);
+  lines.push(``);
+  lines.push(`[🔥 Burn yours](${config.burnUrl})`);
+
+  return lines.join('\n');
 }
 
 async function handleBurn(burn) {
@@ -457,7 +497,8 @@ bot.command('holders', async (ctx) => {
 });
 
 bot.command('burnstats', async (ctx) => {
-  ctx.reply(burnStatsBlock(), { parse_mode: 'Markdown', disable_web_page_preview: true });
+  const block = await burnStatsBlock();
+  ctx.reply(block, { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
 bot.command('burnreset', async (ctx) => {
