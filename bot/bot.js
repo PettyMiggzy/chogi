@@ -95,6 +95,12 @@ function fmtNum(n) {
   if (n >= 1)   return n.toFixed(2);
   return n.toFixed(4);
 }
+// Full integer with thousands commas. Used for /burnstats so 1,016,000
+// shows the same way as on the burn page (not rounded to "1.02M").
+function fmtFull(n) {
+  if (!Number.isFinite(n)) return '—';
+  return Math.floor(n).toLocaleString('en-US');
+}
 function fmtPct(p) {
   if (p == null || !Number.isFinite(p)) return '—';
   const sign = p >= 0 ? '+' : '';
@@ -373,7 +379,7 @@ async function burnStatsBlock() {
   const top = Object.entries(burnStats.byWallet || {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
-  const topLines = top.map(([w, a], i) => `${i + 1}. ${short(w)} · ${fmtNum(a)} CHOGI`).join('\n') || '(no top burners tracked yet — bot started recently)';
+  const topLines = top.map(([w, a], i) => `${i + 1}. ${short(w)} · ${fmtFull(a)} CHOGI`).join('\n') || '(no top burners tracked yet — bot started recently)';
 
   // Authoritative all-time total from chain
   const onchain = await fetchOnchainBurnTotals();
@@ -381,15 +387,15 @@ async function burnStatsBlock() {
   const lines = [`🔥 *CHOGI BURN STATS*`, ``];
 
   if (onchain) {
-    lines.push(`🌋 Total burned: *${fmtNum(onchain.burnedAllTime)} CHOGI*`);
-    lines.push(`📈 ${onchain.pctBurned.toFixed(4)}% of *${fmtNum(onchain.totalSupply)}* supply`);
+    lines.push(`🌋 Total burned: *${fmtFull(onchain.burnedAllTime)} CHOGI*`);
+    lines.push(`📈 ${onchain.pctBurned.toFixed(4)}% of *${fmtFull(onchain.totalSupply)}* supply`);
   } else {
     // fallback to bot-tracked total if chain call failed
-    lines.push(`🌋 Total burned: *${fmtNum(burnStats.total || 0)} CHOGI* (bot-tracked)`);
+    lines.push(`🌋 Total burned: *${fmtFull(burnStats.total || 0)} CHOGI* (bot-tracked)`);
   }
 
   lines.push(``);
-  lines.push(`⏱ Last 24h: *${fmtNum(burned24h)} CHOGI* across ${last24h.length} burns`);
+  lines.push(`⏱ Last 24h: *${fmtFull(burned24h)} CHOGI* across ${last24h.length} burns`);
   lines.push(`📊 Bot-logged burns: *${burnStats.count || 0}* tx`);
   lines.push(``);
   lines.push(`*🏆 TOP BURNERS* (since bot online)`);
