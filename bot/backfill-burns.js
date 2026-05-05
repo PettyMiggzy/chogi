@@ -46,9 +46,9 @@ function saveStats(s) {
 let stats = loadStats();
 console.log(`[backfill] existing stats: total=${stats.total.toFixed(0)}, count=${stats.count}`);
 
-let chunkSize = 5000;
-const CHUNK_SMALL = 95;
-const CHUNK_LARGE = 5000;
+let chunkSize = 95;
+const CHUNK_SMALL = 95;     // public Monad RPC max
+const CHUNK_LARGE = 950;    // QuickNode max (their limit is exactly 1000)
 
 async function getLogsAdaptive(fromBlock, toBlock) {
   // try the configured chunk size, shrink on range error

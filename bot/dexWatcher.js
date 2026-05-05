@@ -249,10 +249,15 @@ export function startDexWatcher({ onBuy, onBurn }) {
   // ── backfill missed blocks since last run ─────────────────────
   // Adaptive chunk size: starts large (favoring QuickNode's 10K+ allowance),
   // drops to 95 when public Monad RPC's 100-block limit is hit, and grows
-  // back gradually when calls succeed.
-  let currentChunkSize = 5000;
-  const CHUNK_SMALL = 95;     // public Monad RPC limit
-  const CHUNK_LARGE = 5000;   // QuickNode-friendly
+  // Adaptive chunk size based on observed RPC limits:
+  //   Public Monad RPC: 100-block range limit
+  //   QuickNode:       1,000-block range limit
+  // Start at the smaller value to avoid wasted requests on first call,
+  // grow toward 950 once we know the active provider can handle it,
+  // shrink to 95 if the active one is public.
+  let currentChunkSize = 95;
+  const CHUNK_SMALL = 95;
+  const CHUNK_LARGE = 950;
 
   async function backfill() {
     try {
