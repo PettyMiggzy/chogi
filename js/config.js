@@ -11,7 +11,7 @@
 (function(){
   window.ChogiConfig = {
     SUPABASE_URL: 'https://cuqhqcmrgpdjlhyqztnc.supabase.co',
-    SUPABASE_ANON_KEY: '' // ← paste anon key here
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cWhxY21yZ3BkamxoeXF6dG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ4NDAsImV4cCI6MjA5MjgwMDg0MH0.bsmuC_onaPutZmYZWTn9p1DvngKIA7Xx4J3YRajbf-8'
   };
 
   // auto-init pet store if helper is loaded
