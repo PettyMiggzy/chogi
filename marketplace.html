@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>MARKET · Chogi Lab</title>
+<meta name="description" content="Burn $CHOGI to buy food, water, and cosmetics for your pet. Every purchase is a permanent burn — currency is destruction.">
+<meta name="theme-color" content="#0a0118">
+<link rel="canonical" href="https://chogi.xyz/marketplace">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/chogi.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a0118;
+  --bg-2:#15102e;
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --purple:#A855F7;
+  --monad:#836ef9;
+  --cream:#FFF4D6;
+  --ink:#FFE9F4;
+  --ink-dim:rgba(255,233,244,.7);
+  --ink-faint:rgba(255,233,244,.45);
+  --ochre:#e8a14f;
+  --green:#5dffa0;
+  --red:#ff6b8a;
+  --rule:rgba(168,85,247,.3);
+  --rule-strong:rgba(168,85,247,.6);
+  --display:'Bungee',sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--mono);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+.lab-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 25% 15%, rgba(255,20,147,.13), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 75% 90%, rgba(168,85,247,.13), transparent 60%);
+}
+.lab-bg::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='5'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.4 0 0 0 0 0.7 0 0 0 0.06 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity:.6;mix-blend-mode:overlay;
+}
+main, header{position:relative;z-index:2}
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  background:rgba(10,1,24,.7);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-inner{
+  max-width:1280px;margin:0 auto;
+  padding:13px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--pink),var(--purple));overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 6px 22px rgba(255,20,147,.35)}
+.brand-logo img{width:100%;height:100%;object-fit:cover}
+.brand-text{font-family:var(--display);font-size:13px;letter-spacing:2px;color:var(--cream)}
+.nav-links{display:flex;gap:8px}
+.nav-links a{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+  padding:7px 12px;border-radius:99px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  font-weight:600;text-transform:uppercase;transition:.2s;
+}
+.nav-links a:hover{border-color:var(--pink);color:var(--pink)}
+.nav-links a.active{background:rgba(255,20,147,.12);border-color:var(--pink);color:var(--pink)}
+@media(max-width:680px){.nav-links a:not(.active){display:none}}
+
+/* HERO */
+.hero{
+  max-width:1280px;margin:0 auto;
+  padding:36px 22px 14px;text-align:center;
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(36px,7vw,72px);
+  line-height:.95;letter-spacing:1px;
+  color:var(--cream);
+  text-shadow:0 0 18px rgba(255,20,147,.45),0 0 56px rgba(168,85,247,.3);
+  margin-bottom:8px;
+}
+.hero h1 span{color:var(--pink)}
+.hero-sub{
+  font-family:var(--serif);font-style:italic;font-size:18px;
+  color:var(--ink-dim);max-width:540px;margin:0 auto 16px;line-height:1.5;
+}
+
+/* WALLET STRIP */
+.wallet-strip{
+  display:flex;justify-content:center;gap:10px;flex-wrap:wrap;align-items:center;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+  color:var(--ink-faint);font-weight:600;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.wallet-strip .pill{
+  padding:7px 14px;border-radius:99px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--rule);
+  display:inline-flex;align-items:center;gap:8px;
+}
+.wallet-strip .pill b{color:var(--cream);font-weight:700}
+.wallet-strip .pill.live{border-color:rgba(0,255,130,.4);color:#5dffa0}
+.wallet-strip .pill.live::before{
+  content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:#5dffa0;box-shadow:0 0 10px rgba(0,255,130,.7);
+  animation:livePulse 1.6s ease-in-out infinite;
+}
+@keyframes livePulse{50%{opacity:.4}}
+
+/* CATEGORY TABS */
+.tabs-wrap{
+  position:sticky;top:60px;z-index:40;
+  background:rgba(10,1,24,.85);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--rule);
+  margin-top:18px;
+}
+.tabs{
+  max-width:1280px;margin:0 auto;
+  padding:14px 18px;
+  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  padding:10px 18px;border-radius:99px;
+  font-family:var(--display);font-size:11px;letter-spacing:1.6px;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid var(--rule);
+  color:var(--ink-dim);
+  white-space:nowrap;flex-shrink:0;
+  transition:.2s;cursor:pointer;
+}
+.tab .count{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  margin-left:6px;color:var(--ink-faint);letter-spacing:.1em;
+}
+.tab:hover{border-color:var(--rule-strong);color:var(--ink)}
+.tab.active{
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  border-color:transparent;color:#fff;
+  box-shadow:0 6px 20px rgba(255,20,147,.35);
+}
+.tab.active .count{color:rgba(255,255,255,.7)}
+
+/* GRID */
+.grid-wrap{
+  max-width:1280px;margin:0 auto;
+  padding:30px 18px 80px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:14px;
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+}
+
+.card{
+  position:relative;
+  background:linear-gradient(180deg,rgba(31,22,64,.6),rgba(15,12,34,.7));
+  border:1.5px solid var(--rule);
+  border-radius:16px;
+  padding:14px 12px 12px;
+  display:flex;flex-direction:column;
+  transition:.25s;
+  overflow:hidden;
+}
+.card:hover{border-color:var(--rule-strong);transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.3)}
+.card.owned{border-color:rgba(232,161,79,.5)}
+.card.equipped{border-color:var(--green);box-shadow:0 0 0 1px var(--green), 0 14px 30px rgba(0,255,130,.15)}
+.card.locked{opacity:.55}
+
+.card-stamp{
+  position:absolute;top:8px;right:8px;
+  font-family:var(--mono);font-size:8px;letter-spacing:.18em;
+  font-weight:700;text-transform:uppercase;
+  padding:3px 7px;border-radius:4px;
+  background:rgba(0,0,0,.55);color:var(--cream);
+  border:1px solid rgba(255,255,255,.1);
+  z-index:2;
+}
+.card.equipped .card-stamp{background:var(--green);color:#001f0a;border-color:transparent}
+.card.owned .card-stamp{background:var(--ochre);color:#1a0f00;border-color:transparent}
+
+.card-rarity-flag{
+  position:absolute;top:8px;left:8px;z-index:2;
+  font-family:var(--mono);font-size:8px;letter-spacing:.18em;
+  font-weight:700;text-transform:uppercase;
+  padding:3px 7px;border-radius:4px;
+  background:linear-gradient(135deg,var(--ochre),#c97f30);color:#1a0f00;
+}
+
+.card-img{
+  width:100%;aspect-ratio:1;
+  background:radial-gradient(ellipse at center, rgba(168,85,247,.12), transparent 70%);
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;
+  overflow:hidden;
+  border:1px solid rgba(168,85,247,.18);
+}
+.card-img img{
+  width:75%;height:75%;object-fit:contain;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.35));
+  transition:.3s;
+}
+.card:hover .card-img img{transform:scale(1.07)}
+
+.card-name{
+  font-family:var(--display);font-size:11px;letter-spacing:1.1px;
+  color:var(--cream);margin-bottom:4px;line-height:1.2;
+}
+.card-meta{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+  color:var(--ink-faint);font-weight:600;
+  margin-bottom:10px;line-height:1.4;
+  flex:1;
+}
+.card-cost{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.05em;
+}
+.card-cost .price b{color:var(--ochre);font-weight:800;font-size:13px}
+.card-cost .effect{color:var(--ink-faint);font-size:9px;text-align:right}
+
+.card-btn{
+  display:block;width:100%;
+  padding:9px 8px;border-radius:9px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;
+  font-family:var(--display);font-size:10px;letter-spacing:1.5px;
+  transition:.2s;
+}
+.card-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,20,147,.4)}
+.card-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.card.owned .card-btn{
+  background:rgba(232,161,79,.18);
+  color:var(--ochre);border:1px solid rgba(232,161,79,.5);
+}
+.card.equipped .card-btn{
+  background:rgba(0,255,130,.15);
+  color:var(--green);border:1px solid rgba(0,255,130,.5);
+}
+
+/* FOOD CARDS — different vibe (consumable) */
+.card.food .card-img{background:radial-gradient(ellipse at center, rgba(232,161,79,.16), transparent 70%)}
+
+/* ASIDE — equipped loadout sticky panel */
+.shelf{
+  position:fixed;bottom:14px;right:14px;z-index:30;
+  background:rgba(10,1,24,.88);backdrop-filter:blur(14px);
+  border:1.5px solid var(--rule-strong);
+  border-radius:16px;padding:14px 16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.13em;
+  color:var(--ink-dim);font-weight:600;text-transform:uppercase;
+  box-shadow:0 14px 40px rgba(0,0,0,.5);
+  display:none;
+}
+.shelf.show{display:block}
+.shelf .label{color:var(--pink);margin-bottom:6px}
+.shelf-eq{display:flex;gap:6px;margin-top:8px}
+.shelf-eq .slot{
+  width:38px;height:38px;border-radius:8px;
+  background:rgba(0,0,0,.35);
+  border:1px dashed rgba(168,85,247,.3);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.shelf-eq .slot img{width:80%;height:80%;object-fit:contain}
+.shelf .open-pet{
+  display:block;margin-top:10px;text-align:center;
+  padding:8px 12px;border-radius:99px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;font-family:var(--display);font-size:9.5px;letter-spacing:1px;
+}
+
+/* CONFIRM MODAL */
+.confirm-modal{
+  position:fixed;inset:0;z-index:200;
+  background:radial-gradient(ellipse at center, rgba(20,8,50,.92), rgba(5,0,15,.98));
+  backdrop-filter:blur(14px);
+  display:none;align-items:center;justify-content:center;padding:22px;
+}
+.confirm-modal.show{display:flex;animation:confirmIn .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes confirmIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.confirm-card{
+  max-width:420px;width:100%;
+  background:linear-gradient(180deg,rgba(31,22,64,.95),rgba(15,12,34,.99));
+  border:1.5px solid var(--rule-strong);
+  border-radius:22px;padding:30px 28px 24px;
+  text-align:center;position:relative;
+}
+.confirm-card .lbl{
+  font-family:var(--mono);font-size:10px;letter-spacing:.32em;
+  color:var(--pink);font-weight:700;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.confirm-card .preview-img{
+  width:140px;height:140px;margin:0 auto 16px;
+  background:radial-gradient(ellipse, rgba(168,85,247,.15), transparent 70%);
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--rule);
+}
+.confirm-card .preview-img img{width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4))}
+.confirm-card h2{
+  font-family:var(--display);font-size:24px;letter-spacing:1.5px;
+  color:var(--cream);margin-bottom:6px;line-height:1.1;
+}
+.confirm-card .desc{
+  font-family:var(--serif);font-style:italic;font-size:15px;
+  color:var(--ink-dim);margin-bottom:18px;line-height:1.5;
+}
+.confirm-card .price-line{
+  background:rgba(232,161,79,.1);
+  border:1px solid rgba(232,161,79,.3);
+  border-radius:11px;padding:12px;
+  margin-bottom:18px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  color:var(--ink-dim);font-weight:600;text-transform:uppercase;
+}
+.confirm-card .price-line b{color:var(--ochre);font-weight:800;font-size:15px;letter-spacing:.05em}
+.confirm-card .actions{display:flex;gap:8px}
+.confirm-card .btn{
+  flex:1;padding:14px;border-radius:11px;
+  font-family:var(--display);font-size:11px;letter-spacing:1.3px;
+  transition:.2s;
+}
+.confirm-card .btn-primary{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff}
+.confirm-card .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(255,20,147,.4)}
+.confirm-card .btn-cancel{background:rgba(255,255,255,.05);color:var(--ink-dim);border:1px solid var(--rule)}
+.confirm-card .btn-cancel:hover{color:var(--ink);border-color:var(--rule-strong)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  z-index:300;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;padding:14px 22px;border-radius:99px;
+  font-family:var(--display);font-size:11px;letter-spacing:1.4px;
+  box-shadow:0 14px 30px rgba(0,0,0,.4),0 0 26px rgba(255,20,147,.25);
+  transition:.4s cubic-bezier(.2,.9,.3,1);max-width:90%;text-align:center;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* EMPTY STATE */
+.empty-cat{
+  grid-column:1/-1;
+  text-align:center;padding:80px 20px;
+  font-family:var(--serif);font-style:italic;font-size:18px;
+  color:var(--ink-faint);
+}
+</style>
+</head>
+<body>
+
+<div class="lab-bg"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <div class="brand-logo"><img src="/chogi.png" alt="Chogi"></div>
+      <div class="brand-text">CHOGI · LAB</div>
+    </a>
+    <div class="nav-links">
+      <a href="/pet">PET</a>
+      <a href="/marketplace" class="active">MARKET</a>
+      <a href="/hatch">HATCH</a>
+      <a href="/">HOME</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <h1>THE <span>MARKET</span></h1>
+  <p class="hero-sub">Burn $CHOGI to buy. Currency is destruction. Every coin spent here is a coin gone forever.</p>
+  <div class="wallet-strip">
+    <span class="pill live">LIVE · MONAD</span>
+    <span class="pill"><b id="ws-status">NOT CONNECTED</b></span>
+    <span class="pill" id="ws-balPill" style="display:none">BAL <b id="ws-bal">—</b></span>
+  </div>
+</section>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<section class="grid-wrap">
+  <div class="grid" id="grid"></div>
+</section>
+
+</main>
+
+<!-- LOADOUT SHELF -->
+<aside class="shelf" id="shelf">
+  <div class="label">YOUR PET</div>
+  <div id="shelfPetName" style="color:var(--cream);font-family:var(--display);font-size:13px;letter-spacing:1.5px">…</div>
+  <div class="shelf-eq">
+    <div class="slot" id="eqHead"></div>
+    <div class="slot" id="eqOutfit"></div>
+    <div class="slot" id="eqBoots"></div>
+    <div class="slot" id="eqAcc"></div>
+  </div>
+  <a class="open-pet" href="/pet">OPEN DASHBOARD →</a>
+</aside>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-modal" id="confirm">
+  <div class="confirm-card">
+    <div class="lbl">▸ CONFIRM PURCHASE</div>
+    <div class="preview-img"><img id="cfImg" src=""></div>
+    <h2 id="cfName"></h2>
+    <p class="desc" id="cfDesc"></p>
+    <div class="price-line">BURN <b id="cfPrice">—</b> $CHOGI · permanent</div>
+    <div class="actions">
+      <button class="btn btn-cancel" id="cfCancel">CANCEL</button>
+      <button class="btn btn-primary" id="cfConfirm">BURN &amp; BUY</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/wallet-helper.js" defer></script>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ─── CHAIN CONFIG ─── */
+  var TOKEN     = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var DEAD      = '0x000000000000000000000000000000000000dead';
+  var CHAIN_HEX = '0x8f';
+  var RPC       = 'https://rpc.monad.xyz';
+  var EXPLORER  = 'https://monadexplorer.com/tx/';
+  var ONE       = 10n ** 18n;
+
+  /* ─── ITEM CATALOG ───
+     Single source of truth. Maps to /marketplace/items/{id}.png.
+     Fields: id, name, cat, price (in $CHOGI), desc, slot ('head'|'outfit'|'boots'|'acc'|null for food)
+              effect (for consumables: hunger/thirst/happy)
+  */
+  var ITEMS = [
+    // CONSUMABLES
+    {id:'food-tap-water',     name:'TAP WATER',        cat:'food', price:500,    desc:'A simple glass of water.',                   slot:null, effect:{thirst:20}},
+    {id:'food-spring-water',  name:'SPRING WATER',     cat:'food', price:2000,   desc:'From the mountain. Worth the burn.',         slot:null, effect:{thirst:50,happy:1}},
+    {id:'food-sparkle-water', name:'SPARKLE WATER',    cat:'food', price:8000,   desc:'Magical pink fizz. Hydration with vibes.',   slot:null, effect:{thirst:100,happy:10}},
+    {id:'food-berry-snack',   name:'BERRY SNACK',      cat:'food', price:1000,   desc:'Pink berries on a leaf. Quick bite.',        slot:null, effect:{hunger:15}},
+    {id:'food-lab-meal',      name:'LAB MEAL',         cat:'food', price:5000,   desc:'A balanced meal from the experiment kitchen.', slot:null, effect:{hunger:50,happy:5}},
+    {id:'food-birthday-feast',name:'BIRTHDAY FEAST',   cat:'food', price:25000,  desc:'Full feast. Cake, candles, the works.',      slot:null, effect:{hunger:100,happy:20,thirst:10}},
+    {id:'food-monad-booster', name:'MONAD BOOSTER',    cat:'food', price:50000,  desc:'Fills everything. Skips an hour of decay.',  slot:null, effect:{hunger:100,thirst:100,happy:40}},
+
+    // HEADPIECES
+    {id:'hat-pink-bow',       name:'PINK BOW',         cat:'head', price:2500,   desc:'Hot pink replacement bow.',                  slot:'head'},
+    {id:'hat-crown',          name:'GOLD CROWN',       cat:'head', price:25000,  desc:'For royalty. Or those pretending.',          slot:'head'},
+    {id:'hat-halo',           name:'HALO',             cat:'head', price:50000,  desc:'Gold halo. Ascended energy.',                slot:'head'},
+    {id:'hat-beanie',         name:'BEANIE',           cat:'head', price:5000,   desc:'Casual streetwear knit cap.',                slot:'head'},
+    {id:'hat-cowboy',         name:'COWBOY HAT',       cat:'head', price:10000,  desc:'Yeehaw on the chain.',                       slot:'head'},
+    {id:'hat-witch',          name:'WITCH HAT',        cat:'head', price:10000,  desc:'Spooky szn. Stars included.',                slot:'head'},
+    {id:'hat-devil-horns',    name:'DEVIL HORNS',      cat:'head', price:15000,  desc:'For mischief makers.',                       slot:'head'},
+    {id:'hat-angel-wings',    name:'ANGEL WINGS',      cat:'head', price:30000,  desc:'Wings worn behind the head.',                slot:'head'},
+
+    // OUTFITS
+    {id:'outfit-lab-coat',    name:'LAB COAT',         cat:'outfit', price:5000, desc:'CTO-of-the-experiment fit.',                slot:'outfit'},
+    {id:'outfit-hoodie-black',name:'BLACK HOODIE',     cat:'outfit', price:5000, desc:'Streetwear. Hood up.',                      slot:'outfit'},
+    {id:'outfit-hoodie-monad',name:'MONAD HOODIE',     cat:'outfit', price:7500, desc:'Brand loyalty in pullover form.',           slot:'outfit'},
+    {id:'outfit-suit',        name:'SUIT &amp; TIE',   cat:'outfit', price:15000,desc:'Boardroom. Red tie.',                       slot:'outfit'},
+    {id:'outfit-sweater',     name:'COZY SWEATER',     cat:'outfit', price:4000, desc:'Cream cable-knit. Winter szn.',             slot:'outfit'},
+    {id:'outfit-hawaiian',    name:'HAWAIIAN SHIRT',   cat:'outfit', price:8000, desc:'Vacation Chogi. Hibiscus print.',           slot:'outfit'},
+    {id:'outfit-astronaut',   name:'ASTRONAUT SUIT',   cat:'outfit', price:40000,desc:'Mission to Monad and beyond.',              slot:'outfit'},
+    {id:'outfit-holographic', name:'HOLOGRAPHIC SUIT', cat:'outfit', price:75000,desc:'Iridescent flex. Top-tier.',                slot:'outfit'},
+
+    // BOOTS
+    {id:'boots-sneakers-white',name:'WHITE SNEAKERS',  cat:'boots', price:3000,  desc:'Clean. Always.',                            slot:'boots'},
+    {id:'boots-sneakers-red', name:'RED SNEAKERS',     cat:'boots', price:8000,  desc:'Hype tier high-tops.',                      slot:'boots'},
+    {id:'boots-doc-martens',  name:'DOC MARTENS',      cat:'boots', price:6000,  desc:'Punk. Yellow stitch.',                      slot:'boots'},
+    {id:'boots-cowboy',       name:'COWBOY BOOTS',     cat:'boots', price:7000,  desc:'Pairs with the hat.',                       slot:'boots'},
+    {id:'boots-roller-skates',name:'ROLLER SKATES',    cat:'boots', price:12000, desc:'Movement matters.',                         slot:'boots'},
+    {id:'boots-diamond',      name:'DIAMOND BOOTS',    cat:'boots', price:50000, desc:'Crystal flex. Whale only.',                 slot:'boots'},
+
+    // ACCESSORIES
+    {id:'acc-sunglasses',     name:'SUNGLASSES',       cat:'acc', price:3000,    desc:'Cool. Permanently.',                        slot:'acc'},
+    {id:'acc-glasses',        name:'GLASSES',          cat:'acc', price:3000,    desc:'Reading mode.',                             slot:'acc'},
+    {id:'acc-backpack',       name:'BACKPACK',         cat:'acc', price:5000,    desc:'For adventures.',                           slot:'acc'},
+    {id:'acc-scarf',          name:'RED SCARF',        cat:'acc', price:4000,    desc:'Cozy as hell.',                             slot:'acc'},
+    {id:'acc-chogi-sign',     name:'$CHOGI SIGN',      cat:'acc', price:5000,    desc:'For shilling on chain.',                    slot:'acc'},
+    {id:'acc-phone',          name:'PHONE',            cat:'acc', price:4000,    desc:'On X. Always.',                             slot:'acc'},
+    {id:'acc-money-bag',      name:'MONEY BAG',        cat:'acc', price:10000,   desc:'Whale energy.',                             slot:'acc'},
+    {id:'acc-sword',          name:'SWORD',            cat:'acc', price:20000,   desc:'Going to war for the bag.',                 slot:'acc'},
+  ];
+
+  var CATS = [
+    {id:'all',    label:'ALL'},
+    {id:'food',   label:'FOOD &amp; WATER'},
+    {id:'head',   label:'HEADPIECES'},
+    {id:'outfit', label:'OUTFITS'},
+    {id:'boots',  label:'BOOTS'},
+    {id:'acc',    label:'ACCESSORIES'},
+    {id:'owned',  label:'★ OWNED'}
+  ];
+
+  var $ = function(id){return document.getElementById(id);};
+  var account = null;
+  var pet = null;
+  var activeCat = 'all';
+
+  /* ─── helpers ─── */
+  function pad32(hex){return hex.toLowerCase().replace('0x','').padStart(64,'0');}
+  function fmtPrice(n){
+    if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(n>=10000?0:1)+'K';
+    return n.toLocaleString('en-US');
+  }
+  function fmtBig(n){
+    if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+    if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function toast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._to);
+    t._to = setTimeout(function(){t.classList.remove('show');}, 2800);
+  }
+
+  /* ─── localStorage pet store ─── */
+  var STORE_KEY = 'chogi_pet_v1';
+  function loadAll(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){return{};}}
+  function saveAll(all){try{localStorage.setItem(STORE_KEY,JSON.stringify(all));}catch(e){}}
+  function getPet(addr){
+    var all = loadAll();
+    return addr ? all[addr.toLowerCase()] : null;
+  }
+  function savePet(addr, p){
+    var all = loadAll();
+    all[addr.toLowerCase()] = p;
+    saveAll(all);
+  }
+
+  /* ─── RPC ─── */
+  function rpcCall(data){
+    return fetch(RPC, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({jsonrpc:'2.0', method:'eth_call', params:[{to:TOKEN, data:data}, 'latest'], id:1})
+    }).then(function(r){return r.json();}).then(function(j){return BigInt(j.result || '0x0');});
+  }
+
+  async function refreshBalance(){
+    if(!account) return;
+    try{
+      var bal = await rpcCall('0x70a08231' + pad32(account));
+      $('ws-bal').textContent = fmtBig(Number(bal/10n**14n)/10000) + ' $CHOGI';
+      $('ws-balPill').style.display = '';
+      $('ws-balPill').dataset.raw = bal.toString();
+    }catch(e){}
+  }
+
+  /* ─── tabs ─── */
+  function renderTabs(){
+    var html = CATS.map(function(c){
+      var n = 0;
+      if(c.id === 'all') n = ITEMS.length;
+      else if(c.id === 'owned') n = (pet && pet.owned_items) ? pet.owned_items.length : 0;
+      else n = ITEMS.filter(function(it){return it.cat === c.id;}).length;
+      return '<button class="tab '+(activeCat===c.id?'active':'')+'" data-cat="'+c.id+'">'+c.label+' <span class="count">'+n+'</span></button>';
+    }).join('');
+    $('tabs').innerHTML = html;
+    $('tabs').querySelectorAll('.tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        activeCat = t.dataset.cat;
+        renderTabs();
+        renderGrid();
+        window.scrollTo({top: $('tabs').offsetTop - 60, behavior:'smooth'});
+      });
+    });
+  }
+
+  /* ─── grid ─── */
+  function renderGrid(){
+    var owned = (pet && pet.owned_items) || [];
+    var equipped = (pet && pet.cosmetics) || {};
+    var bal = pet ? (pet.balance || 0) : 0; // we re-check on click
+
+    var filtered;
+    if(activeCat === 'all') filtered = ITEMS;
+    else if(activeCat === 'owned') filtered = ITEMS.filter(function(it){return owned.indexOf(it.id) !== -1;});
+    else filtered = ITEMS.filter(function(it){return it.cat === activeCat;});
+
+    if(filtered.length === 0){
+      $('grid').innerHTML = '<div class="empty-cat">Nothing here yet — check back later or shop another category.</div>';
+      return;
+    }
+
+    var html = filtered.map(function(it){
+      var isOwned = owned.indexOf(it.id) !== -1;
+      var isEquipped = it.slot && equipped[it.slot] === it.id;
+      var consumable = it.cat === 'food';
+
+      var cls = 'card ' + it.cat;
+      var stamp = '';
+      if(isEquipped) {cls += ' equipped'; stamp = '<span class="card-stamp">EQUIPPED</span>';}
+      else if(isOwned) {cls += ' owned'; stamp = '<span class="card-stamp">OWNED</span>';}
+
+      var btn;
+      if(consumable){
+        btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">BURN '+fmtPrice(it.price)+'</button>';
+      } else if(isEquipped){
+        btn = '<button class="card-btn" data-act="unequip" data-id="'+it.id+'">UNEQUIP</button>';
+      } else if(isOwned){
+        btn = '<button class="card-btn" data-act="equip" data-id="'+it.id+'">EQUIP</button>';
+      } else {
+        btn = '<button class="card-btn" data-act="buy" data-id="'+it.id+'">BUY '+fmtPrice(it.price)+'</button>';
+      }
+
+      var effect = '';
+      if(it.effect){
+        var bits = [];
+        if(it.effect.hunger) bits.push('+'+it.effect.hunger+'🍓');
+        if(it.effect.thirst) bits.push('+'+it.effect.thirst+'💧');
+        if(it.effect.happy) bits.push('+'+it.effect.happy+'✨');
+        effect = bits.join(' · ');
+      }
+
+      return '<div class="'+cls+'">' +
+        stamp +
+        '<div class="card-img"><img src="/marketplace/items/'+it.id+'.png" alt="'+it.name+'" loading="lazy"></div>' +
+        '<div class="card-name">'+it.name+'</div>' +
+        '<div class="card-meta">'+it.desc+'</div>' +
+        '<div class="card-cost"><span class="price"><b>'+fmtPrice(it.price)+'</b> $CHOGI</span>'+(effect?'<span class="effect">'+effect+'</span>':'')+'</div>' +
+        btn +
+      '</div>';
+    }).join('');
+
+    $('grid').innerHTML = html;
+
+    $('grid').querySelectorAll('.card-btn').forEach(function(b){
+      b.addEventListener('click', function(){
+        var act = b.dataset.act, id = b.dataset.id;
+        if(act === 'buy') openConfirm(id);
+        else if(act === 'equip') equip(id);
+        else if(act === 'unequip') unequip(id);
+      });
+    });
+  }
+
+  /* ─── shelf ─── */
+  function renderShelf(){
+    if(!pet){
+      $('shelf').classList.remove('show');
+      return;
+    }
+    $('shelf').classList.add('show');
+    $('shelfPetName').textContent = pet.name + ' · ' + (pet.type||'').toUpperCase();
+    var slots = ['head','outfit','boots','acc'];
+    var ids = ['eqHead','eqOutfit','eqBoots','eqAcc'];
+    var eq = pet.cosmetics || {};
+    slots.forEach(function(s, i){
+      var el = $(ids[i]);
+      var itemId = eq[s];
+      if(itemId){
+        el.innerHTML = '<img src="/marketplace/items/'+itemId+'.png" alt="">';
+      } else {
+        el.innerHTML = '';
+      }
+    });
+  }
+
+  /* ─── purchase flow ─── */
+  var pendingItem = null;
+  function openConfirm(id){
+    var item = ITEMS.find(function(it){return it.id === id;});
+    if(!item) return;
+    pendingItem = item;
+    $('cfImg').src = '/marketplace/items/'+item.id+'.png';
+    $('cfName').textContent = item.name;
+    $('cfDesc').innerHTML = item.desc;
+    $('cfPrice').textContent = fmtPrice(item.price);
+    $('confirm').classList.add('show');
+  }
+  function closeConfirm(){
+    $('confirm').classList.remove('show');
+    pendingItem = null;
+  }
+  $('cfCancel').addEventListener('click', closeConfirm);
+  $('confirm').addEventListener('click', function(e){
+    if(e.target === this) closeConfirm();
+  });
+
+  async function buy(){
+    var item = pendingItem;
+    if(!item) return;
+
+    if(!account){
+      var ok = await connect();
+      if(!ok){closeConfirm(); return;}
+    }
+    if(!pet){
+      toast('NO PET — HATCH ONE FIRST');
+      closeConfirm();
+      setTimeout(function(){window.location.href='/hatch';}, 1400);
+      return;
+    }
+
+    // balance check
+    var bal = BigInt($('ws-balPill').dataset.raw || '0');
+    var cost = BigInt(item.price) * ONE;
+    if(bal < cost){
+      toast('NOT ENOUGH $CHOGI · NEED '+fmtPrice(item.price));
+      return;
+    }
+
+    // build burn tx
+    var data = '0xa9059cbb' + pad32(DEAD) + cost.toString(16).padStart(64, '0');
+    closeConfirm();
+
+    toast('CONFIRM IN WALLET…');
+    try{
+      var txHash = await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from:account, to:TOKEN, data:data, value:'0x0'}]
+      });
+
+      toast('🔥 BURNING — '+txHash.slice(0,8)+'…');
+
+      // optimistic state update
+      pet.total_burned = (pet.total_burned||0) + item.price;
+
+      if(item.cat === 'food'){
+        // consumable — apply effect immediately
+        var ef = item.effect || {};
+        if(ef.hunger){pet.hunger = clamp((pet.hunger||0) + ef.hunger, 0, 100); pet.last_fed_at = Date.now(); pet.feed_count = (pet.feed_count||0)+1;}
+        if(ef.thirst){pet.thirst = clamp((pet.thirst||0) + ef.thirst, 0, 100); pet.last_watered_at = Date.now(); pet.water_count = (pet.water_count||0)+1;}
+        if(ef.happy){pet.happiness = clamp((pet.happiness||0) + ef.happy, 0, 100);}
+        pet.last_updated_at = Date.now();
+      } else {
+        // permanent cosmetic
+        pet.owned_items = pet.owned_items || [];
+        if(pet.owned_items.indexOf(item.id) === -1) pet.owned_items.push(item.id);
+        // auto-equip if slot is empty
+        pet.cosmetics = pet.cosmetics || {head:null,outfit:null,boots:null,acc:null};
+        if(!pet.cosmetics[item.slot]){
+          pet.cosmetics[item.slot] = item.id;
+        }
+      }
+
+      savePet(account, pet);
+      refreshBalance();
+      renderTabs();
+      renderGrid();
+      renderShelf();
+
+      setTimeout(function(){
+        toast(item.cat === 'food' ? '✓ FED ' + item.name : '✓ OWNED ' + item.name);
+      }, 2200);
+
+    }catch(e){
+      console.error(e);
+      toast(e.code === 4001 ? 'CANCELLED' : 'TX FAILED');
+    }
+  }
+  $('cfConfirm').addEventListener('click', buy);
+
+  /* ─── equip / unequip ─── */
+  function equip(id){
+    if(!pet){return;}
+    var item = ITEMS.find(function(it){return it.id === id;});
+    if(!item || !item.slot) return;
+    pet.cosmetics = pet.cosmetics || {};
+    pet.cosmetics[item.slot] = item.id;
+    savePet(account, pet);
+    renderGrid();
+    renderShelf();
+    toast('✓ EQUIPPED ' + item.name);
+  }
+  function unequip(id){
+    if(!pet){return;}
+    var item = ITEMS.find(function(it){return it.id === id;});
+    if(!item || !item.slot) return;
+    if(pet.cosmetics) pet.cosmetics[item.slot] = null;
+    savePet(account, pet);
+    renderGrid();
+    renderShelf();
+    toast('✓ UNEQUIPPED ' + item.name);
+  }
+
+  /* ─── connect ─── */
+  async function connect(){
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('Install MetaMask or Rabby.');
+      return false;
+    }
+    try{
+      var accounts = await window.ethereum.request({method:'eth_requestAccounts'});
+      account = accounts[0];
+      var chain = await window.ethereum.request({method:'eth_chainId'});
+      if(chain !== CHAIN_HEX){
+        try{
+          await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
+        }catch(e){
+          if(e.code === 4902){
+            await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+              chainId:CHAIN_HEX,chainName:'Monad',
+              nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+              rpcUrls:[RPC],blockExplorerUrls:['https://monadexplorer.com']
+            }]});
+          } else throw e;
+        }
+      }
+      $('ws-status').textContent = account.slice(0,6)+'…'+account.slice(-4);
+      pet = getPet(account);
+      refreshBalance();
+      renderTabs();
+      renderGrid();
+      renderShelf();
+      return true;
+    }catch(e){console.error(e);return false;}
+  }
+
+  /* ─── init ─── */
+  renderTabs();
+  renderGrid();
+  if(window.ethereum && window.ethereum.selectedAddress){
+    connect();
+  } else {
+    // try to pick up existing pet without wallet
+    var all = loadAll();
+    var keys = Object.keys(all);
+    if(keys.length){
+      account = keys[0];
+      pet = all[keys[0]];
+      $('ws-status').textContent = 'OFFLINE';
+      renderTabs();
+      renderGrid();
+      renderShelf();
+    }
+    setTimeout(connect, 600);
+  }
+
+  if(window.ethereum && window.ethereum.on){
+    window.ethereum.on('accountsChanged', function(accs){
+      if(accs && accs[0]){
+        account = accs[0];
+        pet = getPet(account);
+        refreshBalance();
+        renderTabs();
+        renderGrid();
+        renderShelf();
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
