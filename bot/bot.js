@@ -1,5 +1,7 @@
 // bot.js — Chogi buy bot · TG buy + burn alerts, slash commands, AI replies.
 import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
 import { Telegraf, Markup } from 'telegraf';
 import { config } from './config.js';
 import { startDexWatcher } from './dexWatcher.js';
@@ -26,7 +28,7 @@ process.on('uncaughtException',  (err) => console.error('🔥 uncaughtException:
 
 // ── thresholds ───────────────────────────────────────────────
 const MIN_BUY_USD    = Number(process.env.MIN_BUY_USD || 5);    // ignore buys under this USD
-const MIN_BURN_CHOGI = Number(process.env.MIN_BURN_CHOGI || 10000);
+const MIN_BURN_CHOGI = Number(process.env.MIN_BURN_CHOGI || 5000);
 const TG_MIN_GAP_MS  = Number(process.env.TG_MIN_GAP_MS || 2500);
 
 // ── inline keyboard for buy alerts ───────────────────────────
@@ -222,7 +224,6 @@ async function safeSend(text, opts = {}) {
 }
 
 // Send a video/animation with caption, falling back to text-only if the file is missing
-import fs from 'fs';
 const BUY_VIDEO_PATH = './buy.mp4';
 let buyVideoFileId = null;     // cached after first upload — reuse for speed
 
@@ -294,9 +295,64 @@ async function handleBuy(buy) {
   console.log(`[buy] alerted · ${buy.chogiHuman.toFixed(0)} CHOGI · ${usdReal.toFixed(2)} USD · ${short(buy.recipient)}`);
 }
 
+// ── Burn stats tracker (persists to ./burn_stats.json) ───────
+const BURN_STATS_FILE = './burn_stats.json';
+function loadBurnStats() {
+  try {
+    if (!fs.existsSync(BURN_STATS_FILE)) return { total: 0, count: 0, byWallet: {}, recent: [] };
+    return JSON.parse(fs.readFileSync(BURN_STATS_FILE, 'utf-8'));
+  } catch (e) {
+    console.warn('[burnStats] load failed:', e.message);
+    return { total: 0, count: 0, byWallet: {}, recent: [] };
+  }
+}
+function saveBurnStats(s) {
+  try { fs.writeFileSync(BURN_STATS_FILE, JSON.stringify(s, null, 2)); }
+  catch (e) { console.warn('[burnStats] save failed:', e.message); }
+}
+let burnStats = loadBurnStats();
+
+function recordBurn(burn) {
+  const amt = Number(burn.chogiHuman) || 0;
+  if (amt <= 0) return;
+  const from = (burn.from || '').toLowerCase();
+  burnStats.total = (burnStats.total || 0) + amt;
+  burnStats.count = (burnStats.count || 0) + 1;
+  burnStats.byWallet[from] = (burnStats.byWallet[from] || 0) + amt;
+  burnStats.recent.unshift({ from, amt, tx: burn.txHash, t: Date.now() });
+  // cap recent to 200
+  if (burnStats.recent.length > 200) burnStats.recent = burnStats.recent.slice(0, 200);
+  saveBurnStats(burnStats);
+}
+
+function burnStatsBlock() {
+  const total = burnStats.total || 0;
+  const count = burnStats.count || 0;
+  const last24h = (burnStats.recent || []).filter(r => Date.now() - r.t < 86400000);
+  const burned24h = last24h.reduce((s, r) => s + r.amt, 0);
+  const top = Object.entries(burnStats.byWallet || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const topLines = top.map(([w, a], i) => `${i + 1}. ${short(w)} · ${fmtNum(a)} CHOGI`).join('\n') || '(no burns yet)';
+  return [
+    `🔥 *CHOGI BURN STATS*`,
+    ``,
+    `🌋 Total burned: *${fmtNum(total)} CHOGI*`,
+    `📊 Burn count: *${count}* tx`,
+    `⏱ Last 24h: *${fmtNum(burned24h)} CHOGI* across ${last24h.length} burns`,
+    ``,
+    `*🏆 TOP BURNERS*`,
+    topLines,
+    ``,
+    `[🔥 Burn yours](${config.burnUrl})`,
+  ].join('\n');
+}
+
 async function handleBurn(burn) {
+  // Always record stats (even small burns)
+  recordBurn(burn);
   if (burn.chogiHuman < MIN_BURN_CHOGI) {
-    console.log(`[burn] skipped, ${burn.chogiHuman.toFixed(0)} < ${MIN_BURN_CHOGI} min`);
+    console.log(`[burn] tracked but skipped alert, ${burn.chogiHuman.toFixed(0)} < ${MIN_BURN_CHOGI} min`);
     return;
   }
   const msg = composeBurnMsg(burn);
@@ -335,6 +391,7 @@ bot.command('help', (ctx) => ctx.reply(
 /stats — full live stats
 /mc — market cap
 /burn — burn page
+/burnstats — total burned + top burners
 /buy — buy link
 /chart — DexScreener
 /lab — live lab dashboard
@@ -371,6 +428,10 @@ bot.command('holders', async (ctx) => {
   // Best-effort: pull from DexScreener if available, else punt
   await refreshUsd(true);
   ctx.reply(`👥 Holder count varies — check the live count at [chogi.xyz/lab](${config.labUrl})`, { parse_mode: 'Markdown', disable_web_page_preview: true });
+});
+
+bot.command('burnstats', async (ctx) => {
+  ctx.reply(burnStatsBlock(), { parse_mode: 'Markdown', disable_web_page_preview: true });
 });
 
 // ── Admin commands ──────────────────────────────────────────
