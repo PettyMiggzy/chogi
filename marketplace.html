@@ -450,6 +450,8 @@ main, header{position:relative;z-index:2}
 <div class="toast" id="toast"></div>
 
 <script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/pet-store.js" defer></script>
+<script src="/js/config.js" defer></script>
 <script src="/js/add-token.js" defer></script>
 <script src="/js/wallet-helper.js" defer></script>
 
@@ -556,18 +558,19 @@ main, header{position:relative;z-index:2}
     t._to = setTimeout(function(){t.classList.remove('show');}, 2800);
   }
 
-  /* ─── localStorage pet store ─── */
-  var STORE_KEY = 'chogi_pet_v1';
-  function loadAll(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){return{};}}
-  function saveAll(all){try{localStorage.setItem(STORE_KEY,JSON.stringify(all));}catch(e){}}
+  /* ─── pet store (uses ChogiPetStore: cloud + localStorage fallback) ─── */
   function getPet(addr){
-    var all = loadAll();
-    return addr ? all[addr.toLowerCase()] : null;
+    if(!addr) return null;
+    return window.ChogiPetStore ? window.ChogiPetStore.getLocal(addr) : null;
   }
   function savePet(addr, p){
-    var all = loadAll();
-    all[addr.toLowerCase()] = p;
-    saveAll(all);
+    if(window.ChogiPetStore){
+      window.ChogiPetStore.save(addr, p);
+    }
+  }
+  function loadAll(){
+    try { return JSON.parse(localStorage.getItem('chogi_pet_v1') || '{}'); }
+    catch(e){ return {}; }
   }
 
   /* ─── RPC ─── */
@@ -847,6 +850,16 @@ main, header{position:relative;z-index:2}
       renderTabs();
       renderGrid();
       renderShelf();
+      // refresh from cloud
+      if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
+        var fresh = await window.ChogiPetStore.fetch(account);
+        if(fresh){
+          pet = fresh;
+          renderTabs();
+          renderGrid();
+          renderShelf();
+        }
+      }
       return true;
     }catch(e){console.error(e);return false;}
   }
@@ -872,7 +885,7 @@ main, header{position:relative;z-index:2}
   }
 
   if(window.ethereum && window.ethereum.on){
-    window.ethereum.on('accountsChanged', function(accs){
+    window.ethereum.on('accountsChanged', async function(accs){
       if(accs && accs[0]){
         account = accs[0];
         pet = getPet(account);
@@ -880,6 +893,10 @@ main, header{position:relative;z-index:2}
         renderTabs();
         renderGrid();
         renderShelf();
+        if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
+          var fresh = await window.ChogiPetStore.fetch(account);
+          if(fresh){pet = fresh; renderTabs(); renderGrid(); renderShelf();}
+        }
       }
     });
   }

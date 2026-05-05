@@ -592,6 +592,8 @@ main, header{position:relative;z-index:2}
 </footer>
 
 <script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/pet-store.js" defer></script>
+<script src="/js/config.js" defer></script>
 <script src="/js/add-token.js" defer></script>
 <script src="/js/wallet-helper.js" defer></script>
 
@@ -628,20 +630,22 @@ main, header{position:relative;z-index:2}
     }).then(function(r){return r.json();}).then(function(j){return BigInt(j.result || '0x0');});
   }
 
-  /* ─── localStorage pet store ─── */
-  var STORE_KEY = 'chogi_pet_v1';
+  /* ─── pet store (uses ChogiPetStore: cloud + localStorage fallback) ─── */
   function getPet(addr){
-    try{
-      var all = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-      return addr ? all[addr.toLowerCase()] : all;
-    }catch(e){return null;}
+    if(!addr) return null;
+    return window.ChogiPetStore ? window.ChogiPetStore.getLocal(addr) : null;
+  }
+  async function getPetCloud(addr){
+    if(!addr) return null;
+    if(window.ChogiPetStore && window.ChogiPetStore.isCloudEnabled()){
+      return await window.ChogiPetStore.fetch(addr);
+    }
+    return getPet(addr);
   }
   function savePet(addr, pet){
-    try{
-      var all = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-      all[addr.toLowerCase()] = pet;
-      localStorage.setItem(STORE_KEY, JSON.stringify(all));
-    }catch(e){}
+    if(window.ChogiPetStore){
+      window.ChogiPetStore.save(addr, pet);
+    }
   }
 
   /* ─── connect ─── */
@@ -678,8 +682,8 @@ main, header{position:relative;z-index:2}
       }
       $('ws-status').textContent = account.slice(0,6)+'…'+account.slice(-4);
       refreshBalance();
-      // if user already has a pet, redirect
-      var existing = getPet(account);
+      // if user already has a pet, redirect (check cloud first, then local)
+      var existing = await getPetCloud(account);
       if(existing){
         if(confirm('You already have a pet ('+existing.name+', '+existing.type+'). Open dashboard?')){
           window.location.href = '/pet';
@@ -710,8 +714,8 @@ main, header{position:relative;z-index:2}
       if(!ok) return;
     }
 
-    // existing pet check
-    var existing = getPet(account);
+    // existing pet check (cloud-aware)
+    var existing = await getPetCloud(account);
     if(existing){
       alert('You already have a '+existing.type+' named '+existing.name+'. Visit /pet to see them.');
       window.location.href = '/pet';
@@ -840,7 +844,17 @@ main, header{position:relative;z-index:2}
     }
     pet.name = name.slice(0, 22);
     savePet(account, pet);
-    window.location.href = '/pet';
+    // log hatch event (fire-and-forget)
+    if(window.ChogiPetStore){
+      window.ChogiPetStore.logEvent(account, {
+        type: 'hatch',
+        burn_amount: 10000,
+        tx_hash: pet.hatch_tx,
+        metadata: { pet_type: pet.type, name: pet.name }
+      });
+    }
+    // wait briefly so the cloud upsert has time to complete before navigating
+    setTimeout(function(){ window.location.href = '/pet'; }, 600);
   }
 
   /* ─── wire up ─── */
