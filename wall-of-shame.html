@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WALL OF SHAME · LAB 7777</title>
+<meta name="description" content="Public registry of wallets flagged as harmful to the $CHOGI community. Lab 7777 transparency.">
+<meta name="theme-color" content="#0a0118">
+
+<meta property="og:site_name" content="CHOGI">
+<meta property="og:title" content="WALL OF SHAME · LAB 7777">
+<meta property="og:description" content="Wallets flagged for behavior harmful to the $CHOGI community. Public registry.">
+<meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
+<meta property="og:url" content="https://chogi.xyz/wall-of-shame">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="chogi.xyz">
+<meta name="twitter:url" content="https://chogi.xyz/wall-of-shame">
+<meta name="twitter:image" content="https://chogi.xyz/og-banner.jpg">
+
+<link rel="icon" href="/chogi.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%;background:#0a0118;color:#FFE9F4;
+    font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased}
+  body{background:radial-gradient(ellipse at top,#1f0428 0%,#0a0118 50%,#000 100%);min-height:100vh;
+    padding:0 20px 60px;position:relative;overflow-x:hidden}
+
+  /* scan lines + ambient strobe */
+  body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,
+      rgba(255,30,80,0.04) 4px,rgba(255,30,80,0.04) 5px);mix-blend-mode:screen}
+
+  /* HEADER */
+  .topbar{position:sticky;top:0;left:0;right:0;z-index:10;
+    padding:14px 4px;display:flex;justify-content:space-between;align-items:center;
+    background:linear-gradient(180deg,rgba(10,1,24,0.95),rgba(10,1,24,0.5));
+    border-bottom:1px solid rgba(255,30,80,0.2);backdrop-filter:blur(8px);margin:0 -20px 0;padding-left:20px;padding-right:20px}
+  .topbar .brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+  .topbar .brand img{width:28px;height:28px;border-radius:5px}
+  .topbar .brand b{font-family:Bungee;font-size:13px;letter-spacing:0.16em;color:#FF1493}
+  .topbar .meta{display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:0.18em;color:rgba(255,30,80,0.85)}
+  .topbar .meta .led{width:9px;height:9px;border-radius:50%;background:#ff1e50;
+    box-shadow:0 0 8px #ff1e50;animation:led-pulse 1.5s ease-in-out infinite}
+  @keyframes led-pulse{0%,49%{opacity:1}50%,100%{opacity:0.3}}
+  .topbar .back{font-size:10px;letter-spacing:0.15em;color:rgba(255,233,244,0.7);
+    text-decoration:none;border:1px solid rgba(255,233,244,0.15);padding:6px 10px;border-radius:5px}
+  .topbar .back:hover{color:#fff;border-color:rgba(255,30,80,0.5)}
+
+  .wrap{max-width:780px;margin:0 auto;position:relative;z-index:5}
+
+  /* HERO */
+  .hero{padding:48px 0 32px;text-align:center}
+  .hero .stamp{display:inline-block;font-size:10px;letter-spacing:0.32em;color:#ff1e50;
+    border:1.5px solid #ff1e50;padding:5px 14px;margin-bottom:20px;
+    text-shadow:0 0 8px rgba(255,30,80,0.6)}
+  .hero h1{font-family:Bungee;font-size:clamp(40px,8vw,72px);letter-spacing:0.04em;line-height:1;
+    background:linear-gradient(180deg,#FFE9F4 25%,#ff1e50);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    text-shadow:0 0 30px rgba(255,30,80,0.3);margin-bottom:14px}
+  .hero .sub{font-size:13px;color:rgba(255,233,244,0.75);letter-spacing:0.08em;line-height:1.6;
+    max-width:520px;margin:0 auto}
+
+  /* COUNTER STRIP */
+  .counter{display:flex;justify-content:center;gap:28px;margin:24px 0 36px;flex-wrap:wrap}
+  .counter .stat{padding:12px 20px;border:1px solid rgba(255,30,80,0.3);border-radius:8px;
+    background:rgba(255,30,80,0.05);text-align:center;min-width:120px}
+  .counter .stat span{display:block;font-size:9px;letter-spacing:0.22em;color:rgba(255,233,244,0.5)}
+  .counter .stat b{display:block;font-family:Bungee;font-size:24px;color:#ff1e50;
+    text-shadow:0 0 12px rgba(255,30,80,0.5);margin-top:4px;letter-spacing:0.04em}
+
+  /* WALL — wallet cards */
+  .wall{display:flex;flex-direction:column;gap:14px;margin-bottom:48px}
+  .wallet-card{padding:18px 20px;background:rgba(15,2,8,0.7);
+    border:1.5px solid rgba(255,30,80,0.4);border-radius:12px;
+    box-shadow:0 8px 28px rgba(0,0,0,0.4),inset 0 0 30px rgba(255,30,80,0.06);
+    transition:all 0.2s}
+  .wallet-card:hover{border-color:#ff1e50;box-shadow:0 12px 40px rgba(255,30,80,0.25),inset 0 0 30px rgba(255,30,80,0.1);transform:translateY(-1px)}
+  .wallet-card .row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+  .wallet-card .num{font-family:Bungee;font-size:11px;letter-spacing:0.18em;color:rgba(255,233,244,0.4)}
+  .wallet-card .badge{font-family:Bungee;font-size:9px;letter-spacing:0.22em;
+    padding:3px 9px;border:1px solid #ff1e50;color:#ff1e50;border-radius:4px;
+    background:rgba(255,30,80,0.08)}
+  .wallet-card .addr{font-family:'JetBrains Mono';font-size:13px;color:#fff;
+    word-break:break-all;letter-spacing:0.04em;margin-bottom:8px;line-height:1.4}
+  .wallet-card .meta{font-size:10px;color:rgba(255,233,244,0.55);letter-spacing:0.08em;line-height:1.6}
+  .wallet-card .meta b{color:#ff1e50;font-family:Bungee;font-weight:400;letter-spacing:0.04em}
+  .wallet-card .actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .wallet-card .actions a{font-size:9px;letter-spacing:0.15em;color:rgba(255,233,244,0.7);
+    text-decoration:none;border:1px solid rgba(255,233,244,0.15);padding:5px 9px;border-radius:4px;
+    transition:all 0.15s}
+  .wallet-card .actions a:hover{color:#fff;border-color:#FF1493}
+
+  /* INFRACTIONS LIST */
+  .infractions{margin-top:36px;padding:20px 22px;background:rgba(0,0,0,0.4);
+    border-left:3px solid #ff1e50;border-radius:6px;font-size:11px;line-height:1.8;
+    color:rgba(255,233,244,0.7);letter-spacing:0.04em}
+  .infractions h3{font-family:Bungee;font-size:11px;letter-spacing:0.22em;color:#ff1e50;margin-bottom:10px;letter-spacing:0.18em}
+  .infractions ul{list-style:none;padding:0}
+  .infractions li{margin:5px 0;padding-left:18px;position:relative}
+  .infractions li::before{content:"\u25b8";position:absolute;left:0;color:#ff1e50}
+
+  /* FOOTER */
+  .footer{margin-top:36px;padding:18px 0;border-top:1px solid rgba(255,30,80,0.15);
+    text-align:center;font-size:9px;letter-spacing:0.18em;color:rgba(255,233,244,0.4)}
+  .footer a{color:rgba(255,233,244,0.6);text-decoration:none}
+  .footer a:hover{color:#FF1493}
+
+  /* SHARE row */
+  .share{margin:24px 0;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+  .share a{font-family:Bungee;font-size:10px;letter-spacing:0.18em;
+    padding:10px 18px;background:rgba(15,2,8,0.7);color:rgba(255,233,244,0.85);
+    border:1px solid rgba(255,30,80,0.4);border-radius:8px;text-decoration:none;
+    transition:all 0.15s;cursor:pointer}
+  .share a:hover{color:#fff;border-color:#ff1e50;transform:translateY(-1px)}
+
+  @media (max-width:520px){
+    .topbar .meta{display:none}
+    .counter{gap:14px}
+    .counter .stat{padding:10px 14px;min-width:100px}
+    .counter .stat b{font-size:20px}
+    .wallet-card{padding:14px 16px}
+    .wallet-card .addr{font-size:11px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="brand">
+    <img src="/chogi.png" alt="">
+    <b>CHOGI</b>
+  </a>
+  <div class="meta"><span class="led"></span><span>WALL OF SHAME · PUBLIC REGISTRY</span></div>
+  <a href="/" class="back">◀ HOME</a>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="stamp">▲ LAB 7777 · TRANSPARENCY</div>
+    <h1>WALL OF SHAME</h1>
+    <div class="sub">
+      Wallets flagged for behavior harmful to the $CHOGI community.<br>
+      Excluded from rewards, leaderboards, airdrops, and NFT claims.
+    </div>
+  </div>
+
+  <div class="counter">
+    <div class="stat"><span>WALLETS FLAGGED</span><b id="count-wallets">—</b></div>
+    <div class="stat"><span>SYSTEMS BLOCKED</span><b>3</b></div>
+    <div class="stat"><span>STATUS</span><b style="font-size:18px">ACTIVE</b></div>
+  </div>
+
+  <div class="wall" id="wall">
+    <!-- populated from window.ChogiBlocklist -->
+  </div>
+
+  <div class="infractions">
+    <h3>▌ WHAT GETS A WALLET FLAGGED</h3>
+    <ul>
+      <li>Repeated buy-and-dump patterns that harm holders</li>
+      <li>Coordinated multi-wallet manipulation</li>
+      <li>Targeted FUD campaigns against the community</li>
+      <li>Other behavior identified as harmful to $CHOGI holders</li>
+    </ul>
+  </div>
+
+  <div class="infractions">
+    <h3>▌ WHAT BLOCKED WALLETS LOSE ACCESS TO</h3>
+    <ul>
+      <li>Game leaderboards and weekly egg-hatch prizes</li>
+      <li>Future airdrops and snapshot rewards</li>
+      <li>NFT free claims and holder-gated mints</li>
+      <li>Subject ID badge eligibility</li>
+      <li>Direct site access (network-level block applied to known IPs/devices)</li>
+    </ul>
+  </div>
+
+  <div class="infractions">
+    <h3>▌ APPEALS</h3>
+    <ul>
+      <li>Behavior change resets the flag</li>
+      <li>Decisions reviewed periodically — wallets can be removed</li>
+      <li>The chart still works regardless of who's on this list</li>
+    </ul>
+  </div>
+
+  <div class="share">
+    <a id="share-x">SHARE ON X</a>
+    <a id="copy-link">COPY LINK</a>
+  </div>
+
+  <div class="footer">
+    ▌LAB 7777 · CHOGI HOLDER PROTECTION DIVISION ·
+    <a href="/banned">BANNED PAGE</a> ·
+    <a href="/comic">COMIC</a> ·
+    <a href="/">HOME</a>
+  </div>
+
+</div>
+
+<script src="/js/blocklist.js" defer></script>
+<script>
+(function(){
+  // Wait for blocklist module to load, then render
+  function renderWall(){
+    if(!window.ChogiBlocklist){ setTimeout(renderWall, 100); return; }
+    var wallets = window.ChogiBlocklist.list();
+    var devices = window.ChogiBlocklist.devices ? window.ChogiBlocklist.devices() : [];
+    var wall = document.getElementById('wall');
+    var html = '';
+    wallets.forEach(function(w, idx){
+      var num = String(idx + 1).padStart(3, '0');
+      var trunc = w.slice(0, 10) + '…' + w.slice(-8);
+      html += '<div class="wallet-card">' +
+        '<div class="row1">' +
+          '<span class="num">SUBJECT #' + num + '</span>' +
+          '<span class="badge">FLAGGED</span>' +
+        '</div>' +
+        '<div class="addr">' + trunc + '</div>' +
+        '<div class="meta">PATTERN: <b>BEHAVIOR HARMFUL TO HOLDERS</b><br>STATUS: ACCESS REVOKED · ALL SYSTEMS</div>' +
+        '<div class="actions">' +
+          '<a href="https://monadscan.com/address/' + w + '" target="_blank" rel="noopener noreferrer">VIEW ON MONADSCAN ↗</a>' +
+          '<a href="https://monadexplorer.com/address/' + w + '" target="_blank" rel="noopener noreferrer">MONAD EXPLORER ↗</a>' +
+        '</div>' +
+      '</div>';
+    });
+    wall.innerHTML = html;
+    document.getElementById('count-wallets').textContent = wallets.length;
+  }
+
+  // Share buttons
+  document.getElementById('share-x').addEventListener('click', function(e){
+    e.preventDefault();
+    var text = '$CHOGI flagged wallets — public registry of bad actors. Behavior harmful to holders gets you on the wall.';
+    var url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent('https://chogi.xyz/wall-of-shame');
+    window.open(url, '_blank', 'noopener');
+  });
+  document.getElementById('copy-link').addEventListener('click', function(e){
+    e.preventDefault();
+    try {
+      navigator.clipboard.writeText('https://chogi.xyz/wall-of-shame');
+      var t = e.target;
+      var orig = t.textContent;
+      t.textContent = 'COPIED ✓';
+      setTimeout(function(){ t.textContent = orig; }, 1500);
+    } catch(err){}
+  });
+
+  renderWall();
+})();
+</script>
+
+</body>
+</html>

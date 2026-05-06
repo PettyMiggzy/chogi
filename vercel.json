@@ -25,6 +25,10 @@
     {
       "source": "/banned",
       "destination": "/banned.html"
+    },
+    {
+      "source": "/wall-of-shame",
+      "destination": "/wall-of-shame.html"
     }
   ],
   "headers": [
