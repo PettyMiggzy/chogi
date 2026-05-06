@@ -99,6 +99,14 @@
   .scene.comic{background:#0a0118}
   .scene.comic img{object-fit:contain;background:#0a0118}
 
+  /* MEME punch-cut scenes — image fills with subtle zoom for energy */
+  .scene[id^="s"] > img{transform-origin:center}
+  .scene.show > img{animation:meme-zoom 1.3s ease-out forwards}
+  @keyframes meme-zoom{
+    from{transform:scale(1.08)}
+    to{transform:scale(1.18)}
+  }
+
   /* progress bar at bottom */
   #progress{position:fixed;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.05);
     z-index:30}
@@ -178,42 +186,51 @@
     </div>
 
     <div class="scene" id="s2">
-      <video id="v-intro" muted playsinline preload="auto">
-        <source src="/game/cinematics/intro.mp4" type="video/mp4">
+      <video id="v-awakening" muted playsinline preload="auto">
+        <source src="/game/cinematics/awakening.mp4" type="video/mp4">
       </video>
       <div class="caption" id="s2-cap">SUBJECT 7777 · BREACH IN PROGRESS</div>
     </div>
 
     <div class="scene card" id="s3">
-      <h1 style="font-size:clamp(28px,6vw,64px)">SHE BROKE OUT.</h1>
-      <div class="sub" style="margin-top:14px">The lab tried to hold her.<br><b>It couldn't.</b></div>
+      <div class="stamp">MEET CHOGI</div>
+      <h1 style="font-size:clamp(28px,6vw,60px)">CTO OF MONAD</h1>
+      <div class="sub" style="margin-top:10px">Family moves only.</div>
     </div>
 
     <div class="scene" id="s4">
-      <video id="v-awakening" muted playsinline preload="auto">
-        <source src="/game/cinematics/awakening.mp4" type="video/mp4">
+      <video id="v-cto" playsinline preload="auto">
+        <source src="/cto-promo.mp4" type="video/mp4">
       </video>
-      <div class="caption" id="s4-cap">SUBJECT 7777 · AWAKE · UNCONTAINED</div>
     </div>
 
     <div class="scene card" id="s5">
+      <h1 style="font-size:clamp(26px,5vw,52px)">LOOSE ON<br>THE TIMELINE.</h1>
+    </div>
+
+    <div class="scene comic" id="s6"><img src="/memes/chogi-meme-020.jpg" alt=""></div>
+    <div class="scene comic" id="s7"><img src="/memes/chogi-meme-005.jpg" alt=""></div>
+    <div class="scene comic" id="s8"><img src="/memes/chogi-meme-040.jpg" alt=""></div>
+    <div class="scene comic" id="s9"><img src="/memes/chogi-meme-030.jpg" alt=""></div>
+
+    <div class="scene card" id="s10">
       <div class="stamp">FIRST AUDIENCE</div>
       <h1 style="font-size:clamp(26px,5vw,56px)">SHE NAMED<br>HERSELF.</h1>
     </div>
 
-    <div class="scene comic" id="s6">
+    <div class="scene comic" id="s11">
       <img src="/comic/panel-12.jpg" alt="">
-      <div class="caption" id="s6-cap">▌MONAD MASCOT · CHOGI</div>
+      <div class="caption" id="s11-cap">▌MONAD MASCOT · CHOGI</div>
     </div>
 
-    <div class="scene" id="s7">
+    <div class="scene" id="s12">
       <video id="v-victory" muted playsinline preload="auto">
         <source src="/game/cinematics/victory.mp4" type="video/mp4">
       </video>
-      <div class="caption" id="s7-cap">LOOSE ON MONAD</div>
+      <div class="caption" id="s12-cap">LOOSE ON MONAD</div>
     </div>
 
-    <div class="scene card" id="s8">
+    <div class="scene card" id="s13">
       <div class="stamp">NOW LIVE</div>
       <h1 style="font-size:clamp(40px,9vw,96px)">CHOGI</h1>
       <div class="ticker">$CHOGI · MONAD</div>
@@ -242,15 +259,22 @@
   // ─── SCENE TIMELINE ──────────────────────────────────────────────────────
   // [scene_id, duration_ms, options]
   // Total ≈ 60 sec. Tuned so video scenes end naturally and cards bridge transitions.
+  // [scene_id, duration_ms, options]
+  // ~46 sec total. Single breakout video. Family beat. Personality reel. Mascot. Escape.
   var TIMELINE = [
-    { id: 's1', ms: 3000, type: 'card' },                                              // Title card
-    { id: 's2', ms: 6000, type: 'video', vid: 'v-intro',     cap: 's2-cap', capAt: 800 }, // Intro cinematic (containment break)
-    { id: 's3', ms: 2500, type: 'card' },                                              // She broke out
-    { id: 's4', ms: 10000, type: 'video', vid: 'v-awakening', cap: 's4-cap', capAt: 1500 }, // Awakening (NEW: scientists shocked, chogi emerges menacing)
-    { id: 's5', ms: 3000, type: 'card' },                                              // She named herself
-    { id: 's6', ms: 5000, type: 'comic', cap: 's6-cap', capAt: 600 },                  // Comic panel
-    { id: 's7', ms: 6500, type: 'video', vid: 'v-victory',   cap: 's7-cap', capAt: 700 }, // Victory cinematic
-    { id: 's8', ms: 6000, type: 'end' }                                                // End card
+    { id: 's1',  ms: 3000,  type: 'card' },                                                  // Title
+    { id: 's2',  ms: 10000, type: 'video', vid: 'v-awakening', cap: 's2-cap', capAt: 1500 }, // Breakout (the only one)
+    { id: 's3',  ms: 2500,  type: 'card' },                                                  // MEET CHOGI · CTO OF MONAD
+    { id: 's4',  ms: 6000,  type: 'video', vid: 'v-cto', useVideoAudio: true },              // CTO promo (Chog hands her crown — has its own audio)
+    { id: 's5',  ms: 2000,  type: 'card' },                                                  // LOOSE ON THE TIMELINE
+    { id: 's6',  ms: 1300,  type: 'meme' },                                                  // Meme 020 (action)
+    { id: 's7',  ms: 1300,  type: 'meme' },                                                  // Meme 005 (money)
+    { id: 's8',  ms: 1300,  type: 'meme' },                                                  // Meme 040 (distracted bf)
+    { id: 's9',  ms: 1300,  type: 'meme' },                                                  // Meme 030 (swap setup)
+    { id: 's10', ms: 2500,  type: 'card' },                                                  // FIRST AUDIENCE
+    { id: 's11', ms: 5000,  type: 'comic', cap: 's11-cap', capAt: 600 },                     // Comic 12 (creator)
+    { id: 's12', ms: 6500,  type: 'video', vid: 'v-victory', cap: 's12-cap', capAt: 700 },   // Victory
+    { id: 's13', ms: 5500,  type: 'end' }                                                    // End card
   ];
 
   // ─── STATE ───────────────────────────────────────────────────────────────
@@ -354,8 +378,8 @@
     var t = TIMELINE[idx];
     show(t.id);
 
-    // brand bug + HUD on video/comic scenes
-    if(t.type === 'video' || t.type === 'comic'){
+    // brand bug + HUD on video/comic/meme scenes
+    if(t.type === 'video' || t.type === 'comic' || t.type === 'meme'){
       show('bug'); show('hud-time');
     } else {
       hide('bug'); hide('hud-time');
@@ -366,14 +390,35 @@
       var v = $(t.vid);
       try {
         v.currentTime = t.seekFrom || 0;
-        v.muted = muted;
+        if(t.useVideoAudio){
+          // duck synth, unmute video so its built-in audio plays
+          v.muted = muted;       // honor user mute toggle
+          if(masterGain && audioCtx) {
+            masterGain.gain.setTargetAtTime(muted ? 0 : 0.04, audioCtx.currentTime, 0.1);
+          }
+        } else {
+          v.muted = true;        // synth handles audio
+          if(masterGain && audioCtx && !muted) {
+            masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
+          }
+        }
         v.play().catch(function(){});
       } catch(e){}
-      playPulse(220, 0.4);  // soft tone on transition
+      playPulse(220, 0.4);
     } else if(t.type === 'card'){
+      // restore synth to normal level on cards
+      if(masterGain && audioCtx && !muted) {
+        masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
+      }
       playRiser();
     } else if(t.type === 'comic'){
+      if(masterGain && audioCtx && !muted) {
+        masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
+      }
       playPulse(330, 0.6);
+    } else if(t.type === 'meme'){
+      // quick punchy pulse for each meme cut, slightly higher pitch
+      playPulse(440 + (idx * 80) % 200, 0.18);
     } else if(t.type === 'end'){
       playPulse(440, 1.5);
       setTimeout(function(){ $('end-actions').style.display = 'flex'; }, 800);
