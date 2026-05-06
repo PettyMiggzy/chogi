@@ -17,6 +17,10 @@
     {
       "source": "/game/escape",
       "destination": "/game/escape.html"
+    },
+    {
+      "source": "/cartoon",
+      "destination": "/cartoon.html"
     }
   ],
   "headers": [
