@@ -107,6 +107,83 @@
     to{transform:scale(1.18)}
   }
 
+  /* ─── GLITCH-IN for card titles ─── */
+  .scene.card h1{position:relative}
+  .scene.card.show h1{
+    animation: glitch-in 0.55s ease-out forwards, rgb-glitch 0.7s steps(8) 0s;
+  }
+  @keyframes glitch-in{
+    0%{opacity:0; transform:translateX(20px) skewX(-10deg); filter:blur(8px)}
+    30%{opacity:0.6; transform:translateX(-8px) skewX(5deg); filter:blur(3px)}
+    60%{opacity:1; transform:translateX(4px) skewX(-2deg); filter:blur(0)}
+    100%{opacity:1; transform:translateX(0) skewX(0); filter:blur(0)}
+  }
+  @keyframes rgb-glitch{
+    0%, 100%{text-shadow:0 0 30px rgba(255,20,147,0.3)}
+    20%{text-shadow:-3px 0 #FF1493, 3px 0 #00D4FF}
+    40%{text-shadow:3px 0 #FF1493, -3px 0 #00D4FF}
+    60%{text-shadow:-2px 0 #00D4FF, 2px 0 #FF1493}
+    80%{text-shadow:1px 0 #FF1493, -1px 0 #00D4FF}
+  }
+  .scene.card.show .stamp,
+  .scene.card.show .sub,
+  .scene.card.show .ticker,
+  .scene.card.show .url{
+    animation: text-fade-in 0.5s ease-out 0.4s both;
+  }
+  @keyframes text-fade-in{
+    from{opacity:0; transform:translateY(8px)}
+    to{opacity:1; transform:translateY(0)}
+  }
+
+  /* ─── SCAN WIPE transition between scenes ─── */
+  #scan-wipe{position:absolute;inset:0;z-index:15;pointer-events:none;
+    overflow:hidden;opacity:0}
+  #scan-wipe.active{animation:wipe-show 0.45s ease-out}
+  #scan-wipe::before{content:"";position:absolute;top:0;bottom:0;left:0;
+    width:100%;
+    background:linear-gradient(90deg, transparent 0%, rgba(255,20,147,0.0) 30%, rgba(255,20,147,0.85) 50%, rgba(0,212,255,0.4) 60%, transparent 80%);
+    transform:translateX(-100%)}
+  #scan-wipe.active::before{animation:scan-sweep 0.45s ease-out}
+  @keyframes scan-sweep{
+    0%{transform:translateX(-100%)}
+    100%{transform:translateX(100%)}
+  }
+  @keyframes wipe-show{
+    0%{opacity:0}
+    50%{opacity:1}
+    100%{opacity:0}
+  }
+
+  /* ─── MEME STAMPS — slam into corner on each meme cut ─── */
+  .stamp-overlay{position:absolute;z-index:8;
+    font-family:Bungee;font-size:clamp(18px,3vw,32px);
+    background:rgba(0,0,0,0.88);color:#FF1493;
+    padding:8px 16px;border:3px solid #FF1493;border-radius:6px;
+    text-shadow:0 0 12px rgba(255,20,147,0.7);
+    box-shadow:0 0 20px rgba(255,20,147,0.4),inset 0 0 0 1px rgba(255,255,255,0.1);
+    letter-spacing:0.08em;opacity:0;
+    transform:rotate(-30deg) scale(2.5)}
+  .stamp-overlay.tl{top:24px;left:24px}
+  .stamp-overlay.tr{top:24px;right:24px}
+  .stamp-overlay.bl{bottom:24px;left:24px}
+  .stamp-overlay.br{bottom:24px;right:24px}
+  .stamp-overlay.cyan{color:#00D4FF;border-color:#00D4FF;text-shadow:0 0 12px rgba(0,212,255,0.7);box-shadow:0 0 20px rgba(0,212,255,0.4)}
+  .scene.show .stamp-overlay{animation:stamp-drop 0.45s cubic-bezier(.5,1.6,.4,1) 0.18s forwards}
+  @keyframes stamp-drop{
+    0%{transform:rotate(-30deg) scale(2.5);opacity:0}
+    60%{transform:rotate(-5deg) scale(0.95);opacity:1}
+    100%{transform:rotate(-8deg) scale(1);opacity:1}
+  }
+  .stamp-overlay.tr.angle-r{transform:rotate(8deg) scale(2.5)}
+  .scene.show .stamp-overlay.tr.angle-r{
+    animation:stamp-drop-r 0.45s cubic-bezier(.5,1.6,.4,1) 0.18s forwards}
+  @keyframes stamp-drop-r{
+    0%{transform:rotate(30deg) scale(2.5);opacity:0}
+    60%{transform:rotate(5deg) scale(0.95);opacity:1}
+    100%{transform:rotate(8deg) scale(1);opacity:1}
+  }
+
   /* progress bar at bottom */
   #progress{position:fixed;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.05);
     z-index:30}
@@ -219,10 +296,22 @@
       <h1 style="font-size:clamp(26px,5vw,52px)">LOOSE ON<br>THE TIMELINE.</h1>
     </div>
 
-    <div class="scene comic" id="s6"><img src="/memes/chogi-meme-020.jpg" alt=""></div>
-    <div class="scene comic" id="s7"><img src="/memes/chogi-meme-005.jpg" alt=""></div>
-    <div class="scene comic" id="s8"><img src="/memes/chogi-meme-040.jpg" alt=""></div>
-    <div class="scene comic" id="s9"><img src="/memes/chogi-meme-030.jpg" alt=""></div>
+    <div class="scene comic" id="s6">
+      <img src="/memes/chogi-meme-020.jpg" alt="">
+      <div class="stamp-overlay tr angle-r">VIRAL</div>
+    </div>
+    <div class="scene comic" id="s7">
+      <img src="/memes/chogi-meme-005.jpg" alt="">
+      <div class="stamp-overlay tl cyan">+340%</div>
+    </div>
+    <div class="scene comic" id="s8">
+      <img src="/memes/chogi-meme-040.jpg" alt="">
+      <div class="stamp-overlay br">PINKED</div>
+    </div>
+    <div class="scene comic" id="s9">
+      <img src="/memes/chogi-meme-030.jpg" alt="">
+      <div class="stamp-overlay tr angle-r cyan">ON-CHAIN</div>
+    </div>
 
     <div class="scene card" id="s10">
       <div class="stamp">FIRST AUDIENCE</div>
@@ -254,6 +343,9 @@
       </div>
     </div>
 
+    <!-- transition wipe (between scenes) -->
+    <div id="scan-wipe"></div>
+
   </div>
   <div id="scanlines"></div>
 </div>
@@ -272,21 +364,21 @@
   // Total ≈ 60 sec. Tuned so video scenes end naturally and cards bridge transitions.
   // ~55 sec total. Action -> chaos -> context (family) -> mascot -> escape.
   var TIMELINE = [
-    { id: 's1',          ms: 3000,  type: 'card' },                                                  // Title
-    { id: 's2',          ms: 10000, type: 'video', vid: 'v-awakening', cap: 's2-cap', capAt: 1500 }, // Breakout
-    { id: 's5',          ms: 2000,  type: 'card' },                                                  // LOOSE ON THE TIMELINE
-    { id: 's6',          ms: 1300,  type: 'meme' },                                                  // Meme 020 (action)
-    { id: 's7',          ms: 1300,  type: 'meme' },                                                  // Meme 005 (money)
-    { id: 's8',          ms: 1300,  type: 'meme' },                                                  // Meme 040 (distracted bf)
-    { id: 's9',          ms: 1300,  type: 'meme' },                                                  // Meme 030 (swap setup)
-    { id: 's3',          ms: 2500,  type: 'card' },                                                  // MEET CHOGI · CTO OF MONAD
-    { id: 's4',          ms: 6000,  type: 'video', vid: 'v-cto', useVideoAudio: true },              // CTO promo (Chog hands crown)
-    { id: 's-meanwhile', ms: 1800,  type: 'card' },                                                  // MEANWHILE, BACK IN THE LAB...
-    { id: 's-chog',      ms: 5000,  type: 'video', vid: 'v-chog', cap: 's-chog-cap', capAt: 800 },   // Chog scene
-    { id: 's10',         ms: 2500,  type: 'card' },                                                  // FIRST AUDIENCE
-    { id: 's11',         ms: 5000,  type: 'comic', cap: 's11-cap', capAt: 600 },                     // Comic 12 (creator)
-    { id: 's12',         ms: 6500,  type: 'video', vid: 'v-victory', cap: 's12-cap', capAt: 700 },   // Victory
-    { id: 's13',         ms: 5500,  type: 'end' }                                                    // End card
+    { id: 's1',          ms: 3000,  type: 'card', vo: 'Lab seven triple seven. Containment failed.' },
+    { id: 's2',          ms: 10000, type: 'video', vid: 'v-awakening', cap: 's2-cap', capAt: 1500 },
+    { id: 's5',          ms: 2000,  type: 'card', vo: 'She broke out.' },
+    { id: 's6',          ms: 1300,  type: 'meme' },
+    { id: 's7',          ms: 1300,  type: 'meme' },
+    { id: 's8',          ms: 1300,  type: 'meme' },
+    { id: 's9',          ms: 1300,  type: 'meme' },
+    { id: 's3',          ms: 2500,  type: 'card', vo: 'Family moves only.' },
+    { id: 's4',          ms: 6000,  type: 'video', vid: 'v-cto', useVideoAudio: true },
+    { id: 's-meanwhile', ms: 1800,  type: 'card' },
+    { id: 's-chog',      ms: 5000,  type: 'video', vid: 'v-chog', cap: 's-chog-cap', capAt: 800 },
+    { id: 's10',         ms: 2500,  type: 'card', vo: 'She named herself.' },
+    { id: 's11',         ms: 5000,  type: 'comic', cap: 's11-cap', capAt: 600 },
+    { id: 's12',         ms: 6500,  type: 'video', vid: 'v-victory', cap: 's12-cap', capAt: 700 },
+    { id: 's13',         ms: 5500,  type: 'end', vo: 'Chogi. Loose on Monad.' }
   ];
 
   // ─── STATE ───────────────────────────────────────────────────────────────
@@ -377,11 +469,63 @@
     if(masterGain){
       masterGain.gain.setTargetAtTime(m ? 0 : 0.18, audioCtx.currentTime, 0.05);
     }
+    if(m) stopVO();
     $('ctrl-mute').textContent = m ? '🔇 UNMUTE' : '🔊 MUTE';
+  }
+
+  // ─── VOICEOVER (browser SpeechSynthesis) ────────────────────────────────
+  var voVoice = null;
+  function pickVoice(){
+    if(!('speechSynthesis' in window)) return null;
+    var voices = speechSynthesis.getVoices();
+    if(!voices || !voices.length) return null;
+    var preferred = ['Daniel','Google UK English Male','Microsoft Mark','Microsoft Guy','Alex','Fred','Aaron','Albert'];
+    for(var i = 0; i < preferred.length; i++){
+      var v = voices.find(function(x){ return x.name.indexOf(preferred[i]) !== -1; });
+      if(v) return v;
+    }
+    return voices.find(function(v){ return v.lang && v.lang.indexOf('en') === 0; }) || voices[0];
+  }
+  function initVoices(){
+    if(!('speechSynthesis' in window)) return;
+    voVoice = pickVoice();
+  }
+  if('speechSynthesis' in window){
+    initVoices();
+    speechSynthesis.onvoiceschanged = initVoices;
+  }
+  function speakVO(text){
+    if(muted || !text || !('speechSynthesis' in window)) return;
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      if(voVoice) u.voice = voVoice;
+      u.rate = 0.88;
+      u.pitch = 0.85;
+      u.volume = 0.95;
+      speechSynthesis.speak(u);
+    } catch(e){}
+  }
+  function stopVO(){
+    if('speechSynthesis' in window){
+      try { speechSynthesis.cancel(); } catch(e){}
+    }
+  }
+
+  // ─── SCAN WIPE between scenes ────────────────────────────────────────────
+  function triggerWipe(){
+    var w = $('scan-wipe'); if(!w) return;
+    w.classList.remove('active');
+    void w.offsetWidth;
+    w.classList.add('active');
   }
 
   // ─── SCENE PLAYBACK ──────────────────────────────────────────────────────
   function playScene(idx){
+    // trigger wipe BEFORE swap so the sweep covers the cut
+    triggerWipe();
+    stopVO();
+
     // hide all
     TIMELINE.forEach(function(t){ hide(t.id); });
     var prev = sceneIdx;
@@ -403,13 +547,12 @@
       try {
         v.currentTime = t.seekFrom || 0;
         if(t.useVideoAudio){
-          // duck synth, unmute video so its built-in audio plays
-          v.muted = muted;       // honor user mute toggle
+          v.muted = muted;
           if(masterGain && audioCtx) {
             masterGain.gain.setTargetAtTime(muted ? 0 : 0.04, audioCtx.currentTime, 0.1);
           }
         } else {
-          v.muted = true;        // synth handles audio
+          v.muted = true;
           if(masterGain && audioCtx && !muted) {
             masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
           }
@@ -418,21 +561,26 @@
       } catch(e){}
       playPulse(220, 0.4);
     } else if(t.type === 'card'){
-      // restore synth to normal level on cards
       if(masterGain && audioCtx && !muted) {
-        masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
+        masterGain.gain.setTargetAtTime(0.14, audioCtx.currentTime, 0.1);  // duck slightly for VO clarity
       }
       playRiser();
+      // VO triggers slightly after card appears so glitch-in lands first
+      if(t.vo){
+        setTimeout(function(){ speakVO(t.vo); }, 350);
+      }
     } else if(t.type === 'comic'){
       if(masterGain && audioCtx && !muted) {
         masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
       }
       playPulse(330, 0.6);
     } else if(t.type === 'meme'){
-      // quick punchy pulse for each meme cut, slightly higher pitch
       playPulse(440 + (idx * 80) % 200, 0.18);
     } else if(t.type === 'end'){
       playPulse(440, 1.5);
+      if(t.vo){
+        setTimeout(function(){ speakVO(t.vo); }, 400);
+      }
       setTimeout(function(){ $('end-actions').style.display = 'flex'; }, 800);
     }
 
