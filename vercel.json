@@ -2,29 +2,57 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/game/breach", "destination": "/game/breach.html" },
-    { "source": "/game/clipboard", "destination": "/game/clipboard.html" },
-    { "source": "/game/leak", "destination": "/game/leak.html" }
+    {
+      "source": "/game/breach",
+      "destination": "/game/breach.html"
+    },
+    {
+      "source": "/game/clipboard",
+      "destination": "/game/clipboard.html"
+    },
+    {
+      "source": "/game/leak",
+      "destination": "/game/leak.html"
+    },
+    {
+      "source": "/game/escape",
+      "destination": "/game/escape.html"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     },
     {
       "source": "/chogi.jpg",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, s-maxage=86400" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=86400"
+        }
       ]
     },
     {
       "source": "/og-banner.jpg",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=3600" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
+        }
       ]
     }
   ]
