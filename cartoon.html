@@ -270,19 +270,19 @@
   // ─── SCENE TIMELINE ──────────────────────────────────────────────────────
   // [scene_id, duration_ms, options]
   // Total ≈ 60 sec. Tuned so video scenes end naturally and cards bridge transitions.
-  // ~56 sec total. Single breakout + family arc + Chog beat + personality reel + mascot + escape.
+  // ~55 sec total. Action -> chaos -> context (family) -> mascot -> escape.
   var TIMELINE = [
     { id: 's1',          ms: 3000,  type: 'card' },                                                  // Title
     { id: 's2',          ms: 10000, type: 'video', vid: 'v-awakening', cap: 's2-cap', capAt: 1500 }, // Breakout
-    { id: 's3',          ms: 2500,  type: 'card' },                                                  // MEET CHOGI · CTO OF MONAD
-    { id: 's4',          ms: 6000,  type: 'video', vid: 'v-cto', useVideoAudio: true },              // CTO promo (Chog hands crown)
-    { id: 's-meanwhile', ms: 1800,  type: 'card' },                                                  // MEANWHILE, BACK IN THE LAB...
-    { id: 's-chog',      ms: 5000,  type: 'video', vid: 'v-chog', cap: 's-chog-cap', capAt: 800 },   // Chog stays at the lab
     { id: 's5',          ms: 2000,  type: 'card' },                                                  // LOOSE ON THE TIMELINE
     { id: 's6',          ms: 1300,  type: 'meme' },                                                  // Meme 020 (action)
     { id: 's7',          ms: 1300,  type: 'meme' },                                                  // Meme 005 (money)
     { id: 's8',          ms: 1300,  type: 'meme' },                                                  // Meme 040 (distracted bf)
     { id: 's9',          ms: 1300,  type: 'meme' },                                                  // Meme 030 (swap setup)
+    { id: 's3',          ms: 2500,  type: 'card' },                                                  // MEET CHOGI · CTO OF MONAD
+    { id: 's4',          ms: 6000,  type: 'video', vid: 'v-cto', useVideoAudio: true },              // CTO promo (Chog hands crown)
+    { id: 's-meanwhile', ms: 1800,  type: 'card' },                                                  // MEANWHILE, BACK IN THE LAB...
+    { id: 's-chog',      ms: 5000,  type: 'video', vid: 'v-chog', cap: 's-chog-cap', capAt: 800 },   // Chog scene
     { id: 's10',         ms: 2500,  type: 'card' },                                                  // FIRST AUDIENCE
     { id: 's11',         ms: 5000,  type: 'comic', cap: 's11-cap', capAt: 600 },                     // Comic 12 (creator)
     { id: 's12',         ms: 6500,  type: 'video', vid: 'v-victory', cap: 's12-cap', capAt: 700 },   // Victory
