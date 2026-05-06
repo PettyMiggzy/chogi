@@ -1239,7 +1239,7 @@ main, header{position:relative;z-index:2}
     ch.scrollTop = ch.scrollHeight;
 
     try {
-      var apiBase = (window.location.host.startsWith('www.') ? '' : 'https://www.chogi.xyz');
+      var apiBase = (window.location.host.startsWith('www.') ? '' : 'https://chogi.xyz');
       var r = await fetch(apiBase + '/api/chat-pet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
