@@ -6,6 +6,8 @@
 // This endpoint exists only to gate writes — RLS blocks anon writes, service
 // key on the server bypasses RLS.
 
+import { isBlocked } from './blocklist.js';
+
 export default async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', 'https://chogi.xyz');
@@ -34,6 +36,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'invalid wallet' });
   }
   wallet = wallet.toLowerCase();
+
+  // ── BLOCKLIST CHECK ─────────────────────────────────────────────────────
+  if (isBlocked(wallet)) {
+    return res.status(403).json({ error: 'wallet blocked', code: 'FLAGGED' });
+  }
 
   lat = Number(lat); lng = Number(lng);
   if (!Number.isFinite(lat) || lat < -90 || lat > 90) {

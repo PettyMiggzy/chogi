@@ -21,6 +21,10 @@
     {
       "source": "/cartoon",
       "destination": "/cartoon.html"
+    },
+    {
+      "source": "/banned",
+      "destination": "/banned.html"
     }
   ],
   "headers": [

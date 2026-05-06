@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ACCESS REVOKED · LAB 7777</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0a0118">
+<link rel="icon" href="/chogi.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;color:#FFE9F4;
+    font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;overflow:hidden}
+
+  body{background:radial-gradient(ellipse at center,#3a0418 0%,#0a0118 50%,#000 100%);
+    display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative}
+
+  /* glitchy red scan lines + alarm strobe */
+  body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,
+      rgba(255,30,80,0.08) 4px,rgba(255,30,80,0.08) 5px);mix-blend-mode:screen}
+  body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:rgba(255,30,80,0);animation:alarm-strobe 1.6s ease-in-out infinite}
+  @keyframes alarm-strobe{
+    0%,100%{background:rgba(255,30,80,0)}
+    50%{background:rgba(255,30,80,0.08)}
+  }
+
+  .panel{position:relative;z-index:5;max-width:560px;width:100%;
+    border:2px solid #ff1e50;background:rgba(15,2,8,0.85);backdrop-filter:blur(8px);
+    padding:36px 28px;border-radius:14px;
+    box-shadow:0 0 80px rgba(255,30,80,0.3),inset 0 0 30px rgba(255,30,80,0.1);
+    animation:panel-glitch 6s ease-in-out infinite}
+  @keyframes panel-glitch{
+    0%,90%,100%{transform:translate(0,0)}
+    91%{transform:translate(-3px,1px)}
+    92%{transform:translate(2px,-2px)}
+    93%{transform:translate(-1px,1px)}
+    94%{transform:translate(0,0)}
+  }
+
+  .stamp-rev{display:inline-block;font-family:Bungee;font-size:11px;
+    letter-spacing:0.32em;color:#ff1e50;border:1.5px solid #ff1e50;
+    padding:5px 14px;margin-bottom:18px;
+    text-shadow:0 0 8px rgba(255,30,80,0.7);
+    background:rgba(255,30,80,0.05)}
+
+  h1{font-family:Bungee;font-size:clamp(32px,7vw,56px);letter-spacing:0.04em;
+    line-height:1;color:#ff1e50;text-shadow:0 0 20px rgba(255,30,80,0.6),3px 0 #00D4FF,-3px 0 #FF1493;
+    margin-bottom:14px;animation:rgb-glitch-loop 3s ease-in-out infinite}
+  @keyframes rgb-glitch-loop{
+    0%,90%,100%{text-shadow:0 0 20px rgba(255,30,80,0.6),3px 0 #00D4FF,-3px 0 #FF1493}
+    91%{text-shadow:0 0 20px rgba(255,30,80,0.6),-5px 0 #00D4FF,5px 0 #FF1493}
+    92%{text-shadow:0 0 20px rgba(255,30,80,0.6),5px 0 #00D4FF,-5px 0 #FF1493}
+    93%{text-shadow:0 0 20px rgba(255,30,80,0.6),-3px 0 #00D4FF,3px 0 #FF1493}
+  }
+
+  .sub{font-size:13px;letter-spacing:0.12em;color:rgba(255,233,244,0.85);
+    margin-bottom:24px;line-height:1.6}
+  .sub b{color:#fff;font-family:Bungee;font-weight:400;letter-spacing:0.04em}
+
+  .wallet-box{padding:12px 14px;background:rgba(0,0,0,0.5);
+    border:1px solid rgba(255,30,80,0.4);border-radius:6px;margin-bottom:18px;
+    font-size:11px;color:rgba(255,233,244,0.7);word-break:break-all;letter-spacing:0.05em}
+  .wallet-box span{color:#ff1e50;font-family:Bungee;font-size:9px;letter-spacing:0.22em;display:block;margin-bottom:4px}
+
+  .records{margin:18px 0 24px;font-size:10px;letter-spacing:0.1em;color:rgba(255,233,244,0.5);text-align:left;
+    padding:14px;background:rgba(0,0,0,0.4);border-left:2px solid #ff1e50;border-radius:4px;line-height:1.7}
+  .records b{color:#ff1e50;font-family:Bungee;font-weight:400;letter-spacing:0.04em;font-size:9px}
+
+  .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .actions a{font-family:Bungee;font-size:10px;letter-spacing:0.2em;
+    padding:11px 18px;background:transparent;color:rgba(255,233,244,0.8);
+    border:1px solid rgba(255,233,244,0.2);border-radius:6px;text-decoration:none;
+    transition:all 0.15s}
+  .actions a:hover{color:#fff;border-color:#FF1493}
+
+  .led-strip{display:flex;gap:6px;justify-content:center;margin-bottom:24px}
+  .led-strip .led{width:9px;height:9px;border-radius:50%;background:#ff1e50;
+    box-shadow:0 0 8px #ff1e50;animation:led-blink 0.7s ease-in-out infinite}
+  .led-strip .led:nth-child(2){animation-delay:0.2s}
+  .led-strip .led:nth-child(3){animation-delay:0.4s}
+  @keyframes led-blink{0%,49%{opacity:1}50%,100%{opacity:0.2}}
+
+  .footer-tag{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    z-index:5;font-size:9px;letter-spacing:0.18em;color:rgba(255,233,244,0.3);text-align:center;width:100%}
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <div class="led-strip"><div class="led"></div><div class="led"></div><div class="led"></div></div>
+  <div class="stamp-rev">▲ ACCESS REVOKED</div>
+  <h1>SUBJECT FLAGGED</h1>
+  <div class="sub">
+    Your wallet has been identified as <b>FUD_MASTER KILLA</b><br>
+    and removed from all Lab 7777 systems.
+  </div>
+
+  <div class="wallet-box">
+    <span>FLAGGED WALLET</span>
+    <div id="flagged-wallet">—</div>
+  </div>
+
+  <div class="records">
+    <b>▌ INFRACTION REPORT</b><br>
+    PATTERN: BUY · DUMP · REPEAT<br>
+    DAMAGES: ASSESSED, ONGOING<br>
+    CLEARANCE LEVEL: REVOKED<br>
+    REWARDS ELIGIBILITY: <span style="color:#ff1e50">DENIED</span><br>
+    GAME LEADERBOARD: <span style="color:#ff1e50">EXCLUDED</span><br>
+    AIRDROP SNAPSHOT: <span style="color:#ff1e50">EXCLUDED</span><br>
+    NFT CLAIMS: <span style="color:#ff1e50">DENIED</span><br>
+    <br>
+    <b>▌ APPEAL</b><br>
+    Stop dumping and the lab will reconsider.<br>
+    Until then, you remain on the wall.
+  </div>
+
+  <div class="actions">
+    <a href="/">◀ HOME (PUBLIC)</a>
+    <a href="/comic">📜 READ COMIC</a>
+  </div>
+</div>
+
+<div class="footer-tag">▌LAB 7777 · CONTAINMENT INTEGRITY · WALLET BLOCKLIST v1</div>
+
+<script>
+(function(){
+  // Display the flagged wallet (truncated for readability)
+  var w = '';
+  try { w = sessionStorage.getItem('chogi_banned_wallet') || ''; } catch(e){}
+  if(w){
+    var trunc = w.slice(0, 10) + '…' + w.slice(-8);
+    document.getElementById('flagged-wallet').textContent = trunc;
+  } else {
+    document.getElementById('flagged-wallet').textContent = '0x9E83…c166';
+  }
+})();
+</script>
+
+</body>
+</html>
