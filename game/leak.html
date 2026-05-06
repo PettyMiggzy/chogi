@@ -104,6 +104,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'JetBrain
   </div>
 </div>
 
+<script src="/js/pet-store.js"></script>
+<script src="/js/pet-sprite.js"></script>
+<script>
+  // Chogi sprite = player's pet OR fallback baby chogi (cute leak vibe).
+  var __chogiSpriteUrl = (window.ChogiSprite && window.ChogiSprite.resolve)
+    ? window.ChogiSprite.resolve('/pet-assets/baby-chogi.png')
+    : '/pet-assets/baby-chogi.png';
+  // Scientist enemy = sci-fi armor chog (the legendary tier-4 NFT, ties games to mint art)
+  var __scientistSpriteUrl = '/nft/tier-4.png';
+</script>
 <script>
 (function(){
   var TUBES = 9;
@@ -155,10 +165,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'JetBrain
     if(isScientist){
       tube.classList.add('scientist');
       subject.classList.add('scientist');
-      subject.innerHTML = '<div class="face">👨‍🔬</div>';
+      subject.innerHTML = '<img src="' + __scientistSpriteUrl + '" alt="">';
     } else {
       tube.classList.add('live');
-      subject.innerHTML = '<img src="/chogi.jpg" alt="">';
+      subject.innerHTML = '<img src="' + __chogiSpriteUrl + '" alt="">';
     }
     requestAnimationFrame(function(){ subject.classList.add('show'); });
 

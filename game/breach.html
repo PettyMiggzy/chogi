@@ -76,6 +76,15 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
   </div>
 </div>
 
+<script src="/js/pet-store.js"></script>
+<script src="/js/pet-sprite.js"></script>
+<script>
+  // Try to use the player's active pet sprite. Falls back to feral chogi
+  // (matches breach-run "escape" vibe) if no pet is hatched yet.
+  var __chogiSpriteUrl = (window.ChogiSprite && window.ChogiSprite.resolve)
+    ? window.ChogiSprite.resolve('/pet-assets/adult-feral-chogi.png')
+    : '/pet-assets/adult-feral-chogi.png';
+</script>
 <script>
 (function(){
   var cv = document.getElementById('cv');
@@ -92,7 +101,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 
   // Load chogi face
   var chogiImg = new Image();
-  chogiImg.src = '/chogi.jpg';
+  chogiImg.src = __chogiSpriteUrl;
 
   // Game state
   var state = 'start';
