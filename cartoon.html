@@ -190,11 +190,10 @@
     </div>
 
     <div class="scene" id="s4">
-      <video id="v-origin" muted playsinline preload="auto">
-        <source src="/chogi-origin.webm" type="video/webm">
-        <source src="/chogi-origin.mp4" type="video/mp4">
+      <video id="v-awakening" muted playsinline preload="auto">
+        <source src="/game/cinematics/awakening.mp4" type="video/mp4">
       </video>
-      <div class="caption" id="s4-cap">DAYS BEFORE THE BREAKOUT</div>
+      <div class="caption" id="s4-cap">SUBJECT 7777 · AWAKE · UNCONTAINED</div>
     </div>
 
     <div class="scene card" id="s5">
@@ -244,14 +243,14 @@
   // [scene_id, duration_ms, options]
   // Total ≈ 60 sec. Tuned so video scenes end naturally and cards bridge transitions.
   var TIMELINE = [
-    { id: 's1', ms: 3000, type: 'card' },                                          // Title card
-    { id: 's2', ms: 6000, type: 'video', vid: 'v-intro',  cap: 's2-cap', capAt: 800 }, // Intro cinematic
-    { id: 's3', ms: 3000, type: 'card' },                                          // She broke out
-    { id: 's4', ms: 8000, type: 'video', vid: 'v-origin', cap: 's4-cap', capAt: 600, seekFrom: 0 }, // Lab footage
-    { id: 's5', ms: 3500, type: 'card' },                                          // She named herself
-    { id: 's6', ms: 5500, type: 'comic', cap: 's6-cap', capAt: 600 },              // Comic panel
-    { id: 's7', ms: 6500, type: 'video', vid: 'v-victory',cap: 's7-cap', capAt: 700 }, // Victory cinematic
-    { id: 's8', ms: 5500, type: 'end' }                                            // End card
+    { id: 's1', ms: 3000, type: 'card' },                                              // Title card
+    { id: 's2', ms: 6000, type: 'video', vid: 'v-intro',     cap: 's2-cap', capAt: 800 }, // Intro cinematic (containment break)
+    { id: 's3', ms: 2500, type: 'card' },                                              // She broke out
+    { id: 's4', ms: 10000, type: 'video', vid: 'v-awakening', cap: 's4-cap', capAt: 1500 }, // Awakening (NEW: scientists shocked, chogi emerges menacing)
+    { id: 's5', ms: 3000, type: 'card' },                                              // She named herself
+    { id: 's6', ms: 5000, type: 'comic', cap: 's6-cap', capAt: 600 },                  // Comic panel
+    { id: 's7', ms: 6500, type: 'video', vid: 'v-victory',   cap: 's7-cap', capAt: 700 }, // Victory cinematic
+    { id: 's8', ms: 6000, type: 'end' }                                                // End card
   ];
 
   // ─── STATE ───────────────────────────────────────────────────────────────
