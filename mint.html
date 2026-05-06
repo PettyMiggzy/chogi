@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MINT · CHOGI LAB SUBJECT</title>
-<meta name="description" content="Chogi Lab Subjects: mint a soulbound NFT on the Monad blockchain by burning $CHOGI tokens to the public dead address. No MON cost. Open-source contract: github.com/PettyMiggzy/chogi. All transactions signed in your own self-custody wallet. See /security for full transparency.">
+<meta name="description" content="Chogi Lab Subjects: mint an NFT on the Monad blockchain by burning $CHOGI tokens to the public dead address. No MON cost. Open-source contract: github.com/PettyMiggzy/chogi. All transactions signed in your own self-custody wallet. See /security for full transparency.">
 <link rel="canonical" href="https://chogi.xyz/mint">
 <meta name="application-name" content="Chogi">
 <meta name="author" content="Chogi Community">
 <meta property="og:site_name" content="Chogi">
 <meta property="og:title" content="🧪 MINT · Chogi Lab Subject">
-<meta property="og:description" content="Burn $CHOGI to mint your Lab Subject. 5 tiers. Soulbound. Every mint is supply reduction.">
+<meta property="og:description" content="Burn $CHOGI to mint your Lab Subject. 5 tiers. Tradeable. Every mint is supply reduction.">
 <meta property="og:image" content="/nft/tier-4.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="/nft/tier-4.png">
@@ -180,8 +180,8 @@ footer a{color:var(--pink);text-decoration:none;}
 
 <section class="hero">
   <h1>🧪 LAB SUBJECTS</h1>
-  <p>NO MON COST · BURN $CHOGI · SOULBOUND · 5 TIERS</p>
-  <p class="lead">Mint a permanent record of allegiance. <b>No MON, no fees</b> — only $CHOGI sent to the void. Higher tier = bigger burn = rarer subject. <b>Soulbound</b> means it stays with you forever; never trades, never dilutes.</p>
+  <p>NO MON COST · BURN $CHOGI · TRADEABLE · 5 TIERS</p>
+  <p class="lead">Mint a permanent record of allegiance. <b>No MON, no fees</b> — only $CHOGI sent to the void. Higher tier = bigger burn = rarer subject. <b>Tradeable</b> on Monad NFT marketplaces.</p>
 </section>
 
 <div class="tiers" id="tiers">
@@ -223,7 +223,7 @@ footer a{color:var(--pink);text-decoration:none;}
 
   <div id="connectStage">
     <button class="connect-btn" id="connectBtn">CONNECT WALLET</button>
-    <p class="note">Mint is gas only. The CHOGI cost is burned to <span class="warn">0x…dead</span> on mint. Permanent. <span class="warn">Soulbound</span> — can't be transferred or sold.</p>
+    <p class="note">Mint is gas only. The CHOGI cost is burned to <span class="warn">0x…dead</span> on mint. Permanent burn — but the NFT is yours to keep, gift, or sell.</p>
   </div>
 
   <div id="mintStage" style="display:none;">
@@ -243,11 +243,6 @@ footer a{color:var(--pink);text-decoration:none;}
       <div class="cell"><div class="lbl">CHOGI TO BURN</div><div class="val" id="sumCost">—</div></div>
     </div>
 
-    <div class="soulbound-warn">
-      <b>⚠ SOULBOUND · READ BEFORE MINTING</b>
-      This NFT is <em>permanently locked to your wallet</em>. It <em>cannot be sold</em>, traded, gifted, or transferred — ever. You're minting a personal record, not a flippable asset. The CHOGI you burn is gone forever.
-    </div>
-
     <button class="action-btn gold" id="actionBtn" disabled>SELECT A TIER ABOVE</button>
 
     <div class="status" id="status"></div>
@@ -261,14 +256,14 @@ footer a{color:var(--pink);text-decoration:none;}
   <ul>
     <li>An ERC-721 NFT — <b>Chogi Lab Subject</b> (CHOGISUB)</li>
     <li>Visible in MetaMask, Rabby, Phantom, Magic Eden, Poply, monadexplorer</li>
-    <li><b>Soulbound</b> — non-transferable, non-sellable. It's identity, not inventory.</li>
+    <li><b>Tradeable</b> — list on Magic Eden, Poply, or any Monad NFT marketplace</li>
     <li>Tier-based image, on-chain provenance, public record of allegiance</li>
     <li>Future drops + utility may favor higher-tier subjects</li>
   </ul>
 </div>
 
 <footer>
-  <div>monad mainnet · soulbound · permanent</div>
+  <div>monad mainnet · tradeable · permanent burn</div>
   <div style="margin-top:6px;">
     <a href="/burn">/burn</a> · <a href="/security">/security</a> ·
     <a href="/lab">/lab</a> ·
