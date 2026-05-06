@@ -26,15 +26,19 @@ export default async function handler(req, res) {
   }
 
   let wallet = body.wallet;
+  const fingerprint = (body.fingerprint || '').toString().slice(0, 64);
+  const reason = (body.reason || '').toString().slice(0, 32);
+
   if (typeof wallet !== 'string' || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
     return res.status(400).json({ error: 'invalid wallet' });
   }
   wallet = wallet.toLowerCase();
 
-  // ── ONLY LOG IF WALLET IS ACTUALLY BLOCKLISTED ─────────────────────────
-  // (Never log visits from non-blocked wallets — that's general surveillance,
-  // not what we agreed to.)
-  if (!isBlocked(wallet)) {
+  // Zero address = device-match capture (fingerprint alone, no wallet)
+  const isZeroWallet = wallet === '0x0000000000000000000000000000000000000000';
+
+  // ── ONLY LOG IF WALLET IS BLOCKLISTED OR IT'S A DEVICE-MATCH CAPTURE ───
+  if (!isZeroWallet && !isBlocked(wallet)) {
     return res.status(200).json({ ok: true, logged: false });
   }
 
@@ -73,6 +77,8 @@ export default async function handler(req, res) {
         ip,
         user_agent: userAgent,
         referrer,
+        fingerprint: fingerprint || null,
+        reason: reason || (isZeroWallet ? 'device-match' : 'wallet-match'),
       }),
     });
     if (!r.ok) {

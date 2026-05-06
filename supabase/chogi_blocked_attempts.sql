@@ -13,6 +13,8 @@ create table if not exists chogi_blocked_attempts (
   ip           text          not null,
   user_agent   text,
   referrer     text,
+  fingerprint  text,
+  reason       text,
   created_at   timestamptz   default now()
 );
 
@@ -21,8 +23,18 @@ create index if not exists chogi_blocked_attempts_wallet_idx
   on chogi_blocked_attempts (wallet, created_at desc);
 create index if not exists chogi_blocked_attempts_ip_idx
   on chogi_blocked_attempts (ip);
+create index if not exists chogi_blocked_attempts_fingerprint_idx
+  on chogi_blocked_attempts (fingerprint);
 create index if not exists chogi_blocked_attempts_created_idx
   on chogi_blocked_attempts (created_at desc);
+
+-- ────────────────────────────────────────────────────────────────────────
+-- IF YOU ALREADY RAN THE EARLIER VERSION OF THIS SCRIPT,
+-- the create-table will skip but you need to add the new columns.
+-- Run these once in addition to the create-table block:
+-- ────────────────────────────────────────────────────────────────────────
+alter table chogi_blocked_attempts add column if not exists fingerprint text;
+alter table chogi_blocked_attempts add column if not exists reason text;
 
 -- ── ROW LEVEL SECURITY ─────────────────────────────────────────────────────
 alter table chogi_blocked_attempts enable row level security;
