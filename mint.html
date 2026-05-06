@@ -133,6 +133,22 @@ body::after{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;bac
 .note{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7;}
 .note .warn{color:var(--pink);}
 
+.soulbound-warn{
+  margin:18px 0;
+  padding:14px 18px;
+  background:linear-gradient(135deg,rgba(255,69,0,.15),rgba(255,20,147,.12));
+  border:2px solid rgba(255,69,0,.65);
+  border-radius:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:1.5px;
+  color:#ffd6d6;
+  text-align:center;
+  line-height:1.6;
+}
+.soulbound-warn b{color:#ff4500;font-size:13px;display:block;margin-bottom:6px;letter-spacing:2px;}
+.soulbound-warn em{color:#fff;font-style:normal;font-weight:700;}
+
 .status{margin-top:16px;padding:14px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;border:1px solid;display:none;line-height:1.5;}
 .status.show{display:block;}
 .status.info{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.4);color:var(--purple);}
@@ -225,6 +241,11 @@ footer a{color:var(--pink);text-decoration:none;}
     <div class="summary">
       <div class="cell"><div class="lbl">TIER SELECTED</div><div class="val" id="sumTier">—</div></div>
       <div class="cell"><div class="lbl">CHOGI TO BURN</div><div class="val" id="sumCost">—</div></div>
+    </div>
+
+    <div class="soulbound-warn">
+      <b>⚠ SOULBOUND · READ BEFORE MINTING</b>
+      This NFT is <em>permanently locked to your wallet</em>. It <em>cannot be sold</em>, traded, gifted, or transferred — ever. You're minting a personal record, not a flippable asset. The CHOGI you burn is gone forever.
     </div>
 
     <button class="action-btn gold" id="actionBtn" disabled>SELECT A TIER ABOVE</button>
