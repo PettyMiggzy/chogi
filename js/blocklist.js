@@ -31,20 +31,31 @@
   function handleBlockedConnect(addr){
     // Don't redirect if we're already on the banned page
     if(location.pathname === '/banned' || location.pathname === '/banned.html') return;
+
+    // ── CAPTURE IP via server (fire-and-forget) ────────────────────────
+    // Server logs to chogi_blocked_attempts table. Doesn't matter if the
+    // call fails — we still redirect either way.
     try {
-      // Save the offending wallet so /banned can show it (sessionStorage so it doesn't persist)
-      sessionStorage.setItem('chogi_banned_wallet', addr);
+      fetch('/api/log-blocked-attempt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: addr }),
+        keepalive: true   // ensures the call goes out even if we redirect immediately
+      }).catch(function(){});
     } catch(e){}
-    // Disconnect any wallet helper state if available
+
+    // Save the offending wallet so /banned can show it
+    try { sessionStorage.setItem('chogi_banned_wallet', addr); } catch(e){}
+
+    // Disconnect any wallet helper state
     try {
       if(window.ChogiConnect && typeof window.ChogiConnect.disconnect === 'function'){
         window.ChogiConnect.disconnect();
       }
     } catch(e){}
-    // Redirect after a short delay so any other listeners settle
-    setTimeout(function(){
-      location.href = '/banned';
-    }, 80);
+
+    // Redirect after a short delay so the IP capture call gets out
+    setTimeout(function(){ location.href = '/banned'; }, 250);
   }
 
   window.addEventListener('chogi:connected', function(e){
