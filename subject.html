@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SUBJECT REGISTRATION · LAB 7777</title>
+<meta name="description" content="Every wallet is a subject. Lab 7777 has classified you. Discover your permanent SUBJECT-XXXX ID, threat level, biosign, and containment cell.">
+<meta name="theme-color" content="#0a0118">
+
+<meta property="og:site_name" content="CHOGI">
+<meta property="og:title" content="SUBJECT REGISTRATION · LAB 7777">
+<meta property="og:description" content="Connect your wallet. Get your permanent SUBJECT-XXXX classification. The lab is watching.">
+<meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
+<meta property="og:url" content="https://chogi.xyz/subject">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="chogi.xyz">
+<meta name="twitter:url" content="https://chogi.xyz/subject">
+<meta name="twitter:image" content="https://chogi.xyz/og-banner.jpg">
+
+<link rel="icon" href="/chogi.png" type="image/png">
+
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%;background:#0a0118;color:#FFE9F4;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{
+    background:
+      radial-gradient(ellipse at top,rgba(255,20,147,0.12),transparent 60%),
+      radial-gradient(ellipse at bottom,rgba(168,85,247,0.1),transparent 60%),
+      #0a0118;
+  }
+
+  /* scan lines */
+  .scan{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,
+      rgba(255,20,147,0.04) 4px,rgba(255,20,147,0.04) 5px);
+    mix-blend-mode:screen}
+
+  /* header bar */
+  header{position:relative;z-index:5;padding:18px 24px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid rgba(255,20,147,0.2);
+    background:rgba(10,1,24,0.7);backdrop-filter:blur(8px)}
+  header .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+  header .brand img{width:32px;height:32px;border-radius:6px}
+  header .brand b{font-family:Bungee;font-size:14px;letter-spacing:0.18em;color:#FF1493}
+  header .back{font-size:11px;letter-spacing:0.15em;color:rgba(255,233,244,0.6);
+    text-decoration:none;border:1px solid rgba(255,233,244,0.2);padding:7px 12px;
+    border-radius:6px;transition:all 0.15s}
+  header .back:hover{color:#fff;border-color:rgba(255,20,147,0.5)}
+
+  /* main */
+  main{position:relative;z-index:5;max-width:680px;margin:0 auto;padding:48px 24px 80px}
+
+  .page-title{text-align:center;margin-bottom:48px}
+  .page-title .stamp{display:inline-block;font-size:10px;letter-spacing:0.3em;
+    color:#FF1493;border:1px solid #FF1493;padding:4px 12px;margin-bottom:14px;
+    text-shadow:0 0 8px rgba(255,20,147,0.5)}
+  .page-title h1{font-family:Bungee;font-size:36px;letter-spacing:0.06em;
+    background:linear-gradient(90deg,#FF1493,#A855F7,#00D4FF);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;line-height:1.1}
+  .page-title .sub{margin-top:14px;font-size:13px;color:rgba(255,233,244,0.65);
+    line-height:1.6;max-width:480px;margin-left:auto;margin-right:auto}
+
+  /* PRE-CONNECT panel */
+  .terminal{border:1.5px solid rgba(255,20,147,0.3);border-radius:14px;
+    background:rgba(255,255,255,0.02);padding:36px 32px;
+    backdrop-filter:blur(4px)}
+  .terminal .row1{font-size:11px;letter-spacing:0.2em;color:rgba(255,233,244,0.5);
+    margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .terminal .led{width:8px;height:8px;border-radius:50%;background:#6eff9c;
+    box-shadow:0 0 8px #6eff9c;animation:pulse 1.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .terminal h2{font-family:Bungee;font-size:22px;letter-spacing:0.05em;
+    color:#fff;margin-bottom:8px;line-height:1.2}
+  .terminal p{font-size:13px;color:rgba(255,233,244,0.7);line-height:1.7;margin-bottom:24px}
+
+  .btn{display:inline-block;width:100%;padding:18px;font-family:Bungee;
+    font-size:14px;letter-spacing:0.2em;background:linear-gradient(135deg,#FF1493,#A855F7);
+    color:#fff;border:none;border-radius:10px;cursor:pointer;
+    transition:transform 0.15s,box-shadow 0.15s;
+    box-shadow:0 8px 32px rgba(255,20,147,0.35)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,20,147,0.5)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent;color:rgba(255,233,244,0.8);
+    border:1px solid rgba(255,233,244,0.2);box-shadow:none}
+  .btn.ghost:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,20,147,0.5);color:#fff}
+
+  .or{text-align:center;margin:18px 0;font-size:10px;letter-spacing:0.3em;
+    color:rgba(255,233,244,0.35);position:relative}
+  .or:before,.or:after{content:'';position:absolute;top:50%;width:38%;height:1px;
+    background:rgba(255,233,244,0.15)}
+  .or:before{left:0}.or:after{right:0}
+
+  .paste-input{width:100%;padding:14px 16px;font-family:'JetBrains Mono',monospace;
+    font-size:12px;background:rgba(0,0,0,0.4);color:#fff;
+    border:1px solid rgba(255,233,244,0.15);border-radius:8px;
+    transition:border-color 0.15s;letter-spacing:0.05em}
+  .paste-input:focus{outline:none;border-color:#FF1493;box-shadow:0 0 0 3px rgba(255,20,147,0.15)}
+  .paste-input::placeholder{color:rgba(255,233,244,0.3)}
+
+  /* REVEAL ANIMATION */
+  .reveal-overlay{position:fixed;inset:0;z-index:50;background:rgba(10,1,24,0.95);
+    backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;
+    flex-direction:column;padding:24px;text-align:center}
+  .reveal-overlay.show{display:flex}
+  .reveal-overlay .scan-progress{font-family:'JetBrains Mono';font-size:14px;
+    letter-spacing:0.18em;color:#FF1493;margin-bottom:24px;min-height:20px}
+  .reveal-overlay .scan-bar{width:280px;height:4px;background:rgba(255,255,255,0.08);
+    border-radius:2px;overflow:hidden;margin-bottom:32px}
+  .reveal-overlay .scan-bar div{height:100%;width:0;background:linear-gradient(90deg,#FF1493,#00D4FF);
+    transition:width 0.3s ease-out;box-shadow:0 0 12px rgba(255,20,147,0.6)}
+  .reveal-overlay .lines{font-family:'JetBrains Mono';font-size:11px;color:rgba(255,233,244,0.5);
+    text-align:left;max-width:420px;line-height:1.8;letter-spacing:0.04em}
+  .reveal-overlay .lines div{opacity:0;animation:line-in 0.3s forwards}
+  @keyframes line-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+
+  /* BADGE (the hero output) */
+  .badge-wrap{display:none}
+  .badge-wrap.show{display:block;animation:badge-in 0.6s ease-out}
+  @keyframes badge-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .badge{position:relative;background:linear-gradient(180deg,#1a0436,#0a0118);
+    border:2px solid rgba(255,20,147,0.5);border-radius:18px;padding:30px 28px;
+    box-shadow:0 24px 80px rgba(255,20,147,0.25),inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow:hidden}
+  .badge:before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,#FF1493,#00D4FF,#FF1493,transparent);
+    animation:scan-top 3s linear infinite}
+  @keyframes scan-top{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+  .badge-head{display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:14px;border-bottom:1px dashed rgba(255,20,147,0.25);margin-bottom:18px}
+  .badge-head .tag{font-family:Bungee;font-size:10px;letter-spacing:0.25em;color:#FF1493}
+  .badge-head .meta{font-size:9px;letter-spacing:0.2em;color:rgba(255,233,244,0.5)}
+
+  .subject-num{text-align:center;margin:8px 0 22px}
+  .subject-num .label{font-size:10px;letter-spacing:0.3em;color:rgba(255,233,244,0.5);margin-bottom:6px}
+  .subject-num .num{font-family:Bungee;font-size:64px;letter-spacing:0.04em;
+    background:linear-gradient(180deg,#FFE9F4,#FF1493);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;line-height:1;
+    text-shadow:0 0 30px rgba(255,20,147,0.3)}
+
+  .photo-area{position:relative;width:140px;height:140px;margin:0 auto 22px;
+    border:2px solid rgba(255,20,147,0.4);border-radius:50%;overflow:hidden;
+    background:rgba(255,255,255,0.04)}
+  .photo-area img{width:100%;height:100%;object-fit:cover;
+    filter:saturate(1.1) contrast(1.05)}
+  .photo-area:after{content:'';position:absolute;inset:0;
+    background:repeating-linear-gradient(to bottom,
+      transparent 0px,transparent 2px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px);
+    pointer-events:none}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+  .stat-cell{background:rgba(255,255,255,0.03);border:1px solid rgba(255,233,244,0.1);
+    border-radius:8px;padding:12px}
+  .stat-cell .lab{font-size:9px;letter-spacing:0.2em;color:rgba(255,233,244,0.5);margin-bottom:4px}
+  .stat-cell .val{font-family:Bungee;font-size:14px;letter-spacing:0.05em;color:#fff}
+  .stat-cell .val.alpha{color:#6eff9c;text-shadow:0 0 8px rgba(110,255,156,0.4)}
+  .stat-cell .val.beta{color:#00D4FF;text-shadow:0 0 8px rgba(0,212,255,0.4)}
+  .stat-cell .val.gamma{color:#FFD96E;text-shadow:0 0 8px rgba(255,217,110,0.4)}
+  .stat-cell .val.delta{color:#FF8C42;text-shadow:0 0 8px rgba(255,140,66,0.4)}
+  .stat-cell .val.omega{color:#FF1493;text-shadow:0 0 8px rgba(255,20,147,0.5)}
+
+  .wallet-foot{padding-top:14px;border-top:1px dashed rgba(255,20,147,0.25);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:10px;letter-spacing:0.1em;color:rgba(255,233,244,0.5)}
+  .wallet-foot code{font-family:'JetBrains Mono';color:#fff;font-size:10px}
+
+  .classified-stamp{position:absolute;top:80px;right:-30px;
+    transform:rotate(15deg);font-family:Bungee;font-size:14px;letter-spacing:0.2em;
+    color:#FF2A2A;border:2px solid #FF2A2A;padding:5px 30px;
+    background:rgba(0,0,0,0.4);text-shadow:0 0 8px rgba(255,42,42,0.5);
+    box-shadow:0 0 20px rgba(255,42,42,0.3),inset 0 0 12px rgba(255,42,42,0.2);
+    opacity:0.85;pointer-events:none}
+
+  /* actions */
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+  .actions .btn{padding:14px;font-size:11px;letter-spacing:0.18em}
+  .actions .full{grid-column:span 2}
+
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(40px);
+    background:#0a0118;border:1.5px solid #FF1493;color:#fff;padding:12px 20px;
+    border-radius:8px;font-size:12px;letter-spacing:0.12em;z-index:100;
+    opacity:0;transition:all 0.3s;pointer-events:none;
+    box-shadow:0 8px 24px rgba(255,20,147,0.3)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* lore footer */
+  .lore{margin-top:48px;padding:20px;border:1px dashed rgba(255,233,244,0.15);
+    border-radius:10px;font-size:11px;line-height:1.8;color:rgba(255,233,244,0.55);text-align:center}
+  .lore b{color:#FF1493}
+
+  @media (max-width:520px){
+    main{padding:32px 16px 60px}
+    .page-title h1{font-size:28px}
+    .terminal{padding:24px 20px}
+    .badge{padding:24px 20px}
+    .subject-num .num{font-size:52px}
+    .actions{grid-template-columns:1fr}
+    .actions .full{grid-column:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="scan"></div>
+
+<header>
+  <a href="/" class="brand">
+    <img src="/chogi.png" alt="">
+    <b>CHOGI</b>
+  </a>
+  <a href="/" class="back">◀ HOME</a>
+</header>
+
+<main>
+
+  <div class="page-title">
+    <div class="stamp">▲ LAB 7777 · CLASSIFIED</div>
+    <h1>SUBJECT<br>REGISTRATION</h1>
+    <div class="sub">Every wallet is a subject. The lab catalogues all of them.<br>Discover your permanent classification.</div>
+  </div>
+
+  <!-- PRE-CONNECT TERMINAL -->
+  <div class="terminal" id="pre-connect">
+    <div class="row1">
+      <span>▌TERMINAL READY</span>
+      <span class="led"></span>
+    </div>
+    <h2>INITIATE REGISTRATION</h2>
+    <p>Connect your wallet to retrieve your permanent SUBJECT-XXXX classification. Your ID is deterministic — same wallet, same ID, forever. The lab does not forget.</p>
+
+    <button class="btn" id="btn-connect">CONNECT WALLET</button>
+
+    <div class="or">OR PASTE ANY ADDRESS</div>
+
+    <input type="text" class="paste-input" id="paste-addr" placeholder="0x... (any 0x address works for lookup)" autocomplete="off" spellcheck="false">
+    <div style="height:10px"></div>
+    <button class="btn ghost" id="btn-lookup">LOOKUP CLASSIFICATION</button>
+  </div>
+
+  <!-- BADGE -->
+  <div class="badge-wrap" id="badge-wrap">
+    <div class="badge" id="badge">
+      <div class="classified-stamp">CLASSIFIED</div>
+
+      <div class="badge-head">
+        <span class="tag">▌LAB 7777 · ID CARD</span>
+        <span class="meta">FORM 7-A · REV 4</span>
+      </div>
+
+      <div class="photo-area">
+        <img src="/chogi.png" alt="" id="badge-photo">
+      </div>
+
+      <div class="subject-num">
+        <div class="label">SUBJECT NUMBER</div>
+        <div class="num" id="subj-num">####</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-cell">
+          <div class="lab">THREAT LEVEL</div>
+          <div class="val" id="stat-threat">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="lab">BIOSIGN</div>
+          <div class="val" id="stat-bio">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="lab">CONTAINMENT CELL</div>
+          <div class="val" id="stat-cell">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="lab">ACQUIRED</div>
+          <div class="val" id="stat-acq">—</div>
+        </div>
+      </div>
+
+      <div class="wallet-foot">
+        <span>SUBJECT WALLET</span>
+        <code id="addr-display">0x...</code>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" id="btn-copy">COPY ID</button>
+      <button class="btn ghost" id="btn-download">DOWNLOAD</button>
+      <button class="btn full" id="btn-tweet">▌TWEET MY SUBJECT ID</button>
+      <button class="btn ghost full" id="btn-reset">REGISTER A DIFFERENT WALLET</button>
+    </div>
+
+    <div class="lore">
+      Your <b>SUBJECT-####</b> is permanent. It's derived from your wallet — nobody assigned it, the lab just classifies what already exists. Future Chogi systems (the feed, mint, leaderboards) will recognize you by it. Wear it in your X bio. Find your cellmates.
+    </div>
+  </div>
+
+  <!-- REVEAL ANIMATION -->
+  <div class="reveal-overlay" id="reveal">
+    <div class="scan-progress" id="scan-progress">▌SCANNING WALLET...</div>
+    <div class="scan-bar"><div id="scan-bar-fill"></div></div>
+    <div class="lines" id="reveal-lines"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast">COPIED</div>
+
+<script src="/js/wallet-helper.js"></script>
+<script src="/js/connect-pill.js"></script>
+
+<script>
+(function(){
+  // ─── HELPERS ─────────────────────────────────────────────────────────────
+  function $(id){ return document.getElementById(id); }
+  function isAddr(s){ return /^0x[a-fA-F0-9]{40}$/.test((s||'').trim()); }
+  function trunc(addr){ return addr.slice(0,6) + '…' + addr.slice(-4); }
+
+  function showToast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1600);
+  }
+
+  // ─── SUBJECT ID DERIVATION ───────────────────────────────────────────────
+  // Pure deterministic — address bytes drive every attribute. Same wallet,
+  // same ID, forever. No backend, no storage.
+  function deriveSubject(address){
+    var a = address.toLowerCase().replace('0x','');
+
+    // Subject number: last 4 hex chars → uint16 → mod 10000 → 4-digit
+    var num = parseInt(a.slice(-4), 16) % 10000;
+    var subjectId = String(num).padStart(4,'0');
+
+    // Threat level: byte 0
+    var threats = ['ALPHA','BETA','GAMMA','DELTA','OMEGA'];
+    var threat = threats[parseInt(a.slice(0,2), 16) % 5];
+
+    // Biosign: byte 1
+    var biosigns = ['STABLE','ELEVATED','CRITICAL','UNHINGED','CLASSIFIED'];
+    var biosign = biosigns[parseInt(a.slice(2,4), 16) % 5];
+
+    // Cell letter: byte 4 → A-Z, then suffix from byte 5
+    var cellLetter = String.fromCharCode(65 + (parseInt(a.slice(8,10), 16) % 26));
+    var cellNum = (parseInt(a.slice(10,12), 16) % 99) + 1;
+    var cell = cellLetter + '-' + String(cellNum).padStart(2,'0');
+
+    // Acquisition date: bytes 6-9 → days since 2024-01-01
+    var dateBytes = parseInt(a.slice(12,20), 16);
+    var daysOffset = dateBytes % (365 * 2);
+    var acqDate = new Date(new Date('2024-01-01').getTime() + daysOffset * 86400000);
+    var acq = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][acqDate.getMonth()]
+      + ' ' + String(acqDate.getDate()).padStart(2,'0') + ' '
+      + String(acqDate.getFullYear()).slice(2);
+
+    return { subjectId: subjectId, threat: threat, biosign: biosign, cell: cell, acq: acq, address: address };
+  }
+
+  // ─── REVEAL FLOW ─────────────────────────────────────────────────────────
+  var REVEAL_LINES = [
+    '> establishing uplink to lab 7777...',
+    '> wallet signature received',
+    '> cross-referencing subject database...',
+    '> match found · classification in progress',
+    '> threat level: assigning...',
+    '> biosignature: reading...',
+    '> containment cell: locating...',
+    '> ▌SUBJECT IDENTIFIED ▐'
+  ];
+
+  function runReveal(subject, callback){
+    var rv = $('reveal');
+    var bar = $('scan-bar-fill');
+    var lines = $('reveal-lines');
+    lines.innerHTML = '';
+    rv.classList.add('show');
+
+    var step = 0;
+    var total = REVEAL_LINES.length;
+    var iv = setInterval(function(){
+      bar.style.width = ((step+1)/total*100) + '%';
+      var d = document.createElement('div');
+      d.textContent = REVEAL_LINES[step];
+      lines.appendChild(d);
+      step++;
+      if(step >= total){
+        clearInterval(iv);
+        setTimeout(function(){
+          rv.classList.remove('show');
+          callback();
+        }, 600);
+      }
+    }, 280);
+  }
+
+  // ─── BADGE RENDER ────────────────────────────────────────────────────────
+  var current = null;
+
+  function showBadge(subject){
+    current = subject;
+    $('subj-num').textContent = subject.subjectId;
+    var threatEl = $('stat-threat');
+    threatEl.textContent = subject.threat;
+    threatEl.className = 'val ' + subject.threat.toLowerCase();
+    $('stat-bio').textContent = subject.biosign;
+    $('stat-cell').textContent = subject.cell;
+    $('stat-acq').textContent = subject.acq;
+    $('addr-display').textContent = trunc(subject.address);
+
+    $('pre-connect').style.display = 'none';
+    $('badge-wrap').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function classify(address){
+    var subject = deriveSubject(address);
+    runReveal(subject, function(){ showBadge(subject); });
+  }
+
+  // ─── CANVAS DOWNLOAD ─────────────────────────────────────────────────────
+  function downloadBadge(){
+    if(!current) return;
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+
+    // bg gradient
+    var bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#1a0436'); bg.addColorStop(1,'#0a0118');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    // pink glow top
+    var glow = ctx.createRadialGradient(W/2,0,0,W/2,0,W*0.7);
+    glow.addColorStop(0,'rgba(255,20,147,0.18)'); glow.addColorStop(1,'rgba(255,20,147,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0,0,W,H);
+
+    // outer frame
+    ctx.strokeStyle = 'rgba(255,20,147,0.6)';
+    ctx.lineWidth = 4;
+    var pad = 36;
+    ctx.strokeRect(pad,pad,W-pad*2,H-pad*2);
+
+    // top scan strip
+    var scan = ctx.createLinearGradient(0,0,W,0);
+    scan.addColorStop(0,'transparent'); scan.addColorStop(0.3,'#FF1493');
+    scan.addColorStop(0.5,'#00D4FF'); scan.addColorStop(0.7,'#FF1493');
+    scan.addColorStop(1,'transparent');
+    ctx.fillStyle = scan; ctx.fillRect(pad,pad,W-pad*2,3);
+
+    // header
+    ctx.fillStyle = '#FF1493';
+    ctx.font = 'bold 22px "JetBrains Mono",monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('▌ LAB 7777 · ID CARD', 80, 130);
+    ctx.fillStyle = 'rgba(255,233,244,0.5)';
+    ctx.font = '18px "JetBrains Mono",monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('FORM 7-A · REV 4', W - 80, 130);
+
+    // dashed divider
+    ctx.strokeStyle = 'rgba(255,20,147,0.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8,8]);
+    ctx.beginPath(); ctx.moveTo(80,160); ctx.lineTo(W-80,160); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // photo (chogi.png)
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function(){
+      var photoSize = 280;
+      var px = (W - photoSize) / 2;
+      var py = 200;
+
+      // photo circle bg
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.beginPath();
+      ctx.arc(W/2, py + photoSize/2, photoSize/2, 0, Math.PI*2);
+      ctx.fill();
+
+      // photo clipped to circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(W/2, py + photoSize/2, photoSize/2, 0, Math.PI*2);
+      ctx.clip();
+      ctx.drawImage(img, px, py, photoSize, photoSize);
+      ctx.restore();
+
+      // photo border
+      ctx.strokeStyle = 'rgba(255,20,147,0.6)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(W/2, py + photoSize/2, photoSize/2, 0, Math.PI*2);
+      ctx.stroke();
+
+      // SUBJECT NUMBER label + value
+      ctx.fillStyle = 'rgba(255,233,244,0.5)';
+      ctx.font = '18px "JetBrains Mono",monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('SUBJECT NUMBER', W/2, py + photoSize + 60);
+
+      // big number with gradient
+      var numGrad = ctx.createLinearGradient(0, py+photoSize+80, 0, py+photoSize+180);
+      numGrad.addColorStop(0,'#FFE9F4'); numGrad.addColorStop(1,'#FF1493');
+      ctx.fillStyle = numGrad;
+      ctx.font = 'bold 124px "Bungee","JetBrains Mono",sans-serif';
+      ctx.fillText(current.subjectId, W/2, py + photoSize + 200);
+
+      // stat grid (2x2)
+      var gy = py + photoSize + 260;
+      var gx = 100;
+      var gw = (W - 200 - 30) / 2;
+      var gh = 110;
+      var stats = [
+        {lab:'THREAT LEVEL', val: current.threat, color: threatColor(current.threat)},
+        {lab:'BIOSIGN', val: current.biosign, color:'#fff'},
+        {lab:'CONTAINMENT CELL', val: current.cell, color:'#fff'},
+        {lab:'ACQUIRED', val: current.acq, color:'#fff'}
+      ];
+      stats.forEach(function(s, i){
+        var x = gx + (i%2)*(gw+30);
+        var y = gy + Math.floor(i/2)*(gh+15);
+        ctx.fillStyle = 'rgba(255,255,255,0.04)';
+        roundRect(ctx, x, y, gw, gh, 12); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,233,244,0.12)'; ctx.lineWidth = 2;
+        roundRect(ctx, x, y, gw, gh, 12); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,233,244,0.5)';
+        ctx.font = '15px "JetBrains Mono",monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(s.lab, x+18, y+34);
+        ctx.fillStyle = s.color;
+        ctx.font = 'bold 26px "Bungee","JetBrains Mono",sans-serif';
+        ctx.fillText(s.val, x+18, y+78);
+      });
+
+      // wallet footer
+      var wy = gy + (gh+15)*2 + 30;
+      ctx.strokeStyle = 'rgba(255,20,147,0.3)';
+      ctx.setLineDash([8,8]);
+      ctx.beginPath(); ctx.moveTo(80,wy); ctx.lineTo(W-80,wy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(255,233,244,0.5)';
+      ctx.font = '15px "JetBrains Mono",monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('SUBJECT WALLET', 80, wy+30);
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'right';
+      ctx.fillText(trunc(current.address), W-80, wy+30);
+
+      // CLASSIFIED stamp
+      ctx.save();
+      ctx.translate(W-180, 220);
+      ctx.rotate(15 * Math.PI/180);
+      ctx.strokeStyle = '#FF2A2A';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(-110, -25, 220, 50);
+      ctx.fillStyle = '#FF2A2A';
+      ctx.font = 'bold 28px "Bungee","JetBrains Mono",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CLASSIFIED', 0, 8);
+      ctx.restore();
+
+      // chogi.xyz watermark
+      ctx.fillStyle = 'rgba(255,233,244,0.3)';
+      ctx.font = '14px "JetBrains Mono",monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('chogi.xyz/subject', W/2, H - 60);
+
+      // download
+      cv.toBlob(function(blob){
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'chogi-subject-' + current.subjectId + '.png';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('ID CARD DOWNLOADED');
+      }, 'image/png');
+    };
+    img.onerror = function(){ showToast('IMAGE LOAD FAILED'); };
+    img.src = '/chogi.png';
+  }
+
+  function threatColor(t){
+    return ({ALPHA:'#6eff9c',BETA:'#00D4FF',GAMMA:'#FFD96E',DELTA:'#FF8C42',OMEGA:'#FF1493'})[t] || '#fff';
+  }
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+  }
+
+  // ─── EVENTS ──────────────────────────────────────────────────────────────
+  $('btn-connect').addEventListener('click', function(){
+    if(window.ChogiConnect){
+      window.ChogiConnect.connect();
+    } else if(window.ethereum){
+      window.ethereum.request({method:'eth_requestAccounts'}).then(function(a){
+        if(a && a[0]) classify(a[0]);
+      });
+    } else {
+      showToast('NO WALLET DETECTED');
+    }
+  });
+
+  $('btn-lookup').addEventListener('click', function(){
+    var v = $('paste-addr').value.trim();
+    if(!isAddr(v)){ showToast('INVALID ADDRESS'); return; }
+    classify(v);
+  });
+
+  $('paste-addr').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ $('btn-lookup').click(); }
+  });
+
+  // listen for connect-pill event
+  window.addEventListener('chogi:connected', function(e){
+    if(e.detail && e.detail.account && !current){
+      classify(e.detail.account);
+    }
+  });
+
+  // auto-fire if already connected when page loads
+  setTimeout(function(){
+    if(window.ChogiConnect && window.ChogiConnect.isConnected() && !current){
+      classify(window.ChogiConnect.getAccount());
+    }
+  }, 400);
+
+  $('btn-copy').addEventListener('click', function(){
+    if(!current) return;
+    var text = 'SUBJECT-' + current.subjectId + ' · ' + current.threat + ' · CELL ' + current.cell;
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('COPIED: SUBJECT-' + current.subjectId);
+    }).catch(function(){ showToast('COPY FAILED'); });
+  });
+
+  $('btn-download').addEventListener('click', function(){
+    if(!current) return;
+    showToast('GENERATING ID CARD...');
+    setTimeout(downloadBadge, 100);
+  });
+
+  $('btn-tweet').addEventListener('click', function(){
+    if(!current) return;
+    var text = 'I am SUBJECT-' + current.subjectId + ' · ' + current.threat + ' · BIOSIGN ' + current.biosign +
+      '\n\nClassified by Lab 7777. The lab does not forget.\n\nFind your own classification: chogi.xyz/subject';
+    var url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+    window.open(url, '_blank');
+  });
+
+  $('btn-reset').addEventListener('click', function(){
+    current = null;
+    $('badge-wrap').classList.remove('show');
+    $('pre-connect').style.display = 'block';
+    $('paste-addr').value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+</script>
+
+</body>
+</html>
