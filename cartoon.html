@@ -363,22 +363,27 @@
   // [scene_id, duration_ms, options]
   // Total ≈ 60 sec. Tuned so video scenes end naturally and cards bridge transitions.
   // ~55 sec total. Action -> chaos -> context (family) -> mascot -> escape.
+  // Trailer-style narration weaves through every beat.
   var TIMELINE = [
     { id: 's1',          ms: 3000,  type: 'card', vo: 'Lab seven triple seven. Containment failed.' },
-    { id: 's2',          ms: 10000, type: 'video', vid: 'v-awakening', cap: 's2-cap', capAt: 1500 },
+    { id: 's2',          ms: 10000, type: 'video', vid: 'v-awakening', cap: 's2-cap', capAt: 1500,
+                         vo: 'They thought they could hold her.' },
     { id: 's5',          ms: 2000,  type: 'card', vo: 'She broke out.' },
-    { id: 's6',          ms: 1300,  type: 'meme' },
+    { id: 's6',          ms: 1300,  type: 'meme', vo: 'Loose on the timeline.' },
     { id: 's7',          ms: 1300,  type: 'meme' },
     { id: 's8',          ms: 1300,  type: 'meme' },
     { id: 's9',          ms: 1300,  type: 'meme' },
     { id: 's3',          ms: 2500,  type: 'card', vo: 'Family moves only.' },
     { id: 's4',          ms: 6000,  type: 'video', vid: 'v-cto', useVideoAudio: true },
     { id: 's-meanwhile', ms: 1800,  type: 'card' },
-    { id: 's-chog',      ms: 5000,  type: 'video', vid: 'v-chog', cap: 's-chog-cap', capAt: 800 },
+    { id: 's-chog',      ms: 5000,  type: 'video', vid: 'v-chog', cap: 's-chog-cap', capAt: 800,
+                         vo: 'Chog stayed.' },
     { id: 's10',         ms: 2500,  type: 'card', vo: 'She named herself.' },
-    { id: 's11',         ms: 5000,  type: 'comic', cap: 's11-cap', capAt: 600 },
-    { id: 's12',         ms: 6500,  type: 'video', vid: 'v-victory', cap: 's12-cap', capAt: 700 },
-    { id: 's13',         ms: 5500,  type: 'end', vo: 'Chogi. Loose on Monad.' }
+    { id: 's11',         ms: 5000,  type: 'comic', cap: 's11-cap', capAt: 600,
+                         vo: 'Mascot of Monad.' },
+    { id: 's12',         ms: 6500,  type: 'video', vid: 'v-victory', cap: 's12-cap', capAt: 700,
+                         vo: 'Loose on Monad.' },
+    { id: 's13',         ms: 5500,  type: 'end', vo: 'Chogi. On chain. On purpose.' }
   ];
 
   // ─── STATE ───────────────────────────────────────────────────────────────
@@ -524,7 +529,6 @@
   function playScene(idx){
     // trigger wipe BEFORE swap so the sweep covers the cut
     triggerWipe();
-    stopVO();
 
     // hide all
     TIMELINE.forEach(function(t){ hide(t.id); });
@@ -533,6 +537,10 @@
     sceneStartTime = Date.now();
     var t = TIMELINE[idx];
     show(t.id);
+
+    // Cancel ongoing VO only if new scene has its own VO OR new scene has video-with-audio
+    // (prevents cutting off short narration mid-meme during the montage)
+    if(t.vo || t.useVideoAudio) stopVO();
 
     // brand bug + HUD on video/comic/meme scenes
     if(t.type === 'video' || t.type === 'comic' || t.type === 'meme'){
@@ -554,7 +562,8 @@
         } else {
           v.muted = true;
           if(masterGain && audioCtx && !muted) {
-            masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
+            // duck slightly when there's narration coming
+            masterGain.gain.setTargetAtTime(t.vo ? 0.10 : 0.16, audioCtx.currentTime, 0.1);
           }
         }
         v.play().catch(function(){});
@@ -562,26 +571,29 @@
       playPulse(220, 0.4);
     } else if(t.type === 'card'){
       if(masterGain && audioCtx && !muted) {
-        masterGain.gain.setTargetAtTime(0.14, audioCtx.currentTime, 0.1);  // duck slightly for VO clarity
+        masterGain.gain.setTargetAtTime(t.vo ? 0.10 : 0.16, audioCtx.currentTime, 0.1);
       }
       playRiser();
-      // VO triggers slightly after card appears so glitch-in lands first
-      if(t.vo){
-        setTimeout(function(){ speakVO(t.vo); }, 350);
-      }
     } else if(t.type === 'comic'){
       if(masterGain && audioCtx && !muted) {
-        masterGain.gain.setTargetAtTime(0.18, audioCtx.currentTime, 0.1);
+        masterGain.gain.setTargetAtTime(t.vo ? 0.10 : 0.16, audioCtx.currentTime, 0.1);
       }
       playPulse(330, 0.6);
     } else if(t.type === 'meme'){
       playPulse(440 + (idx * 80) % 200, 0.18);
+      // duck synth on first meme that has VO line
+      if(t.vo && masterGain && audioCtx && !muted){
+        masterGain.gain.setTargetAtTime(0.10, audioCtx.currentTime, 0.1);
+      }
     } else if(t.type === 'end'){
       playPulse(440, 1.5);
-      if(t.vo){
-        setTimeout(function(){ speakVO(t.vo); }, 400);
-      }
       setTimeout(function(){ $('end-actions').style.display = 'flex'; }, 800);
+    }
+
+    // VO for any scene type that defines it, slight delay so wipe lands first
+    if(t.vo){
+      var voDelay = (t.type === 'card') ? 350 : (t.type === 'meme') ? 100 : 500;
+      setTimeout(function(){ speakVO(t.vo); }, voDelay);
     }
 
     // caption fade
