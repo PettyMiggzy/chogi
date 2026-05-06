@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CAM 07 · LAB-7777 · LIVE</title>
+<meta name="description" content="Live surveillance feed from Lab 7777. Every market event is a containment incident. Updates in real time.">
+<meta name="theme-color" content="#0a0a0a">
+
+<meta property="og:site_name" content="CHOGI">
+<meta property="og:title" content="CONTAINMENT FEED · CAM 07 · LIVE">
+<meta property="og:description" content="Live surveillance of Lab 7777. Buys, sells, and burns are all incidents.">
+<meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
+<meta property="og:url" content="https://chogi.xyz/feed">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="chogi.xyz">
+<meta name="twitter:url" content="https://chogi.xyz/feed">
+<meta name="twitter:image" content="https://chogi.xyz/og-banner.jpg">
+
+<link rel="icon" href="/chogi.png" type="image/png">
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:#000}
+  body{font-family:'Courier New',ui-monospace,monospace;color:#c4d8d8;-webkit-font-smoothing:none}
+
+  /* base feed */
+  .feed-base{position:fixed;inset:0;z-index:0;overflow:hidden;background:#000}
+  .feed-base video{width:100%;height:100%;object-fit:cover;
+    filter:grayscale(100%) contrast(1.15) brightness(0.55) sepia(0.18) hue-rotate(155deg);
+    transform:scale(1.04)}
+
+  /* scan lines */
+  .scanlines{position:fixed;inset:0;z-index:5;pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,
+      rgba(0,20,30,0.45) 3px,rgba(0,20,30,0.45) 4px);
+    mix-blend-mode:multiply}
+
+  /* vignette */
+  .vignette{position:fixed;inset:0;z-index:6;pointer-events:none;
+    background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.85) 100%)}
+
+  /* grain */
+  .grain{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0.18;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.7 0 0 0 0 0.85 0 0 0 0 0.85 0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    animation:grain-shift 0.4s steps(2) infinite}
+  @keyframes grain-shift{0%{transform:translate(0,0)}50%{transform:translate(-3px,2px)}100%{transform:translate(0,0)}}
+
+  /* glitch bar */
+  .glitch-bar{position:fixed;left:0;right:0;height:2px;background:rgba(240,80,100,0.6);
+    z-index:9;pointer-events:none;opacity:0;box-shadow:0 0 12px rgba(240,80,100,0.8)}
+  .glitch-bar.fire{animation:glitch-bar-run 0.6s linear forwards}
+  @keyframes glitch-bar-run{0%{top:-10px;opacity:1}100%{top:110%;opacity:1}}
+
+  /* HUD top */
+  .hud-top{position:fixed;top:0;left:0;right:0;z-index:20;padding:14px 20px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;letter-spacing:0.08em;
+    text-shadow:0 0 6px rgba(0,255,200,0.3),0 1px 0 rgba(0,0,0,0.8);pointer-events:none}
+  .hud-top .left,.hud-top .right{display:flex;align-items:center;gap:14px}
+  .rec-dot{width:11px;height:11px;border-radius:50%;background:#ff2a2a;
+    box-shadow:0 0 10px #ff2a2a,0 0 20px rgba(255,42,42,0.4);
+    animation:rec-blink 1.4s ease-in-out infinite}
+  @keyframes rec-blink{0%,49%{opacity:1}50%,100%{opacity:0.25}}
+  .cam-label{color:#fff;font-weight:bold}
+  .session{color:#6eb4b4}
+  .timestamp{color:#c4d8d8;font-variant-numeric:tabular-nums}
+  .signal-bars{display:flex;gap:2px;align-items:end;height:14px}
+  .signal-bars span{width:3px;background:#6eb4b4;box-shadow:0 0 4px rgba(110,180,180,0.5)}
+  .signal-bars span:nth-child(1){height:4px}
+  .signal-bars span:nth-child(2){height:7px}
+  .signal-bars span:nth-child(3){height:10px}
+  .signal-bars span:nth-child(4){height:14px}
+
+  /* HUD left stats */
+  .hud-left{position:fixed;top:64px;left:20px;z-index:20;width:230px;padding:12px 14px;
+    border:1px solid rgba(110,180,180,0.4);background:rgba(0,18,18,0.55);
+    backdrop-filter:blur(2px);font-size:11px;
+    text-shadow:0 0 5px rgba(0,255,200,0.25)}
+  .hud-left .header{border-bottom:1px solid rgba(110,180,180,0.3);padding-bottom:6px;margin-bottom:8px;
+    display:flex;justify-content:space-between;color:#fff;letter-spacing:0.1em}
+  .stat-row{display:flex;justify-content:space-between;padding:3px 0;color:#8fbcbc}
+  .stat-row .v{color:#fff;font-weight:bold;font-variant-numeric:tabular-nums}
+  .stat-row .v.up{color:#6eff9c;text-shadow:0 0 6px rgba(110,255,156,0.4)}
+  .stat-row .v.dn{color:#ff7a7a;text-shadow:0 0 6px rgba(255,122,122,0.4)}
+  .containment-status{margin-top:8px;padding:5px 8px;
+    background:rgba(255,42,42,0.18);border-left:2px solid #ff2a2a;color:#ffb0b0;
+    font-size:10px;letter-spacing:0.12em;animation:containment-pulse 2.2s ease-in-out infinite}
+  @keyframes containment-pulse{0%,100%{opacity:1}50%{opacity:0.55}}
+
+  /* HUD right log */
+  .hud-right{position:fixed;top:64px;right:20px;z-index:20;width:280px;padding:12px 14px;
+    border:1px solid rgba(110,180,180,0.4);background:rgba(0,18,18,0.55);
+    backdrop-filter:blur(2px);font-size:11px;max-height:60vh;
+    text-shadow:0 0 5px rgba(0,255,200,0.25)}
+  .hud-right .header{border-bottom:1px solid rgba(110,180,180,0.3);padding-bottom:6px;margin-bottom:8px;
+    display:flex;justify-content:space-between;color:#fff;letter-spacing:0.1em}
+  .log{max-height:calc(60vh - 50px);overflow-y:auto;display:flex;flex-direction:column-reverse}
+  .log::-webkit-scrollbar{width:4px}
+  .log::-webkit-scrollbar-thumb{background:rgba(110,180,180,0.3)}
+  .log-row{padding:4px 0;border-bottom:1px dashed rgba(110,180,180,0.15);
+    font-size:11px;line-height:1.4;color:#8fbcbc;animation:log-in 0.3s ease-out}
+  @keyframes log-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+  .log-row .ts{color:#5a8888;margin-right:6px}
+  .log-row.buy .tag{color:#6eff9c}
+  .log-row.sell .tag{color:#ff7a7a}
+  .log-row.burn .tag{color:#ffd96e;text-shadow:0 0 8px rgba(255,217,110,0.5)}
+  .log-row.alert .tag{color:#fff;text-shadow:0 0 8px rgba(255,255,255,0.6)}
+
+  /* HUD bottom marquee */
+  .hud-bottom{position:fixed;bottom:0;left:0;right:0;z-index:20;
+    background:rgba(0,18,18,0.7);border-top:1px solid rgba(110,180,180,0.4);
+    padding:7px 0;overflow:hidden;font-size:11px;letter-spacing:0.12em;color:#6eb4b4}
+  .marquee{display:inline-block;white-space:nowrap;animation:marquee-scroll 60s linear infinite;padding-left:100%}
+  @keyframes marquee-scroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+  .marquee span{margin:0 28px;color:#8fbcbc}
+  .marquee span.alert{color:#ff7a7a}
+
+  /* return link */
+  .return-link{position:fixed;bottom:34px;left:20px;z-index:25;
+    font-size:10px;letter-spacing:0.15em;color:rgba(196,216,216,0.55);
+    text-decoration:none;border:1px solid rgba(110,180,180,0.25);
+    padding:5px 10px;background:rgba(0,18,18,0.5);transition:all 0.2s}
+  .return-link:hover{color:#fff;border-color:rgba(255,255,255,0.4)}
+
+  /* sprite layer */
+  .sprite-stage{position:fixed;inset:0;z-index:15;pointer-events:none;overflow:hidden}
+  .chogi-runner{position:absolute;bottom:60px;left:-160px;width:120px;height:auto;
+    filter:grayscale(100%) brightness(0.7) contrast(1.3) drop-shadow(0 0 6px rgba(255,80,180,0.4));
+    animation:chogi-run 4s linear forwards;will-change:transform}
+  .chogi-runner.tier-2{bottom:120px;width:90px;animation-duration:3.6s;animation-delay:0.2s;opacity:0.85}
+  .chogi-runner.tier-3{bottom:200px;width:70px;animation-duration:3.2s;animation-delay:0.45s;opacity:0.7}
+  @keyframes chogi-run{
+    0%{transform:translateX(0) scaleX(1) rotate(0deg)}
+    25%{transform:translateX(35vw) scaleX(1) rotate(-2deg)}
+    50%{transform:translateX(60vw) scaleX(1) rotate(2deg)}
+    100%{transform:translateX(120vw) scaleX(1) rotate(0deg)}
+  }
+
+  /* full-screen flash overlays */
+  .flash{position:fixed;inset:0;z-index:18;pointer-events:none;opacity:0}
+  .flash.white{background:#fff}
+  .flash.red{background:rgba(255,42,42,0.5)}
+  .flash.gold{background:rgba(255,217,110,0.45)}
+  .flash.fire-white{animation:flash-white 0.3s ease-out forwards}
+  .flash.fire-red{animation:flash-red 0.7s ease-out forwards}
+  .flash.fire-gold{animation:flash-gold 1.1s ease-out forwards}
+  @keyframes flash-white{0%{opacity:0}30%{opacity:0.95}100%{opacity:0}}
+  @keyframes flash-red{0%{opacity:0}20%{opacity:0.6}40%{opacity:0.2}60%{opacity:0.6}100%{opacity:0}}
+  @keyframes flash-gold{0%{opacity:0}30%{opacity:0.7}100%{opacity:0}}
+
+  /* screen shake on burn */
+  .shake{animation:shake-it 0.4s linear}
+  @keyframes shake-it{
+    0%,100%{transform:translate(0,0)}
+    20%{transform:translate(-4px,2px)}
+    40%{transform:translate(3px,-3px)}
+    60%{transform:translate(-2px,3px)}
+    80%{transform:translate(4px,-1px)}
+  }
+
+  /* incident stamp (drops in on alerts) */
+  .incident-stamp{position:fixed;top:42%;left:50%;transform:translate(-50%,-50%) rotate(-8deg) scale(0.6);
+    z-index:19;font-size:38px;letter-spacing:0.18em;font-weight:bold;
+    color:#ff2a2a;border:5px solid #ff2a2a;padding:10px 24px;
+    background:rgba(0,0,0,0.5);text-shadow:0 0 12px rgba(255,42,42,0.6);
+    box-shadow:0 0 30px rgba(255,42,42,0.4),inset 0 0 20px rgba(255,42,42,0.3);
+    opacity:0;pointer-events:none;font-family:'Courier New',monospace}
+  .incident-stamp.fire{animation:stamp-in 1.6s ease-out forwards}
+  .incident-stamp.gold{color:#ffd96e;border-color:#ffd96e;text-shadow:0 0 12px rgba(255,217,110,0.6);
+    box-shadow:0 0 30px rgba(255,217,110,0.4),inset 0 0 20px rgba(255,217,110,0.3)}
+  @keyframes stamp-in{
+    0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.2)}
+    25%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}
+    75%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.05)}
+  }
+
+  /* connection state */
+  .conn-status{position:fixed;bottom:34px;right:20px;z-index:25;font-size:10px;
+    letter-spacing:0.15em;padding:5px 10px;background:rgba(0,18,18,0.5);
+    border:1px solid rgba(110,180,180,0.25)}
+  .conn-status.live{color:#6eff9c;border-color:rgba(110,255,156,0.4)}
+  .conn-status.lost{color:#ff7a7a;border-color:rgba(255,122,122,0.4)}
+
+  /* boot screen */
+  .boot{position:fixed;inset:0;z-index:100;background:#000;display:flex;
+    align-items:center;justify-content:center;flex-direction:column;
+    color:#6eb4b4;font-size:12px;letter-spacing:0.15em;
+    transition:opacity 0.6s ease-out}
+  .boot.gone{opacity:0;pointer-events:none}
+  .boot .logo{font-size:18px;color:#fff;margin-bottom:14px;letter-spacing:0.3em}
+  .boot .seq{height:60px;width:380px;font-size:11px;line-height:1.6}
+  .boot .seq div{opacity:0;animation:boot-line 0.4s forwards}
+  .boot .seq div:nth-child(1){animation-delay:0.1s}
+  .boot .seq div:nth-child(2){animation-delay:0.4s}
+  .boot .seq div:nth-child(3){animation-delay:0.7s}
+  .boot .seq div:nth-child(4){animation-delay:1.0s;color:#6eff9c}
+  .boot .seq div:nth-child(5){animation-delay:1.3s;color:#ff7a7a}
+  @keyframes boot-line{from{opacity:0}to{opacity:1}}
+
+  /* mobile */
+  @media (max-width:700px){
+    .hud-left{width:calc(50% - 26px);font-size:10px;padding:8px 10px}
+    .hud-right{width:calc(50% - 26px);left:auto;right:20px;font-size:10px;padding:8px 10px;max-height:40vh}
+    .log{max-height:calc(40vh - 40px)}
+    .hud-top{padding:8px 12px;font-size:10px}
+    .hud-top .session{display:none}
+    .incident-stamp{font-size:24px;padding:8px 16px}
+    .return-link,.conn-status{font-size:9px;padding:4px 7px}
+  }
+</style>
+</head>
+<body>
+
+<!-- BOOT SEQUENCE -->
+<div class="boot" id="boot">
+  <div class="logo">▌LAB 7777 · CAM 07▐</div>
+  <div class="seq">
+    <div>&gt; Establishing uplink to surveillance mesh...</div>
+    <div>&gt; Calibrating optical sensors... OK</div>
+    <div>&gt; Loading dexscreener telemetry... OK</div>
+    <div>&gt; Loading Monad RPC channel... OK</div>
+    <div>&gt; CONTAINMENT BREACH DETECTED · feed live</div>
+  </div>
+</div>
+
+<!-- BASE LAB FEED VIDEO -->
+<div class="feed-base">
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="/chogi-origin.webm" type="video/webm">
+    <source src="/chogi-origin.mp4" type="video/mp4">
+  </video>
+</div>
+
+<!-- OVERLAYS -->
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+<div class="glitch-bar" id="glitch-bar"></div>
+
+<!-- FLASH LAYERS -->
+<div class="flash white" id="flash-white"></div>
+<div class="flash red" id="flash-red"></div>
+<div class="flash gold" id="flash-gold"></div>
+
+<!-- INCIDENT STAMP -->
+<div class="incident-stamp" id="incident-stamp">CONTAINMENT BREACH</div>
+
+<!-- SPRITE STAGE (Chogis run here) -->
+<div class="sprite-stage" id="sprite-stage"></div>
+
+<!-- HUD: TOP -->
+<div class="hud-top">
+  <div class="left">
+    <span class="rec-dot"></span>
+    <span class="cam-label">CAM 07</span>
+    <span>· LAB-7777 ·</span>
+    <span class="session" id="session">SESSION 7777-A</span>
+  </div>
+  <div class="right">
+    <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
+    <span>SIGNAL</span>
+    <span class="timestamp" id="timestamp">--:--:--</span>
+  </div>
+</div>
+
+<!-- HUD: LEFT STATS -->
+<div class="hud-left">
+  <div class="header"><span>SUBJECT 7777</span><span id="biosign-led">●</span></div>
+  <div class="stat-row"><span>MARKET</span><span class="v" id="stat-price">$ ----</span></div>
+  <div class="stat-row"><span>MCAP</span><span class="v" id="stat-mcap">$ ----</span></div>
+  <div class="stat-row"><span>24H</span><span class="v" id="stat-change">--%</span></div>
+  <div class="stat-row"><span>BUYS 1H</span><span class="v" id="stat-buys">--</span></div>
+  <div class="stat-row"><span>SELLS 1H</span><span class="v" id="stat-sells">--</span></div>
+  <div class="stat-row"><span>BURNED</span><span class="v" id="stat-burned">--</span></div>
+  <div class="stat-row"><span>BIOSIGN</span><span class="v up" id="stat-biosign">STABLE</span></div>
+  <div class="containment-status" id="containment">CONTAINMENT: BREACHED</div>
+</div>
+
+<!-- HUD: RIGHT LOG -->
+<div class="hud-right">
+  <div class="header"><span>INCIDENT LOG</span><span id="incident-count">0</span></div>
+  <div class="log" id="log"></div>
+</div>
+
+<!-- HUD: BOTTOM MARQUEE -->
+<div class="hud-bottom">
+  <div class="marquee" id="marquee">
+    <span>▌LAB 7777 SURVEILLANCE NETWORK</span>
+    <span>▌SUBJECT REMAINS AT LARGE</span>
+    <span class="alert">▌DO NOT APPROACH SUBJECT 7777</span>
+    <span>▌FEED REFRESH: 20 SECONDS</span>
+    <span>▌CONTAINMENT PROTOCOLS COMPROMISED</span>
+    <span>▌ALL INCIDENTS LOGGED VIA MONAD CHAIN</span>
+    <span class="alert">▌HOSTILE INTELLIGENCE OBSERVED</span>
+    <span>▌RESEARCHERS ON SECONDARY ALERT</span>
+    <span>▌EXPERIMENT 7777 STATUS: LOOSE</span>
+  </div>
+</div>
+
+<!-- FOOTER LINKS -->
+<a href="/" class="return-link">◀ RETURN TO BASE</a>
+<div class="conn-status live" id="conn">● LIVE</div>
+
+<script>
+(function(){
+  // ─── CONFIG ──────────────────────────────────────────────────────────────
+  var TOKEN     = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var DEAD      = '0x000000000000000000000000000000000000dead';
+  var DEX_URL   = 'https://api.dexscreener.com/latest/dex/tokens/' + TOKEN;
+  var RPC_URL   = 'https://rpc.monad.xyz';
+  var POLL_MS   = 20000;
+  var DECIMALS  = 18;
+
+  // ─── STATE ───────────────────────────────────────────────────────────────
+  var state = {
+    lastBuys: null,
+    lastSells: null,
+    lastDead: null,
+    incidents: 0,
+    bootDone: false,
+    sessionId: 'SESS-' + (Math.random()*9000+1000|0)
+  };
+  document.getElementById('session').textContent = state.sessionId;
+
+  // ─── HELPERS ─────────────────────────────────────────────────────────────
+  function $(id){ return document.getElementById(id); }
+  function pad(n){ return n<10?'0'+n:''+n; }
+  function fmtTime(d){ return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
+  function fmtPrice(p){
+    if(!p) return '$ ----';
+    p = +p;
+    if(p < 0.0001) return '$' + p.toExponential(2);
+    if(p < 1) return '$' + p.toFixed(6);
+    return '$' + p.toFixed(4);
+  }
+  function fmtNum(n){
+    if(n == null) return '--';
+    n = +n;
+    if(n >= 1e9) return (n/1e9).toFixed(2)+'B';
+    if(n >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if(n >= 1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toFixed(0);
+  }
+
+  // ─── CLOCK ───────────────────────────────────────────────────────────────
+  setInterval(function(){
+    $('timestamp').textContent = fmtTime(new Date());
+  }, 1000);
+
+  // ─── INCIDENT LOG ────────────────────────────────────────────────────────
+  function logIncident(kind, text){
+    state.incidents++;
+    $('incident-count').textContent = state.incidents;
+    var row = document.createElement('div');
+    row.className = 'log-row ' + kind;
+    var ts = fmtTime(new Date());
+    var tag = kind.toUpperCase();
+    row.innerHTML = '<span class="ts">'+ts+'</span><span class="tag">['+tag+']</span> '+text;
+    var log = $('log');
+    log.insertBefore(row, log.firstChild);
+    // cap log at 50 rows
+    while(log.children.length > 50) log.removeChild(log.lastChild);
+  }
+
+  // ─── EFFECTS ─────────────────────────────────────────────────────────────
+  function fireFlash(color){
+    var el = $('flash-' + color);
+    el.classList.remove('fire-' + color);
+    void el.offsetWidth;
+    el.classList.add('fire-' + color);
+  }
+  function fireGlitchBar(){
+    var el = $('glitch-bar');
+    el.classList.remove('fire');
+    void el.offsetWidth;
+    el.classList.add('fire');
+  }
+  function fireShake(){
+    document.body.classList.remove('shake');
+    void document.body.offsetWidth;
+    document.body.classList.add('shake');
+    setTimeout(function(){ document.body.classList.remove('shake'); }, 500);
+  }
+  function fireStamp(text, gold){
+    var el = $('incident-stamp');
+    el.textContent = text;
+    el.classList.toggle('gold', !!gold);
+    el.classList.remove('fire');
+    void el.offsetWidth;
+    el.classList.add('fire');
+  }
+  function spawnChogi(tier){
+    var stage = $('sprite-stage');
+    var img = document.createElement('img');
+    img.src = '/chogi.png';
+    img.className = 'chogi-runner' + (tier ? ' tier-' + tier : '');
+    img.alt = '';
+    stage.appendChild(img);
+    setTimeout(function(){ if(img.parentNode) img.parentNode.removeChild(img); }, 5000);
+  }
+
+  // ─── EVENT TRIGGERS ──────────────────────────────────────────────────────
+  function onNewBuy(count, totalUsd){
+    if(count <= 0) return;
+    // spawn 1-3 Chogis depending on burst size
+    var spawns = Math.min(count, 3);
+    for(var i=0; i<spawns; i++){
+      setTimeout(function(t){ return function(){ spawnChogi(t); }; }(i+1), i*250);
+    }
+    var msg = count === 1
+      ? 'subject acquired bag · $' + fmtNum(totalUsd) + ' detected'
+      : count + ' new acquisitions · $' + fmtNum(totalUsd) + ' through perimeter';
+    logIncident('buy', msg);
+    if(count >= 5){
+      fireFlash('gold');
+      fireStamp('STAMPEDE', true);
+    }
+  }
+  function onNewSell(count, totalUsd){
+    if(count <= 0) return;
+    fireFlash('red');
+    var msg = count === 1
+      ? 'paperhand intercepted · $' + fmtNum(totalUsd) + ' fled scene'
+      : count + ' subjects fled · $' + fmtNum(totalUsd) + ' lost to evac';
+    logIncident('sell', msg);
+    if(count >= 3){
+      fireStamp('PERIMETER BREACH');
+    }
+  }
+  function onBurn(amount){
+    fireFlash('white');
+    fireShake();
+    fireGlitchBar();
+    fireStamp('SUPPLY INCINERATED', true);
+    logIncident('burn', fmtNum(amount) + ' $CHOGI vaporized · sent to void');
+  }
+
+  // ─── DEXSCREENER POLL ────────────────────────────────────────────────────
+  function pollDex(){
+    return fetch(DEX_URL, { cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var p = (d.pairs && d.pairs[0]) || null;
+        if(!p) throw new Error('no pair');
+        // update stats
+        $('stat-price').textContent = fmtPrice(p.priceUsd);
+        $('stat-mcap').textContent = '$' + fmtNum(p.marketCap || p.fdv);
+        var ch = p.priceChange && p.priceChange.h24;
+        if(ch != null){
+          var v = $('stat-change');
+          v.textContent = (ch>0?'+':'') + ch.toFixed(1) + '%';
+          v.className = 'v ' + (ch>=0?'up':'dn');
+        }
+        var buys = (p.txns && p.txns.h1 && p.txns.h1.buys) || 0;
+        var sells = (p.txns && p.txns.h1 && p.txns.h1.sells) || 0;
+        var volBuys = (p.volume && p.volume.h1) || 0;
+        $('stat-buys').textContent = buys;
+        $('stat-sells').textContent = sells;
+        // biosign: based on buy/sell ratio
+        var bio = $('stat-biosign');
+        if(buys + sells === 0){ bio.textContent = 'IDLE'; bio.className = 'v'; }
+        else if(buys >= sells * 3){ bio.textContent = 'COOKING'; bio.className = 'v up'; }
+        else if(sells > buys){ bio.textContent = 'CRITICAL'; bio.className = 'v dn'; }
+        else { bio.textContent = 'STABLE'; bio.className = 'v up'; }
+
+        // detect deltas (skip first poll — establishes baseline)
+        if(state.lastBuys != null){
+          var newBuys = Math.max(0, buys - state.lastBuys);
+          var newSells = Math.max(0, sells - state.lastSells);
+          // estimate per-tx avg from h1 volume
+          var avgPerTx = buys > 0 ? volBuys / buys : 0;
+          if(newBuys > 0) onNewBuy(newBuys, newBuys * avgPerTx);
+          if(newSells > 0) onNewSell(newSells, newSells * avgPerTx);
+        }
+        state.lastBuys = buys;
+        state.lastSells = sells;
+        setConn(true);
+      })
+      .catch(function(e){
+        console.warn('dex poll fail', e);
+        setConn(false);
+      });
+  }
+
+  // ─── RPC POLL (burns) ────────────────────────────────────────────────────
+  function pollBurn(){
+    var deadPadded = '000000000000000000000000' + DEAD.slice(2);
+    var data = '0x70a08231' + deadPadded;
+    return fetch(RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'eth_call',
+        params: [{ to: TOKEN, data: data }, 'latest']
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d.result) return;
+      var bal = BigInt(d.result);
+      var divisor = BigInt(10) ** BigInt(DECIMALS);
+      var human = Number(bal / divisor);
+      $('stat-burned').textContent = fmtNum(human);
+      if(state.lastDead != null){
+        var delta = Number((bal - state.lastDead) / divisor);
+        if(delta > 0) onBurn(delta);
+      }
+      state.lastDead = bal;
+    })
+    .catch(function(e){ console.warn('rpc poll fail', e); });
+  }
+
+  // ─── CONNECTION INDICATOR ────────────────────────────────────────────────
+  function setConn(live){
+    var el = $('conn');
+    el.className = 'conn-status ' + (live ? 'live' : 'lost');
+    el.textContent = live ? '● LIVE' : '● SIGNAL LOST';
+  }
+
+  // ─── BOOT ────────────────────────────────────────────────────────────────
+  function boot(){
+    setTimeout(function(){
+      $('boot').classList.add('gone');
+      setTimeout(function(){ $('boot').remove(); }, 800);
+      state.bootDone = true;
+      logIncident('alert', 'feed established · subject 7777 under observation');
+    }, 1800);
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────────────
+  boot();
+  pollDex();
+  pollBurn();
+  setInterval(pollDex, POLL_MS);
+  setInterval(pollBurn, POLL_MS);
+
+  // pause polling when tab hidden to be polite to APIs
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden){ pollDex(); pollBurn(); }
+  });
+
+  // Easter egg: press B to fire a fake burn (testing)
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'b' || e.key === 'B'){ onBurn(1234567); }
+    if(e.key === 's' || e.key === 'S'){ onNewSell(2, 450); }
+    if(e.key === 'c' || e.key === 'C'){ onNewBuy(6, 2400); }
+  });
+})();
+</script>
+
+</body>
+</html>
