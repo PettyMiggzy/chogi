@@ -15,7 +15,7 @@
 
     // ─── on-chain ────────────────────────────────────────────────
     CHAIN_HEX:   '0x8f',
-    RPC:         '/api/rpc',
+    RPC:         '',
     EXPLORER:    'https://monadexplorer.com',
     TOKEN:       '0x5E1b1A14c8758104B8560514e94ab8320e587777',
     DEAD:        '0x000000000000000000000000000000000000dEaD',
