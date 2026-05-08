@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>PFP MACHINE · Get Tagged · CHOGI</title>
-<meta name="description" content="One-click escape kit. Drop your face in, get the bow, the lab tag, the #7777 ESCAPED watermark. Share to X. Be loose on Monad.">
+<title>PFP MACHINE · Stack Stickers · CHOGI</title>
+<meta name="description" content="One-click escape kit. Drop your face in, stack as many stickers as you want — bows, crowns, hearts, eggs. Drag, scale, rotate. Share to X. Be loose on Monad.">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:title" content="PFP MACHINE · Escape the Lab">
-<meta property="og:description" content="Drop your face in. Get the bow. Get the tag. Get loose.">
+<meta property="og:description" content="Drop your face. Stack the stickers. Get loose.">
 <meta property="og:image" content="https://chogi.xyz/og-banner.jpg">
 <meta property="og:url" content="https://chogi.xyz/pfp">
 <meta name="twitter:card" content="summary_large_image">
@@ -25,6 +25,7 @@
   --bg-2:#2a0a4a;
   --pink:#FF1493;
   --pink-soft:#FF8FBA;
+  --pink-glow:rgba(255,20,147,.6);
   --purple:#A855F7;
   --purple-deep:#7C3AED;
   --gold:#FFD55A;
@@ -50,7 +51,7 @@ body{
 img{display:block;max-width:100%;height:auto}
 a{color:inherit;text-decoration:none}
 button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
-input{font:inherit;color:inherit}
+input,select{font:inherit;color:inherit}
 
 .sky{
   position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -101,12 +102,10 @@ main, header{position:relative;z-index:2}
   margin-bottom:14px;
 }
 .eyebrow::before, .eyebrow::after{
-  content:'';width:36px;height:1px;background:var(--pink);
-  box-shadow:0 0 8px rgba(255,20,147,.6);
+  content:'';width:36px;height:1px;background:var(--pink);box-shadow:0 0 8px rgba(255,20,147,.6);
 }
 .hero h1{
-  font-family:var(--display);
-  font-size:clamp(48px,8.5vw,92px);line-height:.93;
+  font-family:var(--display);font-size:clamp(48px,8.5vw,92px);line-height:.93;
   color:var(--cream);margin-bottom:10px;
   text-shadow:0 0 22px rgba(255,20,147,.32),0 0 56px rgba(168,85,247,.3);
 }
@@ -127,9 +126,9 @@ main, header{position:relative;z-index:2}
 /* ── workshop ── */
 .shop{
   max-width:1180px;margin:18px auto 60px;padding:0 22px;
-  display:grid;grid-template-columns:1fr 340px;gap:22px;
+  display:grid;grid-template-columns:1fr 380px;gap:22px;
 }
-@media(max-width:880px){.shop{grid-template-columns:1fr}}
+@media(max-width:920px){.shop{grid-template-columns:1fr}}
 
 .canvas-wrap{
   background:rgba(26,4,54,.6);
@@ -140,57 +139,64 @@ main, header{position:relative;z-index:2}
   content:'CANVAS · 800×800';position:absolute;top:14px;right:18px;
   font-family:var(--mono);font-size:9.5px;letter-spacing:.32em;color:var(--gold);font-weight:700;
 }
+.canvas-wrap::after{
+  content:'';position:absolute;top:14px;left:18px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.32em;color:var(--ink-faint);font-weight:700;
+}
 .stage{
-  aspect-ratio:1/1;width:100%;max-width:600px;margin:24px auto 0;
+  aspect-ratio:1/1;width:100%;max-width:560px;margin:24px auto 0;
   border-radius:14px;overflow:hidden;position:relative;
   background:
     linear-gradient(45deg, rgba(168,85,247,.12) 25%, transparent 25%, transparent 75%, rgba(168,85,247,.12) 75%) 0 0/24px 24px,
     linear-gradient(45deg, rgba(168,85,247,.12) 25%, transparent 25%, transparent 75%, rgba(168,85,247,.12) 75%) 12px 12px/24px 24px,
     #0a0118;
-  border:1.5px dashed var(--rule);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
+  border:1.5px dashed var(--rule);cursor:pointer;
 }
-.stage.has-image{cursor:default;border-style:solid}
+.stage.has-image{border-style:solid}
 .stage.dragover{
   border-color:var(--pink);background:rgba(255,20,147,.08);
   box-shadow:inset 0 0 80px rgba(255,20,147,.15);
 }
-.stage canvas{
-  position:absolute;inset:0;width:100%;height:100%;
-}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:none}
+.stage.has-image canvas{display:block}
+
 .upload-prompt{
   text-align:center;padding:40px 22px;pointer-events:none;
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
+.stage.has-image .upload-prompt{display:none}
 .upload-prompt .icon{font-size:64px;margin-bottom:18px;animation:bob 3s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.upload-prompt h3{
-  font-family:var(--display);font-size:20px;letter-spacing:1.6px;color:var(--cream);
-  margin-bottom:10px;
-}
-.upload-prompt p{
-  font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ink-faint);
-  text-transform:uppercase;line-height:1.7;
-}
+.upload-prompt h3{font-family:var(--display);font-size:20px;letter-spacing:1.6px;color:var(--cream);margin-bottom:10px}
+.upload-prompt p{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ink-faint);text-transform:uppercase;line-height:1.7}
 
-.bow-handle{
-  position:absolute;width:46px;height:46px;
-  border-radius:50%;background:rgba(255,20,147,.16);
-  border:2px solid var(--pink);
-  display:none;align-items:center;justify-content:center;
-  cursor:grab;font-size:18px;
+/* sticker handles overlaid on stage */
+.handle{
+  position:absolute;
   transform:translate(-50%,-50%);
+  cursor:grab;font-size:36px;line-height:1;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.45));
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   z-index:10;
-  box-shadow:0 0 0 1px rgba(255,20,147,.4), 0 4px 12px rgba(255,20,147,.32);
+  /* the handle IS the visual sticker on screen — opacity+outline mark selected */
+  transition:filter .15s, transform .12s;
 }
-.stage.has-image .bow-handle{display:flex}
-.bow-handle:active{cursor:grabbing;background:rgba(255,20,147,.32)}
+.handle:active{cursor:grabbing}
+.handle.selected{
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.45)) drop-shadow(0 0 8px var(--pink));
+}
+.handle.selected::after{
+  content:'';position:absolute;inset:-12px;border-radius:50%;
+  border:2px dashed var(--pink);box-shadow:0 0 14px rgba(255,20,147,.5);
+  pointer-events:none;animation:selPulse 1.5s ease-in-out infinite;
+}
+@keyframes selPulse{50%{opacity:.45}}
 
-/* ── controls ── */
+/* ── controls panel ── */
 .controls{
   background:rgba(26,4,54,.6);
   border:1.5px solid var(--rule);border-radius:22px;
-  padding:24px;
+  padding:22px;
 }
 .ctrl-section{margin-bottom:22px}
 .ctrl-section:last-of-type{margin-bottom:0}
@@ -199,13 +205,82 @@ main, header{position:relative;z-index:2}
   margin-bottom:12px;display:flex;align-items:center;gap:8px;text-transform:uppercase;
 }
 .ctrl-section h3 .ico{font-size:18px}
+.ctrl-section h3 .count{
+  margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  color:var(--ink-faint);font-weight:600;
+}
+
+/* base mode buttons */
+.upload-btn{
+  display:block;width:100%;padding:13px;border-radius:12px;
+  background:rgba(168,85,247,.14);border:1.5px solid var(--purple);
+  color:var(--cream);font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+  text-align:center;cursor:pointer;transition:.15s;margin-bottom:10px;
+}
+.upload-btn:hover{background:rgba(168,85,247,.24)}
+
+.preset-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+}
+.preset-btn{
+  padding:8px 6px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid var(--rule);
+  cursor:pointer;transition:.15s;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.preset-btn:hover{border-color:var(--pink);background:rgba(255,20,147,.06)}
+.preset-btn img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:rgba(0,0,0,.35)}
+.preset-btn .nm{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
+  color:var(--ink-dim);font-weight:700;text-transform:uppercase;
+}
+
+/* sticker palette */
+.palette{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:5px;
+}
+.pal-btn{
+  aspect-ratio:1/1;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid var(--rule);
+  cursor:pointer;transition:.15s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;line-height:1;
+  position:relative;
+}
+.pal-btn:hover{border-color:var(--pink);background:rgba(255,20,147,.08);transform:translateY(-1px)}
+.pal-btn:active{transform:scale(.94)}
+.pal-btn .nm{
+  position:absolute;bottom:1px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:7px;letter-spacing:.1em;color:var(--ink-faint);font-weight:700;
+}
+
+/* selected sticker controls */
+.sel-card{
+  background:linear-gradient(135deg,rgba(255,20,147,.1),rgba(168,85,247,.05));
+  border:1.5px solid var(--pink);border-radius:13px;padding:14px;margin-top:12px;
+}
+.sel-head{
+  display:flex;align-items:center;gap:10px;margin-bottom:12px;
+}
+.sel-head .emoji{font-size:32px;line-height:1}
+.sel-head .label{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.28em;
+  color:var(--ink-faint);font-weight:700;text-transform:uppercase;
+}
+.sel-head .label b{display:block;color:var(--cream);font-family:var(--display);font-size:13px;letter-spacing:.04em;margin-top:2px}
+.sel-head .del{
+  margin-left:auto;padding:7px 12px;border-radius:9px;
+  background:rgba(255,107,138,.12);border:1px solid var(--red);color:var(--red);
+  font-family:var(--display);font-size:9.5px;letter-spacing:1.2px;
+}
+.sel-head .del:hover{background:rgba(255,107,138,.22)}
 
 .ctrl-row{
-  display:flex;align-items:center;gap:10px;margin-bottom:10px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
   color:var(--ink-faint);text-transform:uppercase;
 }
-.ctrl-row label{flex-shrink:0;width:70px;font-weight:700}
+.ctrl-row label{flex-shrink:0;width:60px;font-weight:700}
 .ctrl-row input[type="range"]{
   flex:1;-webkit-appearance:none;appearance:none;
   height:4px;background:var(--rule);border-radius:99px;outline:none;
@@ -216,16 +291,14 @@ main, header{position:relative;z-index:2}
   background:linear-gradient(135deg,var(--pink),var(--purple));
   cursor:grab;box-shadow:0 0 0 2px rgba(0,0,0,.3),0 0 8px rgba(255,20,147,.4);
 }
-.ctrl-row input[type="range"]::-moz-range-thumb{
-  width:16px;height:16px;border-radius:50%;border:none;
-  background:linear-gradient(135deg,var(--pink),var(--purple));
-  cursor:grab;
-}
-.ctrl-row .v{
-  flex-shrink:0;width:42px;text-align:right;
-  font-family:var(--display);font-size:11px;color:var(--gold);letter-spacing:.04em;
+.ctrl-row .v{flex-shrink:0;width:46px;text-align:right;font-family:var(--display);font-size:11px;color:var(--gold);letter-spacing:.04em}
+
+.sel-empty{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  color:var(--ink-faint);text-transform:uppercase;text-align:center;padding:14px 8px;line-height:1.7;
 }
 
+/* stamps section */
 .toggle{
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 12px;border-radius:11px;
@@ -234,31 +307,29 @@ main, header{position:relative;z-index:2}
 }
 .toggle:hover{border-color:var(--purple)}
 .toggle.on{background:rgba(168,85,247,.13);border-color:var(--purple)}
-.toggle .label{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
-  color:var(--ink-dim);font-weight:700;text-transform:uppercase;
-}
+.toggle .label{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--ink-dim);font-weight:700;text-transform:uppercase}
 .toggle.on .label{color:var(--cream)}
-.toggle .pill{
-  width:36px;height:20px;border-radius:99px;
-  background:rgba(255,255,255,.1);position:relative;transition:.18s;
-  border:1px solid var(--rule);
-}
-.toggle .pill::after{
-  content:'';position:absolute;top:2px;left:2px;
-  width:14px;height:14px;border-radius:50%;
-  background:var(--ink-faint);transition:.18s;
-}
+.toggle .pill{width:36px;height:20px;border-radius:99px;background:rgba(255,255,255,.1);position:relative;transition:.18s;border:1px solid var(--rule)}
+.toggle .pill::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ink-faint);transition:.18s}
 .toggle.on .pill{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent}
 .toggle.on .pill::after{transform:translateX(16px);background:#fff}
+.corner-presets{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.corner-btn{
+  flex:1;min-width:60px;padding:6px 10px;border-radius:99px;
+  background:rgba(255,255,255,.04);border:1px solid var(--rule);
+  color:var(--ink-dim);font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;font-weight:700;
+  text-transform:uppercase;
+}
+.corner-btn:hover{border-color:var(--pink);color:var(--pink)}
+.corner-btn.active{background:rgba(255,20,147,.14);border-color:var(--pink);color:var(--pink)}
 
 .hint{
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+  font-family:var(--mono);font-size:9px;letter-spacing:.16em;
   color:var(--ink-faint);text-transform:uppercase;
   margin-top:8px;line-height:1.7;
 }
 
-/* ── action bar ── */
+/* actions */
 .actions{
   display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
   margin-top:18px;
@@ -283,24 +354,20 @@ main, header{position:relative;z-index:2}
 .act.gold:hover{color:#3d1163;box-shadow:0 12px 28px rgba(255,213,90,.5)}
 .act .ico{display:block;font-size:18px;margin-bottom:4px}
 
-.upload-btn{
-  display:block;width:100%;padding:14px;border-radius:12px;
-  background:rgba(168,85,247,.14);border:1.5px solid var(--purple);
-  color:var(--cream);font-family:var(--display);font-size:11px;letter-spacing:1.5px;
-  text-align:center;cursor:pointer;transition:.15s;
+/* clear-all button */
+.clear-row{display:flex;justify-content:flex-end;margin-top:10px}
+.clear-btn{
+  font-family:var(--mono);font-size:9px;letter-spacing:.16em;
+  color:var(--ink-faint);text-transform:uppercase;font-weight:700;
+  padding:6px 10px;
 }
-.upload-btn:hover{background:rgba(168,85,247,.24)}
+.clear-btn:hover{color:var(--red)}
 
-/* ── footer / share text ── */
-.share-bar{
-  max-width:1180px;margin:0 auto 60px;padding:0 22px;text-align:center;
-}
+.share-bar{max-width:1180px;margin:0 auto 60px;padding:0 22px;text-align:center}
 .share-bar .preset{
   font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink-dim);
   line-height:1.55;max-width:640px;margin:0 auto;
 }
-
-/* ── toast ── */
 .toast{
   position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(80px);
   padding:14px 22px;border-radius:11px;
@@ -310,19 +377,6 @@ main, header{position:relative;z-index:2}
   z-index:999;transition:transform .25s ease;pointer-events:none;
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
-
-/* ── presets row ── */
-.presets{
-  display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;
-}
-.preset-btn{
-  padding:5px 10px;border-radius:99px;
-  background:rgba(255,255,255,.04);border:1px solid var(--rule);
-  color:var(--ink-dim);font-family:var(--mono);font-size:9px;letter-spacing:.18em;font-weight:700;
-  text-transform:uppercase;
-}
-.preset-btn:hover{border-color:var(--pink);color:var(--pink)}
-.preset-btn.active{background:rgba(255,20,147,.14);border-color:var(--pink);color:var(--pink)}
 
 .disclaimer{
   max-width:920px;margin:0 auto 40px;padding:0 22px;
@@ -349,8 +403,8 @@ main, header{position:relative;z-index:2}
 <main>
   <section class="hero">
     <div class="eyebrow">🧪 PFP MACHINE · LIVE</div>
-    <h1>ESCAPE<br>THE <span>LAB.</span></h1>
-    <p>Drop your face in. Get the bow. Get the tag. The clipboards can't catch you now.</p>
+    <h1>STACK<br>THE <span>STICKERS.</span></h1>
+    <p>Drop your face — or start with Chogi. Stack as many stickers as you want. Drag, scale, rotate. The clipboards can't catch you now.</p>
     <p class="hero-tag">100% CLIENT-SIDE · NOTHING UPLOADED · YOUR FACE STAYS YOURS</p>
   </section>
 
@@ -359,58 +413,106 @@ main, header{position:relative;z-index:2}
       <div class="stage" id="stage">
         <div class="upload-prompt" id="uploadPrompt">
           <div class="icon">📥</div>
-          <h3>DROP YOUR PFP HERE</h3>
-          <p>or click · paste · pick from device<br>square works best · png / jpg / webp</p>
+          <h3>DROP YOUR PFP</h3>
+          <p>or click · paste · pick from device<br>or pick a CHOGI preset →</p>
         </div>
-        <canvas id="canvas" width="800" height="800" style="display:none"></canvas>
-        <div class="bow-handle" id="bowHandle" title="drag to position bow">🎀</div>
+        <canvas id="canvas" width="800" height="800"></canvas>
+        <!-- sticker handles inserted dynamically -->
       </div>
       <input type="file" id="fileInput" accept="image/*" style="display:none">
     </div>
 
     <div class="controls">
+      <!-- BASE -->
       <div class="ctrl-section">
-        <h3><span class="ico">📷</span> SOURCE IMAGE</h3>
-        <button class="upload-btn" id="uploadBtn">📁 PICK FILE</button>
-        <p class="hint">or drag onto canvas · or paste from clipboard (ctrl+v)</p>
+        <h3><span class="ico">📷</span> BASE IMAGE</h3>
+        <button class="upload-btn" id="uploadBtn">📁 UPLOAD YOUR PFP</button>
+        <div class="preset-grid" id="presetGrid">
+          <button class="preset-btn" data-preset="/chogi.png">
+            <img src="/chogi.png" alt=""><span class="nm">CHOGI</span>
+          </button>
+          <button class="preset-btn" data-preset="/pet-assets/baby-chogi.png">
+            <img src="/pet-assets/baby-chogi.png" alt=""><span class="nm">BABY</span>
+          </button>
+          <button class="preset-btn" data-preset="/pet-assets/teen-chogi.png">
+            <img src="/pet-assets/teen-chogi.png" alt=""><span class="nm">TEEN</span>
+          </button>
+          <button class="preset-btn" data-preset="/pet-assets/adult-prime-chogi.png">
+            <img src="/pet-assets/adult-prime-chogi.png" alt=""><span class="nm">PRIME</span>
+          </button>
+        </div>
+        <p class="hint">drag, paste (ctrl+v), or pick a preset · stickers go on top</p>
       </div>
 
+      <!-- STICKERS PALETTE -->
       <div class="ctrl-section">
-        <h3><span class="ico">🎀</span> THE BOW</h3>
-        <div class="ctrl-row">
-          <label>SIZE</label>
-          <input type="range" id="bowSize" min="40" max="240" value="120">
-          <span class="v" id="bowSizeV">120</span>
+        <h3><span class="ico">🎀</span> STICKERS · TAP TO ADD <span class="count" id="stickerCount">0 placed</span></h3>
+        <div class="palette" id="palette">
+          <button class="pal-btn" data-add="bow"   title="Purple Bow">🎀</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="👑" title="Crown">👑</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="💜" title="Heart">💜</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="⭐" title="Star">⭐</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="✨" title="Sparkles">✨</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="🔥" title="Fire">🔥</button>
+
+          <button class="pal-btn" data-add="emoji" data-emoji="🥚" title="Egg">🥚</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="🧪" title="Lab">🧪</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="🪙" title="Coin">🪙</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="💎" title="Diamond">💎</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="😈" title="Chaos">😈</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="☁️" title="Cloud">☁️</button>
+
+          <button class="pal-btn" data-add="emoji" data-emoji="⚡" title="Zap">⚡</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="🦷" title="Bite">🦷</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="🌸" title="Blossom">🌸</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="🍓" title="Strawberry">🍓</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="👁️" title="Eye">👁️</button>
+          <button class="pal-btn" data-add="emoji" data-emoji="💼" title="Briefcase">💼</button>
         </div>
-        <div class="ctrl-row">
-          <label>ROTATE</label>
-          <input type="range" id="bowRot" min="-45" max="45" value="-12">
-          <span class="v" id="bowRotV">-12°</span>
+
+        <div id="selCard" class="sel-card" style="display:none">
+          <div class="sel-head">
+            <span class="emoji" id="selEmoji">🎀</span>
+            <span class="label">SELECTED<b id="selName">BOW</b></span>
+            <button class="del" id="selDel">✕ DELETE</button>
+          </div>
+          <div class="ctrl-row">
+            <label>SIZE</label>
+            <input type="range" id="selSize" min="40" max="320" value="120">
+            <span class="v" id="selSizeV">120</span>
+          </div>
+          <div class="ctrl-row">
+            <label>ROTATE</label>
+            <input type="range" id="selRot" min="-180" max="180" value="0">
+            <span class="v" id="selRotV">0°</span>
+          </div>
+          <div class="ctrl-row">
+            <label>LAYER</label>
+            <button class="corner-btn" id="selBack" style="flex:1">↓ BACK</button>
+            <button class="corner-btn" id="selFront" style="flex:1">↑ FRONT</button>
+          </div>
         </div>
-        <p class="hint">drag the 🎀 dot on the canvas to position</p>
+        <div id="selEmptyMsg" class="sel-empty">tap a sticker above to add · then drag it on the canvas to position</div>
+        <div class="clear-row"><button class="clear-btn" id="clearAll" style="display:none">✕ CLEAR ALL STICKERS</button></div>
       </div>
 
+      <!-- STAMPS -->
       <div class="ctrl-section">
-        <h3><span class="ico">🏷️</span> LAB TAG</h3>
+        <h3><span class="ico">🏷️</span> CORNER STAMPS</h3>
         <div class="toggle on" id="tagToggle">
-          <span class="label">SUBJECT-XXXX STAMP</span>
+          <span class="label">SUBJECT-XXXX TAG</span>
           <span class="pill"></span>
         </div>
-        <div class="presets" id="cornerPresets">
-          <button class="preset-btn" data-corner="tl">TOP-L</button>
-          <button class="preset-btn" data-corner="tr">TOP-R</button>
-          <button class="preset-btn active" data-corner="bl">BOT-L</button>
-          <button class="preset-btn" data-corner="br">BOT-R</button>
+        <div class="corner-presets" id="cornerPresets">
+          <button class="corner-btn" data-corner="tl">TL</button>
+          <button class="corner-btn" data-corner="tr">TR</button>
+          <button class="corner-btn active" data-corner="bl">BL</button>
+          <button class="corner-btn" data-corner="br">BR</button>
         </div>
-      </div>
-
-      <div class="ctrl-section">
-        <h3><span class="ico">⚠️</span> WATERMARK</h3>
-        <div class="toggle on" id="wmToggle">
-          <span class="label">#7777 ESCAPED</span>
+        <div class="toggle on" id="wmToggle" style="margin-top:10px">
+          <span class="label">#7777 ESCAPED WATERMARK</span>
           <span class="pill"></span>
         </div>
-        <p class="hint">always shows chogi.xyz on the bottom edge</p>
       </div>
 
       <div class="actions">
@@ -428,9 +530,7 @@ main, header{position:relative;z-index:2}
   </section>
 
   <section class="share-bar">
-    <p class="preset">
-      "she walked out of containment, sat down at the mainframe, and made herself CTO."
-    </p>
+    <p class="preset">"she walked out of containment, sat down at the mainframe, and made herself CTO."</p>
   </section>
 
   <p class="disclaimer">
@@ -451,23 +551,19 @@ main, header{position:relative;z-index:2}
 (function(){
   var $ = function(id){ return document.getElementById(id); };
 
-  // ─── canvas state ────────────────────────────────────────
   var canvas = $('canvas');
   var ctx = canvas.getContext('2d');
   var stage = $('stage');
-  var prompt = $('uploadPrompt');
-  var bowHandle = $('bowHandle');
 
   var sourceImage = null;
+  var baseMode = 'upload';   // 'upload' | 'chogi'
+  var stickers = [];          // [{ id, kind, emoji?, x(0..1), y(0..1), size, rotation }]
+  var selectedId = null;
+  var idCounter = 0;
   var state = {
-    bowX: 0.78,         // 0..1 fraction of canvas
-    bowY: 0.18,
-    bowSize: 120,       // 0..255 pixels in 800px canvas
-    bowRot: -12,        // degrees
     showTag: true,
     showWatermark: true,
     tagCorner: 'bl',
-    wallet: null
   };
 
   function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
@@ -478,32 +574,24 @@ main, header{position:relative;z-index:2}
     clearTimeout(window._toastTo);
     window._toastTo = setTimeout(function(){ t.classList.remove('show'); }, ms || 2200);
   }
-
-  /* ─── subject id derivation (matches /subject page) ─── */
   function deriveSubjectId(addr){
     if(!addr) return null;
     var a = addr.replace(/^0x/i,'').toLowerCase();
     if(a.length < 40) return null;
-    var num = parseInt(a.slice(-4), 16) % 10000;
-    return String(num).padStart(4,'0');
+    return String(parseInt(a.slice(-4), 16) % 10000).padStart(4,'0');
   }
 
-  /* ─── draw the SVG bow programmatically ─── */
+  /* ─── draw the bow vector ─── */
   function drawBow(c, cx, cy, size, rotDeg){
     c.save();
     c.translate(cx, cy);
     c.rotate(rotDeg * Math.PI / 180);
     c.scale(size / 100, size / 100);
-
-    // shadow under bow
-    c.save();
-    c.translate(0, 4);
+    // shadow
+    c.save(); c.translate(0, 4);
     c.fillStyle = 'rgba(0,0,0,.25)';
-    c.beginPath();
-    c.ellipse(0, 0, 60, 18, 0, 0, Math.PI * 2);
-    c.fill();
+    c.beginPath(); c.ellipse(0, 0, 60, 18, 0, 0, Math.PI * 2); c.fill();
     c.restore();
-
     // left loop
     c.fillStyle = '#A855F7';
     c.beginPath();
@@ -511,58 +599,48 @@ main, header{position:relative;z-index:2}
     c.bezierCurveTo(-50, -36, -52, 30, 0, 6);
     c.bezierCurveTo(-30, 6, -50, 0, 0, 0);
     c.fill();
-
     // right loop
     c.beginPath();
     c.moveTo(0, 0);
     c.bezierCurveTo(50, -36, 52, 30, 0, 6);
     c.bezierCurveTo(30, 6, 50, 0, 0, 0);
     c.fill();
-
-    // dark accent on each loop
-    c.fillStyle = '#7C3AED';
-    c.globalAlpha = .35;
-    c.beginPath();
-    c.ellipse(-30, 4, 12, 16, .3, 0, Math.PI * 2);
-    c.fill();
-    c.beginPath();
-    c.ellipse(30, 4, 12, 16, -.3, 0, Math.PI * 2);
-    c.fill();
+    // dark accent
+    c.fillStyle = '#7C3AED'; c.globalAlpha = .35;
+    c.beginPath(); c.ellipse(-30, 4, 12, 16, .3, 0, Math.PI*2); c.fill();
+    c.beginPath(); c.ellipse(30, 4, 12, 16, -.3, 0, Math.PI*2); c.fill();
     c.globalAlpha = 1;
-
-    // ribbon tails
+    // ribbons
     c.fillStyle = '#A855F7';
     c.beginPath();
-    c.moveTo(-6, 4);
-    c.lineTo(-22, 36);
-    c.lineTo(-12, 38);
-    c.lineTo(-2, 8);
-    c.closePath();
-    c.fill();
+    c.moveTo(-6, 4); c.lineTo(-22, 36); c.lineTo(-12, 38); c.lineTo(-2, 8);
+    c.closePath(); c.fill();
     c.beginPath();
-    c.moveTo(6, 4);
-    c.lineTo(22, 36);
-    c.lineTo(12, 38);
-    c.lineTo(2, 8);
-    c.closePath();
-    c.fill();
-
-    // center knot
+    c.moveTo(6, 4); c.lineTo(22, 36); c.lineTo(12, 38); c.lineTo(2, 8);
+    c.closePath(); c.fill();
+    // knot
     c.fillStyle = '#7C3AED';
-    c.beginPath();
-    c.ellipse(0, 2, 8, 14, 0, 0, Math.PI * 2);
-    c.fill();
-
-    // sparkle highlight
+    c.beginPath(); c.ellipse(0, 2, 8, 14, 0, 0, Math.PI*2); c.fill();
+    // sparkle
     c.fillStyle = 'rgba(255,255,255,.55)';
-    c.beginPath();
-    c.ellipse(-30, -8, 5, 3, .4, 0, Math.PI * 2);
-    c.fill();
-
+    c.beginPath(); c.ellipse(-30, -8, 5, 3, .4, 0, Math.PI*2); c.fill();
     c.restore();
   }
 
-  /* ─── lab tag stamp ─── */
+  function drawEmojiSticker(c, cx, cy, size, rotDeg, emoji){
+    c.save();
+    c.translate(cx, cy);
+    c.rotate(rotDeg * Math.PI / 180);
+    c.font = size + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',system-ui,sans-serif";
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.shadowColor = 'rgba(0,0,0,.45)';
+    c.shadowBlur = 10;
+    c.shadowOffsetY = 5;
+    c.fillText(emoji, 0, 0);
+    c.restore();
+  }
+
   function drawLabTag(c, corner, subjectId){
     var pad = 36;
     var W = canvas.width, H = canvas.height;
@@ -572,184 +650,343 @@ main, header{position:relative;z-index:2}
     else if(corner === 'tr'){ x = W - pad - w; y = pad; }
     else if(corner === 'bl'){ x = pad; y = H - pad - h; }
     else { x = W - pad - w; y = H - pad - h; }
-
     c.save();
-    // tilted slightly for a stamp look
     c.translate(x + w/2, y + h/2);
     c.rotate(-2 * Math.PI / 180);
     c.translate(-w/2, -h/2);
-
-    // outer red border (containment vibe)
-    c.strokeStyle = '#FF1E50';
-    c.lineWidth = 4;
-    c.strokeRect(0, 0, w, h);
-
-    // background plate
-    c.fillStyle = 'rgba(15,2,8,.85)';
-    c.fillRect(2, 2, w-4, h-4);
-
-    // top stripe
-    c.fillStyle = '#FF1E50';
-    c.fillRect(0, 0, w, 18);
-    c.fillStyle = '#fff';
-    c.font = '700 11px JetBrains Mono, monospace';
+    c.strokeStyle = '#FF1E50'; c.lineWidth = 4; c.strokeRect(0, 0, w, h);
+    c.fillStyle = 'rgba(15,2,8,.85)'; c.fillRect(2, 2, w-4, h-4);
+    c.fillStyle = '#FF1E50'; c.fillRect(0, 0, w, 18);
+    c.fillStyle = '#fff'; c.font = '700 11px JetBrains Mono, monospace';
     c.textBaseline = 'middle';
     c.fillText('▲ CONTAINMENT BREACH', 8, 9);
-
-    // SUBJECT line
-    c.fillStyle = '#FFE9F4';
-    c.font = '700 22px Bungee, sans-serif';
+    c.fillStyle = '#FFE9F4'; c.font = '700 22px Bungee, sans-serif';
     c.fillText('SUBJECT-' + (subjectId || '7777'), 10, 38);
-
-    // bottom microcopy
-    c.fillStyle = 'rgba(255,233,244,.7)';
-    c.font = '600 10px JetBrains Mono, monospace';
+    c.fillStyle = 'rgba(255,233,244,.7)'; c.font = '600 10px JetBrains Mono, monospace';
     c.fillText('EXPERIMENT 7777 · MONAD MAINNET', 10, 62);
-    c.fillStyle = '#FFD55A';
-    c.font = '700 10px JetBrains Mono, monospace';
+    c.fillStyle = '#FFD55A'; c.font = '700 10px JetBrains Mono, monospace';
     c.fillText('STATUS: ESCAPED', 10, 76);
-
     c.restore();
   }
 
-  /* ─── watermark ─── */
   function drawWatermark(c){
     var W = canvas.width, H = canvas.height;
-    // bottom strip
     var grad = c.createLinearGradient(0, H-60, 0, H);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
     grad.addColorStop(1, 'rgba(0,0,0,.7)');
-    c.fillStyle = grad;
-    c.fillRect(0, H-60, W, 60);
-
-    // text
-    c.fillStyle = '#FFD55A';
-    c.font = '700 20px Bungee, sans-serif';
-    c.textBaseline = 'alphabetic';
-    c.textAlign = 'left';
+    c.fillStyle = grad; c.fillRect(0, H-60, W, 60);
+    c.fillStyle = '#FFD55A'; c.font = '700 20px Bungee, sans-serif';
+    c.textBaseline = 'alphabetic'; c.textAlign = 'left';
     c.fillText('#7777 ESCAPED', 22, H-22);
-
-    // right side: chogi.xyz
-    c.fillStyle = '#FFE9F4';
-    c.font = '700 14px JetBrains Mono, monospace';
-    c.textAlign = 'right';
-    c.fillText('CHOGI.XYZ', W-22, H-22);
+    c.fillStyle = '#FFE9F4'; c.font = '700 14px JetBrains Mono, monospace';
+    c.textAlign = 'right'; c.fillText('CHOGI.XYZ', W-22, H-22);
     c.textAlign = 'left';
   }
 
-  /* ─── main render ─── */
+  /* ─── render pass ─── */
   function render(){
     var W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
     if(!sourceImage){
       ctx.fillStyle = '#0a0118';
       ctx.fillRect(0, 0, W, H);
+      syncHandles();
       return;
     }
-    // contain-fit then center-crop to square
-    var s = Math.max(W / sourceImage.width, H / sourceImage.height);
-    var sw = sourceImage.width * s;
-    var sh = sourceImage.height * s;
-    var sx = (W - sw) / 2;
-    var sy = (H - sh) / 2;
-    ctx.drawImage(sourceImage, sx, sy, sw, sh);
 
-    // bow
-    drawBow(ctx, state.bowX * W, state.bowY * H, state.bowSize, state.bowRot);
+    // base draw — chogi mode adds gradient bg, upload mode crops
+    if(baseMode === 'chogi'){
+      var bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#FF8FBA');
+      bg.addColorStop(1, '#A855F7');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+      // fit chogi ~85% of canvas
+      var s = Math.min(W / sourceImage.width, H / sourceImage.height) * 0.88;
+      var w = sourceImage.width * s;
+      var h = sourceImage.height * s;
+      var sx = (W - w) / 2;
+      var sy = (H - h) / 2;
+      ctx.drawImage(sourceImage, sx, sy, w, h);
+    } else {
+      // upload — center-crop fill
+      var s2 = Math.max(W / sourceImage.width, H / sourceImage.height);
+      var sw = sourceImage.width * s2;
+      var sh = sourceImage.height * s2;
+      var sx2 = (W - sw) / 2;
+      var sy2 = (H - sh) / 2;
+      ctx.drawImage(sourceImage, sx2, sy2, sw, sh);
+    }
 
-    // overlays
+    // stickers in array order (later = on top)
+    stickers.forEach(function(s){
+      var cx = s.x * W, cy = s.y * H;
+      if(s.kind === 'bow') drawBow(ctx, cx, cy, s.size, s.rotation);
+      else drawEmojiSticker(ctx, cx, cy, s.size, s.rotation, s.emoji);
+    });
+
     if(state.showTag){
       var addr = (window.ChogiConnect && window.ChogiConnect.getAccount && window.ChogiConnect.getAccount()) || null;
       var sid = deriveSubjectId(addr) || '7777';
       drawLabTag(ctx, state.tagCorner, sid);
     }
-    if(state.showWatermark){
-      drawWatermark(ctx);
-    }
+    if(state.showWatermark) drawWatermark(ctx);
 
-    // sync the draggable bow handle
-    var rect = stage.getBoundingClientRect();
-    bowHandle.style.left = (state.bowX * 100) + '%';
-    bowHandle.style.top  = (state.bowY * 100) + '%';
+    syncHandles();
   }
 
-  /* ─── load image ─── */
-  function loadImage(file){
-    if(!file || !file.type || !file.type.startsWith('image/')){
-      toast('IMAGE FILES ONLY');
+  /* ─── handle DOM elements (one per sticker) ─── */
+  function syncHandles(){
+    // remove orphans
+    Array.prototype.slice.call(stage.querySelectorAll('.handle')).forEach(function(h){
+      var id = Number(h.dataset.id);
+      if(!stickers.find(function(s){ return s.id === id; })) h.remove();
+    });
+    // ensure each sticker has a handle
+    stickers.forEach(function(s){
+      var h = stage.querySelector('.handle[data-id="' + s.id + '"]');
+      if(!h){
+        h = document.createElement('div');
+        h.className = 'handle';
+        h.dataset.id = s.id;
+        h.textContent = s.kind === 'bow' ? '🎀' : s.emoji;
+        h.addEventListener('mousedown', startDrag);
+        h.addEventListener('touchstart', startDrag, {passive:false});
+        h.addEventListener('click', function(e){
+          e.stopPropagation();
+          selectSticker(Number(h.dataset.id));
+        });
+        stage.appendChild(h);
+      }
+      h.style.left = (s.x * 100) + '%';
+      h.style.top  = (s.y * 100) + '%';
+      h.style.fontSize = Math.max(20, s.size * 0.5) + 'px';
+      h.style.transform = 'translate(-50%,-50%) rotate(' + s.rotation + 'deg)';
+      h.classList.toggle('selected', s.id === selectedId);
+    });
+    $('stickerCount').textContent = stickers.length + ' placed';
+    $('clearAll').style.display = stickers.length > 0 ? '' : 'none';
+  }
+
+  function selectSticker(id){
+    selectedId = id;
+    syncHandles();
+    syncSelectedControls();
+  }
+
+  function syncSelectedControls(){
+    var sel = stickers.find(function(s){ return s.id === selectedId; });
+    if(!sel){
+      $('selCard').style.display = 'none';
+      $('selEmptyMsg').style.display = stickers.length > 0 ? 'none' : '';
       return;
+    }
+    $('selCard').style.display = '';
+    $('selEmptyMsg').style.display = 'none';
+    $('selEmoji').textContent = sel.kind === 'bow' ? '🎀' : sel.emoji;
+    $('selName').textContent = sel.kind === 'bow' ? 'PURPLE BOW' : 'STICKER';
+    $('selSize').value = sel.size;
+    $('selSizeV').textContent = sel.size;
+    $('selRot').value = sel.rotation;
+    $('selRotV').textContent = sel.rotation + '°';
+  }
+
+  function addSticker(kind, emoji){
+    if(!sourceImage){
+      toast('PICK A BASE FIRST');
+      return;
+    }
+    var id = ++idCounter;
+    var def = { bow: 140, emoji: 130 };
+    stickers.push({
+      id: id,
+      kind: kind,
+      emoji: emoji || null,
+      x: 0.5 + (Math.random()-0.5)*0.1,
+      y: 0.42 + (Math.random()-0.5)*0.1,
+      size: def[kind] || 130,
+      rotation: kind === 'bow' ? -8 : 0
+    });
+    selectedId = id;
+    render();
+    syncSelectedControls();
+  }
+
+  function deleteSticker(id){
+    stickers = stickers.filter(function(s){ return s.id !== id; });
+    if(selectedId === id) selectedId = null;
+    render();
+    syncSelectedControls();
+  }
+  function bringToFront(id){
+    var idx = stickers.findIndex(function(s){ return s.id === id; });
+    if(idx >= 0){
+      var s = stickers.splice(idx, 1)[0];
+      stickers.push(s);
+      render();
+    }
+  }
+  function sendToBack(id){
+    var idx = stickers.findIndex(function(s){ return s.id === id; });
+    if(idx >= 0){
+      var s = stickers.splice(idx, 1)[0];
+      stickers.unshift(s);
+      render();
+    }
+  }
+
+  /* ─── drag ─── */
+  var dragging = null; // sticker id being dragged
+  function startDrag(e){
+    var id = Number(this.dataset.id);
+    selectSticker(id);
+    dragging = id;
+    e.preventDefault();
+  }
+  function moveDrag(e){
+    if(dragging == null) return;
+    var rect = stage.getBoundingClientRect();
+    var clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX);
+    var clientY = e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY);
+    if(clientX == null) return;
+    var s = stickers.find(function(s){ return s.id === dragging; });
+    if(!s) return;
+    s.x = clamp((clientX - rect.left) / rect.width, 0, 1);
+    s.y = clamp((clientY - rect.top) / rect.height, 0, 1);
+    render();
+  }
+  function endDrag(){ dragging = null; }
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('touchmove', moveDrag, {passive:false});
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+
+  /* ─── load image flows ─── */
+  function loadImageElement(img, mode){
+    sourceImage = img;
+    baseMode = mode;
+    stage.classList.add('has-image');
+    // fade out the prompt
+    render();
+    $('downloadBtn').disabled = false;
+    $('copyBtn').disabled = false;
+    $('tweetBtn').disabled = false;
+  }
+
+  function loadFile(file){
+    if(!file || !file.type || !file.type.startsWith('image/')){
+      toast('IMAGE FILES ONLY'); return;
     }
     var reader = new FileReader();
     reader.onload = function(e){
       var img = new Image();
       img.onload = function(){
-        sourceImage = img;
-        canvas.style.display = '';
-        prompt.style.display = 'none';
-        stage.classList.add('has-image');
-        render();
-        $('downloadBtn').disabled = false;
-        $('copyBtn').disabled = false;
-        $('tweetBtn').disabled = false;
-        toast('LOADED · NOW DRAG THE 🎀');
+        loadImageElement(img, 'upload');
+        toast('LOADED · ADD STICKERS →');
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
+  function loadPreset(src){
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function(){
+      loadImageElement(img, 'chogi');
+      toast('CHOGI LOADED · STACK STICKERS');
+    };
+    img.onerror = function(){ toast('PRESET FAILED — TRY ANOTHER'); };
+    img.src = src;
+  }
+
   /* ─── upload handlers ─── */
   $('uploadBtn').addEventListener('click', function(){ $('fileInput').click(); });
   stage.addEventListener('click', function(e){
-    if(e.target === bowHandle) return;
+    if(e.target.classList && e.target.classList.contains('handle')) return;
     if(!sourceImage) $('fileInput').click();
+    else {
+      // tap empty canvas = deselect
+      selectedId = null;
+      syncHandles();
+      syncSelectedControls();
+    }
   });
   $('fileInput').addEventListener('change', function(e){
     var f = e.target.files[0];
-    if(f) loadImage(f);
+    if(f) loadFile(f);
   });
 
   // drag-drop
   ['dragenter','dragover'].forEach(function(ev){
-    stage.addEventListener(ev, function(e){
-      e.preventDefault(); stage.classList.add('dragover');
-    });
+    stage.addEventListener(ev, function(e){ e.preventDefault(); stage.classList.add('dragover'); });
   });
   ['dragleave','drop'].forEach(function(ev){
-    stage.addEventListener(ev, function(e){
-      e.preventDefault(); stage.classList.remove('dragover');
-    });
+    stage.addEventListener(ev, function(e){ e.preventDefault(); stage.classList.remove('dragover'); });
   });
   stage.addEventListener('drop', function(e){
     e.preventDefault();
     var f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if(f) loadImage(f);
+    if(f) loadFile(f);
   });
-
-  // paste
   document.addEventListener('paste', function(e){
     var items = e.clipboardData && e.clipboardData.items;
     if(!items) return;
     for(var i = 0; i < items.length; i++){
       if(items[i].type.indexOf('image') === 0){
         var f = items[i].getAsFile();
-        if(f) loadImage(f);
+        if(f) loadFile(f);
         return;
       }
     }
   });
 
-  /* ─── controls ─── */
-  $('bowSize').addEventListener('input', function(e){
-    state.bowSize = Number(e.target.value);
-    $('bowSizeV').textContent = state.bowSize;
+  // presets
+  document.querySelectorAll('.preset-btn').forEach(function(b){
+    b.addEventListener('click', function(){ loadPreset(b.dataset.preset); });
+  });
+
+  // palette
+  document.querySelectorAll('.pal-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      addSticker(b.dataset.add, b.dataset.emoji);
+    });
+  });
+
+  // selected controls
+  $('selSize').addEventListener('input', function(e){
+    var s = stickers.find(function(s){ return s.id === selectedId; });
+    if(!s) return;
+    s.size = Number(e.target.value);
+    $('selSizeV').textContent = s.size;
     render();
   });
-  $('bowRot').addEventListener('input', function(e){
-    state.bowRot = Number(e.target.value);
-    $('bowRotV').textContent = state.bowRot + '°';
+  $('selRot').addEventListener('input', function(e){
+    var s = stickers.find(function(s){ return s.id === selectedId; });
+    if(!s) return;
+    s.rotation = Number(e.target.value);
+    $('selRotV').textContent = s.rotation + '°';
     render();
   });
+  $('selDel').addEventListener('click', function(){
+    if(selectedId != null) deleteSticker(selectedId);
+  });
+  $('selFront').addEventListener('click', function(){
+    if(selectedId != null) bringToFront(selectedId);
+  });
+  $('selBack').addEventListener('click', function(){
+    if(selectedId != null) sendToBack(selectedId);
+  });
+  $('clearAll').addEventListener('click', function(){
+    if(stickers.length === 0) return;
+    if(!confirm('Remove all '+stickers.length+' stickers?')) return;
+    stickers = [];
+    selectedId = null;
+    render();
+    syncSelectedControls();
+  });
+
+  // stamps
   $('tagToggle').addEventListener('click', function(){
     state.showTag = !state.showTag;
     $('tagToggle').classList.toggle('on', state.showTag);
@@ -760,40 +997,16 @@ main, header{position:relative;z-index:2}
     $('wmToggle').classList.toggle('on', state.showWatermark);
     render();
   });
-  document.querySelectorAll('#cornerPresets .preset-btn').forEach(function(b){
+  document.querySelectorAll('#cornerPresets .corner-btn').forEach(function(b){
     b.addEventListener('click', function(){
-      document.querySelectorAll('#cornerPresets .preset-btn').forEach(function(x){ x.classList.remove('active'); });
+      document.querySelectorAll('#cornerPresets .corner-btn').forEach(function(x){ x.classList.remove('active'); });
       b.classList.add('active');
       state.tagCorner = b.dataset.corner;
       render();
     });
   });
 
-  /* ─── drag the bow ─── */
-  var dragging = false;
-  function startDrag(e){
-    if(!sourceImage) return;
-    dragging = true;
-    e.preventDefault();
-  }
-  function moveDrag(e){
-    if(!dragging) return;
-    var rect = stage.getBoundingClientRect();
-    var clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    var clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    state.bowX = clamp((clientX - rect.left) / rect.width, 0, 1);
-    state.bowY = clamp((clientY - rect.top) / rect.height, 0, 1);
-    render();
-  }
-  function endDrag(){ dragging = false; }
-  bowHandle.addEventListener('mousedown', startDrag);
-  bowHandle.addEventListener('touchstart', startDrag, {passive:false});
-  document.addEventListener('mousemove', moveDrag);
-  document.addEventListener('touchmove', moveDrag, {passive:false});
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchend', endDrag);
-
-  /* ─── export actions ─── */
+  /* ─── export ─── */
   function getBlob(){
     return new Promise(function(resolve){
       canvas.toBlob(function(b){ resolve(b); }, 'image/png');
@@ -805,11 +1018,8 @@ main, header{position:relative;z-index:2}
     var blob = await getBlob();
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = url;
-    a.download = 'chogi-pfp-7777.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = 'chogi-pfp-7777.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
     toast('SAVED · #7777 ESCAPED');
   });
@@ -819,17 +1029,12 @@ main, header{position:relative;z-index:2}
     try {
       var blob = await getBlob();
       if(navigator.clipboard && window.ClipboardItem){
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
         toast('COPIED · PASTE INTO X');
       } else {
         toast('CLIPBOARD UNSUPPORTED · USE DOWNLOAD');
       }
-    } catch(e){
-      console.warn('copy failed:', e);
-      toast('COPY FAILED · USE DOWNLOAD');
-    }
+    } catch(e){ console.warn('copy failed:', e); toast('COPY FAILED · USE DOWNLOAD'); }
   });
 
   $('tweetBtn').addEventListener('click', async function(){
@@ -839,19 +1044,14 @@ main, header{position:relative;z-index:2}
 '$CHOGI · Experiment 7777 · loose on @monad_xyz\n' +
 '0x5E1b1A14c8758104B8560514e94ab8320e587777\n\n' +
 'generate yours: chogi.xyz/pfp';
-
-    // try Web Share API first (mobile / native)
     try {
       var blob = await getBlob();
       var file = new File([blob], 'chogi-pfp-7777.png', { type:'image/png' });
       if(navigator.canShare && navigator.canShare({ files:[file] })){
         await navigator.share({ files:[file], text:text });
-        toast('SHARED');
-        return;
+        toast('SHARED'); return;
       }
-    } catch(e){ /* fallthrough */ }
-
-    // fallback: copy image to clipboard then open X composer
+    } catch(e){}
     try {
       var blob2 = await getBlob();
       if(navigator.clipboard && window.ClipboardItem){
@@ -861,13 +1061,13 @@ main, header{position:relative;z-index:2}
     } catch(e){}
     window.open(
       'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text),
-      '_blank',
-      'noopener,noreferrer'
+      '_blank','noopener,noreferrer'
     );
   });
 
-  /* ─── initial paint ─── */
+  // initial paint
   render();
+  syncSelectedControls();
 })();
 </script>
 
