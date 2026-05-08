@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>ADMIN · CHOGI Lab</title>
+<meta name="description" content="Owner-only contract control panel. Whitelist tokens, pause, transfer ownership.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0a0118">
+<link rel="icon" type="image/png" href="/chogi.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a0118;
+  --bg-2:#15102e;
+  --pink:#FF1493;
+  --purple:#A855F7;
+  --gold:#FFD55A;
+  --cream:#FFF4D6;
+  --ink:#FFE9F4;
+  --ink-dim:rgba(255,233,244,.78);
+  --ink-faint:rgba(255,233,244,.5);
+  --green:#5dffa0;
+  --red:#ff1e50;
+  --orange:#ff7e1c;
+  --rule:rgba(168,85,247,.3);
+  --rule-strong:rgba(168,85,247,.6);
+  --display:'Bungee',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--mono);min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font:inherit;color:inherit}
+code{font-family:var(--mono);font-size:11px;color:var(--gold);background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px}
+
+/* warning bg */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 60px, rgba(255,30,80,.02) 60px 62px),
+    radial-gradient(ellipse at 50% 0%, rgba(255,30,80,.12), transparent 55%);
+}
+main, header{position:relative;z-index:2}
+
+/* ── topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(18px);
+  background:rgba(15,2,8,.85);
+  border-bottom:2px solid var(--red);
+}
+.topbar-inner{
+  max-width:1240px;margin:0 auto;padding:13px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-stamp{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:6px;
+  background:rgba(255,30,80,.18);border:1.5px solid var(--red);
+  font-family:var(--display);font-size:11px;letter-spacing:1.6px;color:var(--red);
+}
+.brand-stamp::before{
+  content:'';width:7px;height:7px;border-radius:50%;background:var(--red);
+  animation:adminPulse 1.4s ease-in-out infinite;box-shadow:0 0 8px var(--red);
+}
+@keyframes adminPulse{50%{opacity:.4}}
+.brand-text{font-family:var(--display);font-size:13px;letter-spacing:2px;color:var(--cream)}
+.nav-back{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+  padding:8px 14px;border-radius:99px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  font-weight:600;text-transform:uppercase;
+}
+.nav-back:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── hero ── */
+.hero{max-width:1100px;margin:0 auto;padding:36px 22px 14px;text-align:center}
+.hero h1{
+  font-family:var(--display);font-size:clamp(38px,6vw,70px);
+  background:linear-gradient(180deg,var(--cream),var(--red));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px rgba(255,30,80,.4));
+  letter-spacing:.04em;line-height:.95;margin-bottom:8px;
+}
+.hero p{
+  font-family:var(--mono);font-size:11px;letter-spacing:.32em;
+  color:var(--orange);text-transform:uppercase;font-weight:700;
+}
+
+/* ── auth card ── */
+.auth{
+  max-width:1100px;margin:18px auto 0;padding:18px 22px;
+  background:rgba(15,2,8,.72);border:1.5px solid var(--rule);
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+.auth.ok{border-color:var(--green)}
+.auth.bad{border-color:var(--red)}
+.auth .label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.32em;color:var(--ink-faint);
+  text-transform:uppercase;font-weight:700;
+}
+.auth .v{
+  font-family:var(--display);font-size:14px;color:var(--cream);letter-spacing:.04em;
+  margin-top:3px;
+}
+.auth .status{
+  font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+  padding:8px 14px;border-radius:99px;
+}
+.auth.ok .status{background:rgba(93,255,160,.16);color:var(--green);border:1px solid var(--green)}
+.auth.bad .status{background:rgba(255,30,80,.16);color:var(--red);border:1px solid var(--red)}
+.auth.warn .status{background:rgba(255,213,90,.16);color:var(--gold);border:1px solid var(--gold)}
+.auth-stat{display:flex;flex-direction:column;min-width:200px}
+
+/* ── tabs ── */
+.tabs{
+  max-width:1100px;margin:24px auto 0;padding:0 22px;
+  display:flex;gap:0;border-bottom:1px solid var(--rule);
+}
+.tab{
+  padding:14px 20px;font-family:var(--display);font-size:12px;letter-spacing:1.6px;
+  color:var(--ink-faint);text-transform:uppercase;
+  border-bottom:3px solid transparent;margin-bottom:-1px;transition:.18s;
+  display:flex;align-items:center;gap:10px;
+}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab .ico{font-size:20px}
+
+/* ── panes ── */
+.pane{
+  max-width:1100px;margin:24px auto 60px;padding:0 22px;
+  display:none;
+}
+.pane.active{display:block}
+.section{
+  background:rgba(15,2,8,.6);border:1px solid var(--rule);border-radius:16px;
+  padding:24px;margin-bottom:18px;
+}
+.section.danger{border-color:var(--red)}
+.section h2{
+  font-family:var(--display);font-size:13px;letter-spacing:1.7px;color:var(--cream);
+  margin-bottom:6px;display:flex;align-items:center;gap:10px;text-transform:uppercase;
+}
+.section h2 .ico{font-size:22px}
+.section.danger h2{color:var(--red)}
+.section .sub{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--ink-faint);
+  text-transform:uppercase;margin-bottom:18px;
+}
+
+/* state grid */
+.state-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;
+  margin-bottom:8px;
+}
+.state-cell{
+  padding:14px;border-radius:11px;background:rgba(0,0,0,.34);
+  border:1px dashed var(--rule);
+}
+.state-cell label{
+  display:block;font-family:var(--mono);font-size:9px;letter-spacing:.28em;
+  color:var(--ink-faint);text-transform:uppercase;font-weight:700;margin-bottom:5px;
+}
+.state-cell .v{font-family:var(--mono);font-size:12px;color:var(--cream);font-weight:700;word-break:break-all}
+.state-cell .v.gold{color:var(--gold)}
+.state-cell .v.green{color:var(--green)}
+.state-cell .v.red{color:var(--red)}
+
+/* form rows */
+.fn-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:14px;background:rgba(0,0,0,.22);border-radius:11px;margin-bottom:10px;
+  border:1px solid rgba(168,85,247,.18);
+}
+@media(max-width:680px){.fn-row{grid-template-columns:1fr}}
+.fn-row .fn-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  color:var(--ink-dim);text-transform:uppercase;font-weight:700;min-width:130px;
+}
+.fn-row .fn-label small{display:block;font-size:8.5px;color:var(--ink-faint);margin-top:3px;letter-spacing:.16em}
+.fn-row .fn-inputs{display:flex;gap:8px;flex-wrap:wrap}
+.fn-row input, .fn-row select{
+  flex:1;min-width:120px;padding:10px 13px;border-radius:9px;
+  background:rgba(0,0,0,.5);border:1.5px solid var(--rule);
+  color:var(--cream);font-family:var(--mono);font-size:12px;outline:none;
+}
+.fn-row input:focus, .fn-row select:focus{border-color:var(--gold)}
+.fn-row .fn-btn{
+  padding:10px 18px;border-radius:9px;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  color:#fff;font-family:var(--display);font-size:11px;letter-spacing:1.4px;
+  white-space:nowrap;
+}
+.fn-row .fn-btn:hover{filter:brightness(1.1)}
+.fn-row .fn-btn:disabled{opacity:.3;cursor:not-allowed;filter:grayscale(.6)}
+.fn-row .fn-btn.danger{background:linear-gradient(135deg,var(--red),#ff7575)}
+.fn-row .fn-btn.gold{background:linear-gradient(135deg,var(--gold),#E8A14F);color:#1a0436}
+
+.toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-radius:11px;
+  background:rgba(0,0,0,.22);border:1px solid var(--rule);
+  margin-bottom:10px;cursor:pointer;transition:.15s;
+}
+.toggle:hover{border-color:var(--purple)}
+.toggle.on{background:rgba(93,255,160,.08);border-color:var(--green)}
+.toggle .label{font-family:var(--display);font-size:11px;letter-spacing:1.4px;color:var(--cream)}
+.toggle .pill{width:36px;height:20px;border-radius:99px;background:rgba(255,255,255,.1);position:relative;transition:.18s;border:1px solid var(--rule)}
+.toggle .pill::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ink-faint);transition:.18s}
+.toggle.on .pill{background:linear-gradient(135deg,var(--green),#4ada80);border-color:transparent}
+.toggle.on .pill::after{transform:translateX(16px);background:#fff}
+
+/* asset list */
+.asset-list{margin-top:14px}
+.asset-row{
+  display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+  padding:10px 14px;border-bottom:1px dashed var(--rule);
+  font-family:var(--mono);font-size:11px;
+}
+.asset-row:last-child{border:0}
+.asset-row .sym{font-family:var(--display);font-size:11px;color:var(--cream);letter-spacing:.05em}
+.asset-row .addr{color:var(--ink-faint);font-size:9.5px;letter-spacing:.05em}
+.asset-row .weight{color:var(--gold);font-family:var(--display);font-size:11px}
+.asset-row .delist{
+  padding:5px 10px;border-radius:6px;background:transparent;
+  border:1px solid var(--red);color:var(--red);
+  font-family:var(--display);font-size:9px;letter-spacing:1.2px;
+}
+.asset-row .delist:hover{background:rgba(255,30,80,.1)}
+.asset-row.chogi{opacity:.7}
+.asset-row.chogi .delist{display:none}
+.asset-row.disabled{opacity:.45}
+
+/* danger */
+.danger-warn{
+  padding:14px;background:rgba(255,30,80,.08);border:1px dashed var(--red);
+  border-radius:10px;margin-bottom:14px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--red);
+  text-transform:uppercase;line-height:1.6;
+}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;left:auto;transform:translateX(0) translateY(120%);
+  padding:14px 22px;border-radius:11px;max-width:420px;
+  background:rgba(15,2,8,.96);border:1.5px solid var(--gold);
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;color:var(--cream);
+  box-shadow:0 10px 32px rgba(255,213,90,.35);
+  z-index:999;transition:transform .25s ease;line-height:1.5;
+}
+.toast.show{transform:translateX(0) translateY(0)}
+.toast.error{border-color:var(--red);box-shadow:0 10px 32px rgba(255,30,80,.4)}
+.toast.success{border-color:var(--green);box-shadow:0 10px 32px rgba(93,255,160,.35)}
+.toast a{color:var(--gold);font-weight:700}
+@media(max-width:580px){.toast{left:16px;right:16px;bottom:16px;max-width:none}}
+
+.disclaimer{
+  max-width:920px;margin:0 auto 40px;padding:0 22px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  color:var(--ink-faint);text-align:center;line-height:1.7;
+}
+.disclaimer b{color:var(--ink-dim)}
+
+.hint{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+  color:var(--ink-faint);text-transform:uppercase;
+  margin-top:6px;line-height:1.7;
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-stamp">▲ ADMIN MODE</span>
+      <span class="brand-text">CHOGI · LAB</span>
+    </div>
+    <a href="/" class="nav-back">← BACK TO SITE</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>OWNER PANEL</h1>
+    <p>⚠ unauthorized writes will revert · all txs cost MON gas</p>
+  </section>
+
+  <!-- AUTH -->
+  <div class="auth" id="authCard">
+    <div class="auth-stat">
+      <span class="label">CONNECTED</span>
+      <span class="v" id="authWallet">— not connected —</span>
+    </div>
+    <div class="auth-stat">
+      <span class="label">CURRENT TAB OWNER</span>
+      <span class="v" id="authOwner">—</span>
+    </div>
+    <span class="status" id="authStatus">DISCONNECTED</span>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" data-tab="payroll"><span class="ico">💼</span>PAYROLL</button>
+    <button class="tab" data-tab="burner"><span class="ico">🔁</span>SWAP BURNER</button>
+    <button class="tab" data-tab="nft"><span class="ico">🧬</span>LAB SUBJECTS</button>
+  </div>
+
+  <!-- ═══ PAYROLL PANE ═══ -->
+  <div class="pane active" id="pane-payroll">
+
+    <div class="section">
+      <h2><span class="ico">📊</span> CURRENT STATE</h2>
+      <div class="state-grid" id="payrollState">
+        <div class="state-cell"><label>OWNER</label><div class="v" id="pOwner">—</div></div>
+        <div class="state-cell"><label>PAUSED</label><div class="v" id="pPaused">—</div></div>
+        <div class="state-cell"><label>SWAP BURNER</label><div class="v" id="pBurner">—</div></div>
+        <div class="state-cell"><label>LAB SUBJECTS NFT</label><div class="v" id="pNft">—</div></div>
+        <div class="state-cell"><label>TOTAL WEIGHTED</label><div class="v gold" id="pWeighted">—</div></div>
+        <div class="state-cell"><label>TREASURY FLOAT</label><div class="v gold" id="pFloat">—</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">🪙</span> WHITELIST TOKENS</h2>
+      <p class="sub">add or update assets that can be staked · weight = CHOGI-equivalent units per 1 wei</p>
+
+      <div class="fn-row">
+        <span class="fn-label">ADD TOKEN<small>weight 1e18 = 1:1 with CHOGI</small></span>
+        <div class="fn-inputs">
+          <input type="text" id="addTokenAddr" placeholder="0xTOKEN ADDRESS">
+          <input type="text" id="addTokenWeight" placeholder="1e18" value="1000000000000000000">
+        </div>
+        <button class="fn-btn" data-tx="whitelistAsset">+ WHITELIST</button>
+      </div>
+
+      <p class="hint">presets — click to fill the form, then submit:</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="fn-btn" style="padding:6px 11px;font-size:10px;background:rgba(168,85,247,.2);border:1px solid var(--purple)" data-preset="0x350035555E10d9AfAF1566AaebfCeD5BA6C27777|1000000000000000000">CHOG · 1:1</button>
+        <button class="fn-btn" style="padding:6px 11px;font-size:10px;background:rgba(168,85,247,.2);border:1px solid var(--purple)" data-preset="0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A|200000000000000000000000">WMON · 200K:1</button>
+      </div>
+
+      <div class="asset-list" id="assetList"></div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">⏸</span> EMERGENCY PAUSE</h2>
+      <p class="sub">prevents NEW stakes + donations · existing stakers can always unstake</p>
+      <div class="toggle" id="payrollPause">
+        <span class="label">PAYROLL PAUSED</span>
+        <span class="pill"></span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">🔧</span> WIRING</h2>
+      <p class="sub">already set by deploy — change only if you re-deploy a peer contract</p>
+      <div class="fn-row">
+        <span class="fn-label">SET SWAP BURNER</span>
+        <div class="fn-inputs"><input type="text" id="setBurnerAddr" placeholder="0xBURNER"></div>
+        <button class="fn-btn" data-tx="setSwapBurner">SAVE</button>
+      </div>
+      <div class="fn-row">
+        <span class="fn-label">SET LAB SUBJECTS NFT</span>
+        <div class="fn-inputs"><input type="text" id="setNftAddr" placeholder="0xNFT"></div>
+        <button class="fn-btn" data-tx="setLabSubjectsNft">SAVE</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">🧹</span> SWEEP STRANDED FEES</h2>
+      <p class="sub">non-CHOGI termination fees accumulate per-token · sweep to a wallet to manually convert + donate back</p>
+      <div class="fn-row">
+        <span class="fn-label">SWEEP STRANDED</span>
+        <div class="fn-inputs">
+          <input type="text" id="sweepStrToken" placeholder="0xTOKEN">
+          <input type="text" id="sweepStrTo" placeholder="0xRECIPIENT">
+        </div>
+        <button class="fn-btn gold" data-tx="sweepStrandedFees">SWEEP</button>
+      </div>
+    </div>
+
+    <div class="section danger">
+      <h2><span class="ico">⚠</span> DANGER ZONE</h2>
+      <div class="danger-warn">⚠ TRANSFER OWNERSHIP IS PERMANENT · DOUBLE-CHECK THE NEW ADDRESS · TYPING THE WRONG WALLET LOSES ALL ADMIN ACCESS FOREVER</div>
+      <div class="fn-row">
+        <span class="fn-label">TRANSFER OWNERSHIP</span>
+        <div class="fn-inputs"><input type="text" id="payTransferTo" placeholder="0xNEW_OWNER"></div>
+        <button class="fn-btn danger" data-tx="payrollTransferOwnership">TRANSFER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BURNER PANE ═══ -->
+  <div class="pane" id="pane-burner">
+
+    <div class="section">
+      <h2><span class="ico">📊</span> CURRENT STATE</h2>
+      <div class="state-grid">
+        <div class="state-cell"><label>OWNER</label><div class="v" id="bOwner">—</div></div>
+        <div class="state-cell"><label>BURN BPS</label><div class="v gold" id="bBurnBps">—</div></div>
+        <div class="state-cell"><label>PAYROLL ADDRESS</label><div class="v" id="bPayrollAddr">—</div></div>
+        <div class="state-cell"><label>PAYROLL BPS</label><div class="v gold" id="bPayrollBps">—</div></div>
+        <div class="state-cell"><label>TOTAL BURNED</label><div class="v" id="bTotalBurned">—</div></div>
+        <div class="state-cell"><label>TOTAL TO PAYROLL</label><div class="v" id="bTotalToPay">—</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">🔥</span> BURN ALLOCATION</h2>
+      <p class="sub">total skim is `burnBps` · split between burn + payroll via `payrollBps`</p>
+
+      <div class="fn-row">
+        <span class="fn-label">SET BURN BPS<small>total skim · max 1000 (10%)</small></span>
+        <div class="fn-inputs"><input type="number" id="setBurnBpsVal" placeholder="100" min="0" max="1000"></div>
+        <button class="fn-btn" data-tx="setBurnBps">SAVE</button>
+      </div>
+
+      <div class="fn-row">
+        <span class="fn-label">SET PAYROLL SPLIT<small>0..burnBps; rest burns</small></span>
+        <div class="fn-inputs">
+          <input type="text" id="setPayrollAddr" placeholder="0xPAYROLL">
+          <input type="number" id="setPayrollBpsVal" placeholder="50" min="0" max="1000">
+        </div>
+        <button class="fn-btn" data-tx="setPayroll">SAVE</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">🔄</span> ROUTER</h2>
+      <p class="sub">re-approve max if router allowance ever runs low (no risk, hardcoded router)</p>
+      <div class="fn-row">
+        <span class="fn-label">REFRESH ROUTER APPROVAL</span>
+        <div class="fn-inputs"><span style="font-family:var(--mono);font-size:10px;color:var(--ink-faint)">no params · just calls refreshRouterApproval()</span></div>
+        <button class="fn-btn" data-tx="refreshRouterApproval">CALL</button>
+      </div>
+    </div>
+
+    <div class="section danger">
+      <h2><span class="ico">⚠</span> DANGER ZONE</h2>
+      <div class="danger-warn">⚠ TRANSFER OWNERSHIP IS PERMANENT</div>
+      <div class="fn-row">
+        <span class="fn-label">TRANSFER OWNERSHIP</span>
+        <div class="fn-inputs"><input type="text" id="burnTransferTo" placeholder="0xNEW_OWNER"></div>
+        <button class="fn-btn danger" data-tx="burnerTransferOwnership">TRANSFER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ NFT PANE ═══ -->
+  <div class="pane" id="pane-nft">
+
+    <div class="section">
+      <h2><span class="ico">📊</span> CURRENT STATE</h2>
+      <div class="state-grid">
+        <div class="state-cell"><label>OWNER</label><div class="v" id="nOwner">—</div></div>
+        <div class="state-cell"><label>MINT ENABLED</label><div class="v" id="nMint">—</div></div>
+        <div class="state-cell"><label>SOULBOUND</label><div class="v" id="nSoul">—</div></div>
+        <div class="state-cell"><label>TOTAL SUPPLY</label><div class="v gold" id="nSupply">—</div></div>
+        <div class="state-cell"><label>BASE URI</label><div class="v" id="nBaseURI" style="font-size:10px">—</div></div>
+      </div>
+      <p class="hint">tier costs (CHOGI burned per mint):</p>
+      <div class="state-grid" id="nftTierGrid"></div>
+    </div>
+
+    <div class="section">
+      <h2><span class="ico">🎚</span> CONTROLS</h2>
+      <div class="toggle" id="nftMintToggle">
+        <span class="label">MINTING ENABLED</span>
+        <span class="pill"></span>
+      </div>
+      <div class="toggle" id="nftSoulToggle">
+        <span class="label">SOULBOUND (NON-TRANSFERABLE)</span>
+        <span class="pill"></span>
+      </div>
+
+      <div class="fn-row">
+        <span class="fn-label">SET BASE URI</span>
+        <div class="fn-inputs"><input type="text" id="setBaseURIVal" placeholder="https://chogi.xyz/api/metadata/"></div>
+        <button class="fn-btn" data-tx="setBaseURI">SAVE</button>
+      </div>
+
+      <div class="fn-row">
+        <span class="fn-label">SET TIER COST<small>tier 0..4 · cost in wei (1e18 = 1 CHOGI)</small></span>
+        <div class="fn-inputs">
+          <select id="setTierCostTier">
+            <option value="0">TIER 0 · COMMON</option>
+            <option value="1">TIER 1 · UNCOMMON</option>
+            <option value="2">TIER 2 · RARE</option>
+            <option value="3">TIER 3 · EPIC</option>
+            <option value="4">TIER 4 · LEGENDARY</option>
+          </select>
+          <input type="text" id="setTierCostVal" placeholder="100000000000000000000000">
+        </div>
+        <button class="fn-btn" data-tx="setTierCost">SAVE</button>
+      </div>
+
+      <div class="fn-row">
+        <span class="fn-label">REDUCE TIER CAP<small>can only LOWER an existing cap</small></span>
+        <div class="fn-inputs">
+          <select id="reduceCapTier">
+            <option value="0">TIER 0 · COMMON</option>
+            <option value="1">TIER 1 · UNCOMMON</option>
+            <option value="2">TIER 2 · RARE</option>
+            <option value="3">TIER 3 · EPIC</option>
+            <option value="4">TIER 4 · LEGENDARY</option>
+          </select>
+          <input type="number" id="reduceCapVal" placeholder="777" min="0">
+        </div>
+        <button class="fn-btn danger" data-tx="reduceTierCap">REDUCE</button>
+      </div>
+    </div>
+
+    <div class="section danger">
+      <h2><span class="ico">⚠</span> DANGER ZONE</h2>
+      <div class="danger-warn">⚠ TRANSFER OWNERSHIP IS PERMANENT</div>
+      <div class="fn-row">
+        <span class="fn-label">TRANSFER OWNERSHIP</span>
+        <div class="fn-inputs"><input type="text" id="nftTransferTo" placeholder="0xNEW_OWNER"></div>
+        <button class="fn-btn danger" data-tx="nftTransferOwnership">TRANSFER</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="disclaimer">
+    ADMIN PANEL · OWNER-ONLY ACTIONS · NO HIDDEN FUND ACCESS<br>
+    EVERY TX IS SIGNED BY YOUR WALLET · LOST KEY = LOST CONTROL · KEEP IT SAFE
+  </p>
+</main>
+
+<div class="toast" id="toast">READY</div>
+
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/blocklist.js" defer></script>
+<script src="/js/config.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  var CHAIN_HEX = '0x8f';
+  var RPC = 'https://rpc.monad.xyz';
+  var ZERO = '0x0000000000000000000000000000000000000000';
+  var EXPLORER = 'https://monadexplorer.com/tx/';
+
+  var addrs = {};
+  function readyConfig(){
+    var c = window.ChogiConfig || {};
+    if(c.RPC) RPC = c.RPC;
+    if(c.CHAIN_HEX) CHAIN_HEX = c.CHAIN_HEX;
+    addrs = {
+      payroll: c.PAYROLL_ADDRESS || ZERO,
+      burner:  c.SWAP_BURNER_ADDRESS || ZERO,
+      nft:     c.NFT_ADDRESS || ZERO,
+    };
+  }
+
+  var PAYROLL_ABI = [
+    'function owner() view returns (address)',
+    'function paused() view returns (bool)',
+    'function swapBurner() view returns (address)',
+    'function labSubjectsNft() view returns (address)',
+    'function totalWeighted() view returns (uint256)',
+    'function poolMeter() view returns (uint256, uint256)',
+    'function assetCount() view returns (uint256)',
+    'function assetList(uint256) view returns (address)',
+    'function assets(address) view returns (bool accepted, uint128 weightPerWei, uint256 totalDeposited, uint256 strandedFees)',
+    'function whitelistAsset(address token, uint128 weightPerWei)',
+    'function delistAsset(address token)',
+    'function setSwapBurner(address)',
+    'function setLabSubjectsNft(address)',
+    'function setPaused(bool)',
+    'function sweepStrandedFees(address token, address to)',
+    'function transferOwnership(address)'
+  ];
+  var BURNER_ABI = [
+    'function owner() view returns (address)',
+    'function burnBps() view returns (uint16)',
+    'function payroll() view returns (address)',
+    'function payrollBps() view returns (uint16)',
+    'function totalBurned() view returns (uint256)',
+    'function totalToPayroll() view returns (uint256)',
+    'function setBurnBps(uint16)',
+    'function setPayroll(address, uint16)',
+    'function refreshRouterApproval()',
+    'function transferOwnership(address)'
+  ];
+  var NFT_ABI = [
+    'function owner() view returns (address)',
+    'function mintEnabled() view returns (bool)',
+    'function soulbound() view returns (bool)',
+    'function totalSupply() view returns (uint256)',
+    'function baseURI() view returns (string)',
+    'function tierBurnCost(uint256) view returns (uint256)',
+    'function tierMaxSupply(uint256) view returns (uint256)',
+    'function mintedAt(uint8) view returns (uint256)',
+    'function setMintEnabled(bool)',
+    'function setSoulbound(bool)',
+    'function setBaseURI(string)',
+    'function setTierCost(uint8, uint256)',
+    'function reduceTierCap(uint8, uint256)',
+    'function transferOwnership(address)'
+  ];
+  var ERC20_ABI = [
+    'function symbol() view returns (string)',
+    'function decimals() view returns (uint8)'
+  ];
+
+  /* ─── helpers ─── */
+  function fmtAddr(a){ if(!a||a===ZERO) return '—'; return a.slice(0,6)+'…'+a.slice(-4); }
+  function fmtFull(a){ return a; }
+  function fmtBal(weiBig){
+    var n = Number(weiBig) / 1e18;
+    if(n >= 1e9) return (n/1e9).toFixed(2)+'B';
+    if(n >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if(n >= 1e3) return (n/1e3).toFixed(1)+'K';
+    if(n === 0) return '0';
+    if(n < 1) return n.toFixed(3);
+    return n.toFixed(0);
+  }
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function toast(msg, kind, ms){
+    var t = $('toast');
+    t.className = 'toast' + (kind ? ' ' + kind : '');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTo);
+    window._toastTo = setTimeout(function(){ t.classList.remove('show'); }, ms || 4000);
+  }
+  function txLink(hash){ return '<a href="'+EXPLORER+hash+'" target="_blank" rel="noopener">view tx</a>'; }
+
+  /* ─── state ─── */
+  var account = null, signer = null, provider = null;
+  var currentTab = 'payroll';
+  var c = { payroll:{r:null,w:null,owner:null}, burner:{r:null,w:null,owner:null}, nft:{r:null,w:null,owner:null} };
+
+  function setupReadContracts(){
+    if(!provider) provider = new ethers.JsonRpcProvider(RPC);
+    if(addrs.payroll !== ZERO) c.payroll.r = new ethers.Contract(addrs.payroll, PAYROLL_ABI, provider);
+    if(addrs.burner  !== ZERO) c.burner.r  = new ethers.Contract(addrs.burner, BURNER_ABI, provider);
+    if(addrs.nft     !== ZERO) c.nft.r     = new ethers.Contract(addrs.nft, NFT_ABI, provider);
+  }
+  async function setupWriteContracts(){
+    if(!signer) return;
+    if(addrs.payroll !== ZERO) c.payroll.w = new ethers.Contract(addrs.payroll, PAYROLL_ABI, signer);
+    if(addrs.burner  !== ZERO) c.burner.w  = new ethers.Contract(addrs.burner, BURNER_ABI, signer);
+    if(addrs.nft     !== ZERO) c.nft.w     = new ethers.Contract(addrs.nft, NFT_ABI, signer);
+  }
+
+  /* ─── connect ─── */
+  async function connect(){
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('Install a wallet (MetaMask, Rabby, Phantom).');
+      return;
+    }
+    var accs = await window.ethereum.request({ method:'eth_requestAccounts' });
+    account = accs[0];
+    var ch = await window.ethereum.request({ method:'eth_chainId' });
+    if(ch !== CHAIN_HEX){
+      try { await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId: CHAIN_HEX}] }); }
+      catch(e){
+        if(e.code === 4902) await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
+          chainId: CHAIN_HEX, chainName:'Monad',
+          nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+          rpcUrls:[RPC], blockExplorerUrls:['https://monadexplorer.com']
+        }]});
+        else throw e;
+      }
+    }
+    var bp = new ethers.BrowserProvider(window.ethereum);
+    signer = await bp.getSigner();
+    await setupWriteContracts();
+    await refreshAuth();
+    await loadCurrentTab();
+  }
+
+  async function refreshAuth(){
+    setupReadContracts();
+    var ownerKey = currentTab;
+    var contract = c[ownerKey].r;
+    var card = $('authCard');
+    var statusEl = $('authStatus');
+    var ownerEl = $('authOwner');
+    var walletEl = $('authWallet');
+
+    walletEl.textContent = account ? fmtAddr(account) : '— not connected —';
+
+    if(!contract){
+      ownerEl.textContent = 'CONTRACT NOT DEPLOYED';
+      card.className = 'auth bad';
+      statusEl.textContent = 'NOT DEPLOYED';
+      return;
+    }
+    try {
+      var owner = await contract.owner();
+      c[ownerKey].owner = owner.toLowerCase();
+      ownerEl.textContent = fmtAddr(owner);
+      ownerEl.title = owner;
+      if(!account){
+        card.className = 'auth warn';
+        statusEl.textContent = 'CONNECT WALLET';
+      } else if(account.toLowerCase() === owner.toLowerCase()){
+        card.className = 'auth ok';
+        statusEl.textContent = '✓ YOU ARE OWNER';
+      } else {
+        card.className = 'auth bad';
+        statusEl.textContent = '✗ NOT OWNER';
+      }
+      // enable/disable all admin buttons based on ownership
+      var isOwner = account && account.toLowerCase() === owner.toLowerCase();
+      document.querySelectorAll('.fn-btn').forEach(function(b){ b.disabled = !isOwner; });
+    } catch(e){
+      console.warn('auth check failed', e);
+      ownerEl.textContent = 'load failed';
+      card.className = 'auth bad';
+      statusEl.textContent = 'RPC ERROR';
+    }
+  }
+
+  /* ─── tab loaders ─── */
+  async function loadCurrentTab(){
+    if(currentTab === 'payroll') await loadPayrollState();
+    else if(currentTab === 'burner') await loadBurnerState();
+    else if(currentTab === 'nft') await loadNftState();
+  }
+
+  async function loadPayrollState(){
+    if(!c.payroll.r){ return; }
+    try {
+      var [own, paused, burner, nft, weighted, meter] = await Promise.all([
+        c.payroll.r.owner(),
+        c.payroll.r.paused(),
+        c.payroll.r.swapBurner(),
+        c.payroll.r.labSubjectsNft(),
+        c.payroll.r.totalWeighted(),
+        c.payroll.r.poolMeter()
+      ]);
+      $('pOwner').textContent = fmtAddr(own); $('pOwner').title = own;
+      $('pPaused').textContent = paused ? 'YES' : 'NO';
+      $('pPaused').className = 'v ' + (paused ? 'red' : 'green');
+      $('pBurner').textContent = fmtAddr(burner); $('pBurner').title = burner;
+      $('pNft').textContent = fmtAddr(nft); $('pNft').title = nft;
+      $('pWeighted').textContent = fmtBal(weighted);
+      $('pFloat').textContent = fmtBal(meter[0]);
+      $('payrollPause').classList.toggle('on', paused);
+
+      // load whitelisted assets
+      var n = Number(await c.payroll.r.assetCount());
+      var rows = [];
+      for(var i = 0; i < n; i++){
+        var addr = await c.payroll.r.assetList(i);
+        var info = await c.payroll.r.assets(addr);
+        var sym = '?', dec = 18;
+        try {
+          var erc = new ethers.Contract(addr, ERC20_ABI, provider);
+          sym = await erc.symbol();
+          dec = Number(await erc.decimals());
+        } catch(e){}
+        rows.push({ addr: addr, sym: sym, dec: dec, accepted: info[0], weight: info[1].toString() });
+      }
+      var CHOGI_ADDR = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+      $('assetList').innerHTML = rows.map(function(r){
+        var isChogi = r.addr.toLowerCase() === CHOGI_ADDR.toLowerCase();
+        var cls = 'asset-row' + (isChogi ? ' chogi' : '') + (!r.accepted ? ' disabled' : '');
+        var weightHuman = (Number(r.weight) / 1e18).toLocaleString();
+        return '<div class="'+cls+'">' +
+          '<div><div class="sym">'+escapeHtml(r.sym)+(isChogi?' · CORE':'')+(!r.accepted?' · DELISTED':'')+'</div>' +
+          '<div class="addr">'+escapeHtml(r.addr)+'</div></div>' +
+          '<div class="weight">' + weightHuman + ' / wei</div>' +
+          '<button class="delist" data-delist="'+r.addr+'">✕ DELIST</button>' +
+        '</div>';
+      }).join('') || '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);text-align:center;padding:14px">no whitelist entries yet</div>';
+
+      $('assetList').querySelectorAll('.delist').forEach(function(b){
+        b.addEventListener('click', function(){ delistAsset(b.dataset.delist); });
+      });
+    } catch(e){ console.warn('payroll state:', e); }
+  }
+
+  async function loadBurnerState(){
+    if(!c.burner.r) return;
+    try {
+      var [own, burnBps, payroll, payrollBps, totalBurned, totalToPay] = await Promise.all([
+        c.burner.r.owner(),
+        c.burner.r.burnBps(),
+        c.burner.r.payroll(),
+        c.burner.r.payrollBps(),
+        c.burner.r.totalBurned(),
+        c.burner.r.totalToPayroll()
+      ]);
+      $('bOwner').textContent = fmtAddr(own); $('bOwner').title = own;
+      $('bBurnBps').textContent = burnBps.toString() + ' (' + (Number(burnBps)/100).toFixed(2) + '%)';
+      $('bPayrollAddr').textContent = fmtAddr(payroll); $('bPayrollAddr').title = payroll;
+      $('bPayrollBps').textContent = payrollBps.toString() + ' (' + (Number(payrollBps)/100).toFixed(2) + '%)';
+      $('bTotalBurned').textContent = fmtBal(totalBurned) + ' CHOGI';
+      $('bTotalToPay').textContent = fmtBal(totalToPay) + ' CHOGI';
+
+      // pre-fill the payroll input with current address
+      $('setPayrollAddr').value = payroll === ZERO ? '' : payroll;
+      $('setPayrollBpsVal').value = Number(payrollBps);
+      $('setBurnBpsVal').value = Number(burnBps);
+    } catch(e){ console.warn('burner state:', e); }
+  }
+
+  async function loadNftState(){
+    if(!c.nft.r) return;
+    try {
+      var [own, mint, soul, supply, baseUri] = await Promise.all([
+        c.nft.r.owner(),
+        c.nft.r.mintEnabled(),
+        c.nft.r.soulbound(),
+        c.nft.r.totalSupply(),
+        c.nft.r.baseURI()
+      ]);
+      $('nOwner').textContent = fmtAddr(own); $('nOwner').title = own;
+      $('nMint').textContent = mint ? 'YES' : 'NO';
+      $('nMint').className = 'v ' + (mint ? 'green' : 'red');
+      $('nSoul').textContent = soul ? 'YES' : 'NO';
+      $('nSupply').textContent = supply.toString();
+      $('nBaseURI').textContent = baseUri || '—';
+      $('nftMintToggle').classList.toggle('on', mint);
+      $('nftSoulToggle').classList.toggle('on', soul);
+
+      // tier costs
+      var tierNames = ['COMMON','UNCOMMON','RARE','EPIC','LEGENDARY'];
+      var tierGrid = '';
+      for(var i = 0; i < 5; i++){
+        var cost = await c.nft.r.tierBurnCost(i);
+        var cap = await c.nft.r.tierMaxSupply(i);
+        var minted = await c.nft.r.mintedAt(i);
+        tierGrid += '<div class="state-cell">' +
+          '<label>TIER '+i+' · '+tierNames[i]+'</label>' +
+          '<div class="v gold">'+fmtBal(cost)+' CHOGI</div>' +
+          '<div class="v" style="font-size:9.5px;color:var(--ink-faint);margin-top:4px">'+minted.toString()+(cap>0n ? ' / '+cap.toString() : ' minted')+'</div>' +
+          '</div>';
+      }
+      $('nftTierGrid').innerHTML = tierGrid;
+    } catch(e){ console.warn('nft state:', e); }
+  }
+
+  /* ─── tx dispatcher ─── */
+  async function fire(label, fn){
+    if(!signer){
+      toast('CONNECT WALLET FIRST', 'error');
+      return;
+    }
+    try {
+      toast('CONFIRM IN WALLET — ' + label);
+      var tx = await fn();
+      toast('PENDING — ' + txLink(tx.hash), null, 8000);
+      await tx.wait();
+      toast('✅ ' + label + ' CONFIRMED — ' + txLink(tx.hash), 'success', 6000);
+      await loadCurrentTab();
+      await refreshAuth();
+    } catch(e){
+      console.error(e);
+      var msg = (e && (e.shortMessage || e.reason || e.message || '')).slice(0, 200);
+      toast('💥 ' + label + ' FAILED — ' + escapeHtml(msg), 'error', 6000);
+    }
+  }
+
+  /* ─── wire up actions ─── */
+  function wireTab(tabName){
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelector('.tab[data-tab="'+tabName+'"]').classList.add('active');
+    document.getElementById('pane-'+tabName).classList.add('active');
+    currentTab = tabName;
+    refreshAuth();
+    loadCurrentTab();
+  }
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){ wireTab(t.dataset.tab); });
+  });
+
+  // PAYROLL actions
+  document.querySelectorAll('[data-tx]').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var k = b.dataset.tx;
+      if(k === 'whitelistAsset'){
+        var addr = $('addTokenAddr').value.trim();
+        var w = $('addTokenWeight').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(addr)) return toast('BAD TOKEN ADDRESS','error');
+        if(!w) return toast('ENTER WEIGHT','error');
+        await fire('whitelistAsset', function(){ return c.payroll.w.whitelistAsset(addr, BigInt(w)); });
+      }
+      else if(k === 'setSwapBurner'){
+        var a = $('setBurnerAddr').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(a)) return toast('BAD ADDRESS','error');
+        await fire('setSwapBurner', function(){ return c.payroll.w.setSwapBurner(a); });
+      }
+      else if(k === 'setLabSubjectsNft'){
+        var a = $('setNftAddr').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(a)) return toast('BAD ADDRESS','error');
+        await fire('setLabSubjectsNft', function(){ return c.payroll.w.setLabSubjectsNft(a); });
+      }
+      else if(k === 'sweepStrandedFees'){
+        var t = $('sweepStrToken').value.trim();
+        var to = $('sweepStrTo').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(t)) return toast('BAD TOKEN','error');
+        if(!/^0x[a-fA-F0-9]{40}$/.test(to)) return toast('BAD RECIPIENT','error');
+        await fire('sweepStrandedFees', function(){ return c.payroll.w.sweepStrandedFees(t, to); });
+      }
+      else if(k === 'payrollTransferOwnership'){
+        var n = $('payTransferTo').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(n)) return toast('BAD ADDRESS','error');
+        if(!confirm('TRANSFER PAYROLL OWNERSHIP TO '+n+'?\n\nTHIS IS PERMANENT.')) return;
+        await fire('transferOwnership(payroll)', function(){ return c.payroll.w.transferOwnership(n); });
+      }
+
+      // BURNER
+      else if(k === 'setBurnBps'){
+        var v = Number($('setBurnBpsVal').value);
+        if(!Number.isFinite(v) || v < 0 || v > 1000) return toast('0..1000 ONLY','error');
+        await fire('setBurnBps('+v+')', function(){ return c.burner.w.setBurnBps(v); });
+      }
+      else if(k === 'setPayroll'){
+        var a2 = $('setPayrollAddr').value.trim();
+        var b2 = Number($('setPayrollBpsVal').value);
+        if(!/^0x[a-fA-F0-9]{40}$/.test(a2) && a2 !== ZERO) return toast('BAD ADDRESS','error');
+        if(!Number.isFinite(b2) || b2 < 0 || b2 > 1000) return toast('BPS 0..1000','error');
+        await fire('setPayroll', function(){ return c.burner.w.setPayroll(a2 || ZERO, b2); });
+      }
+      else if(k === 'refreshRouterApproval'){
+        await fire('refreshRouterApproval', function(){ return c.burner.w.refreshRouterApproval(); });
+      }
+      else if(k === 'burnerTransferOwnership'){
+        var n2 = $('burnTransferTo').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(n2)) return toast('BAD ADDRESS','error');
+        if(!confirm('TRANSFER BURNER OWNERSHIP TO '+n2+'?\n\nTHIS IS PERMANENT.')) return;
+        await fire('transferOwnership(burner)', function(){ return c.burner.w.transferOwnership(n2); });
+      }
+
+      // NFT
+      else if(k === 'setBaseURI'){
+        var u = $('setBaseURIVal').value.trim();
+        if(!u) return toast('ENTER URI','error');
+        await fire('setBaseURI', function(){ return c.nft.w.setBaseURI(u); });
+      }
+      else if(k === 'setTierCost'){
+        var t2 = Number($('setTierCostTier').value);
+        var v2 = $('setTierCostVal').value.trim();
+        if(!v2) return toast('ENTER COST IN WEI','error');
+        await fire('setTierCost', function(){ return c.nft.w.setTierCost(t2, BigInt(v2)); });
+      }
+      else if(k === 'reduceTierCap'){
+        var t3 = Number($('reduceCapTier').value);
+        var v3 = Number($('reduceCapVal').value);
+        if(!Number.isFinite(v3) || v3 < 0) return toast('BAD CAP','error');
+        if(!confirm('REDUCE TIER '+t3+' CAP TO '+v3+'?\nCANNOT BE INCREASED LATER.')) return;
+        await fire('reduceTierCap', function(){ return c.nft.w.reduceTierCap(t3, BigInt(v3)); });
+      }
+      else if(k === 'nftTransferOwnership'){
+        var n3 = $('nftTransferTo').value.trim();
+        if(!/^0x[a-fA-F0-9]{40}$/.test(n3)) return toast('BAD ADDRESS','error');
+        if(!confirm('TRANSFER NFT OWNERSHIP TO '+n3+'?\n\nTHIS IS PERMANENT.')) return;
+        await fire('transferOwnership(nft)', function(){ return c.nft.w.transferOwnership(n3); });
+      }
+    });
+  });
+
+  // preset prefill
+  document.querySelectorAll('[data-preset]').forEach(function(b){
+    b.addEventListener('click', function(e){
+      e.preventDefault();
+      var [addr, weight] = b.dataset.preset.split('|');
+      $('addTokenAddr').value = addr;
+      $('addTokenWeight').value = weight;
+      toast('PRESET LOADED · CLICK + WHITELIST');
+    });
+  });
+
+  // toggles
+  $('payrollPause').addEventListener('click', async function(){
+    if(!signer || !c.payroll.w) return toast('CONNECT FIRST','error');
+    var current = $('payrollPause').classList.contains('on');
+    await fire('setPaused('+(!current)+')', function(){ return c.payroll.w.setPaused(!current); });
+  });
+  $('nftMintToggle').addEventListener('click', async function(){
+    if(!signer || !c.nft.w) return toast('CONNECT FIRST','error');
+    var current = $('nftMintToggle').classList.contains('on');
+    await fire('setMintEnabled('+(!current)+')', function(){ return c.nft.w.setMintEnabled(!current); });
+  });
+  $('nftSoulToggle').addEventListener('click', async function(){
+    if(!signer || !c.nft.w) return toast('CONNECT FIRST','error');
+    var current = $('nftSoulToggle').classList.contains('on');
+    await fire('setSoulbound('+(!current)+')', function(){ return c.nft.w.setSoulbound(!current); });
+  });
+
+  async function delistAsset(token){
+    if(!signer || !c.payroll.w) return toast('CONNECT FIRST','error');
+    if(!confirm('DELIST '+token+'?\nExisting positions in this token still work; just no new stakes.')) return;
+    await fire('delistAsset', function(){ return c.payroll.w.delistAsset(token); });
+  }
+
+  // wallet events from connect-pill.js
+  window.addEventListener('chogi:connected', function(e){
+    account = e.detail && e.detail.account;
+    setupWriteContracts().then(refreshAuth).then(loadCurrentTab);
+  });
+  window.addEventListener('chogi:disconnected', function(){
+    account = null; signer = null;
+    refreshAuth();
+  });
+
+  // init
+  function init(){
+    readyConfig();
+    setupReadContracts();
+    if(window.ChogiConnect && window.ChogiConnect.isConnected && window.ChogiConnect.isConnected()){
+      account = window.ChogiConnect.getAccount();
+      // signer comes via the connect event
+    }
+    refreshAuth();
+    loadCurrentTab();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
