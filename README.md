@@ -2,7 +2,7 @@
 
 > An experiment sparked her existence. Now she's loose on Monad. 💜
 
-The official site for **$CHOGI** — sister of Chog, mascot of mischief, born in the lab and raised by the chain.
+The official site for **$CHOGI** — mascot of mischief, born in the lab and loose on Monad.
 
 ---
 
@@ -43,7 +43,7 @@ Single-page static site. Zero npm dependencies. Zero backend. All live data pull
   - `#0a0118` — deep purple-black (background)
 - **Vibe:** Cyberpunk lab containment breach. Glitch effects, scanlines, animated rings, declassified-document framing.
 
-Distinct from chog.xyz on purpose — Chogi is the escaped one, not the polished mascot.
+Lab-containment-breach aesthetic — Chogi is the escaped experiment, not a polished mascot.
 
 ---
 
@@ -82,7 +82,6 @@ To wire up `chogi.xyz`:
 ## 🤝 Team
 
 - **Chogi** — CTO · Containment Breacher · [@Chogicto](https://x.com/chogicto)
-- **Chog** — Big brother · OG mascot · [chog.xyz](https://www.chog.xyz/)
 - **King Petty** — Builder · [@miggzyonbase](https://x.com/miggzyonbase)
 
 ---

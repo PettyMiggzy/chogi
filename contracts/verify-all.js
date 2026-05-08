@@ -11,7 +11,9 @@ import fs from 'fs';
 import path from 'path';
 import solc from 'solc';
 
-const SOURCIFY = 'https://sourcify.dev/server';
+// Monad mainnet has its own Sourcify-compatible endpoint hosted by BlockVision.
+// The public sourcify.dev server doesn't index chain 143.
+const SOURCIFY = 'https://sourcify-api-monad.blockvision.org';
 const CHAIN_ID = '143'; // Monad mainnet
 const CONTRACTS_DIR = './contracts';
 

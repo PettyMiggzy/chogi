@@ -210,29 +210,50 @@ main, header{position:relative;z-index:2}
   color:var(--ink-faint);font-weight:600;
 }
 
-/* base mode buttons */
+/* upload — big primary CTA, sits above all the presets */
 .upload-btn{
-  display:block;width:100%;padding:13px;border-radius:12px;
-  background:rgba(168,85,247,.14);border:1.5px solid var(--purple);
-  color:var(--cream);font-family:var(--display);font-size:11px;letter-spacing:1.5px;
-  text-align:center;cursor:pointer;transition:.15s;margin-bottom:10px;
+  display:block;width:100%;padding:18px;border-radius:14px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;font-family:var(--display);font-size:13px;letter-spacing:1.6px;
+  text-align:center;cursor:pointer;transition:.18s;margin-bottom:10px;
+  box-shadow:0 8px 22px rgba(255,20,147,.32);
+  position:relative;overflow:hidden;
 }
-.upload-btn:hover{background:rgba(168,85,247,.24)}
+.upload-btn:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(255,20,147,.45)}
+.upload-btn::after{
+  content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);
+  animation:upShine 3.5s ease-in-out infinite;
+}
+@keyframes upShine{0%{transform:translateX(-100%) skewX(-20deg)}60%,100%{transform:translateX(450%) skewX(-20deg)}}
 
+.preset-section{margin-bottom:14px}
+.preset-section:last-of-type{margin-bottom:0}
+.preset-section .ph{
+  font-family:var(--mono);font-size:9px;letter-spacing:.32em;
+  color:var(--gold);font-weight:700;text-transform:uppercase;
+  margin-bottom:7px;display:flex;align-items:center;gap:10px;
+}
+.preset-section .ph::after{
+  content:'';flex:1;height:1px;background:var(--rule);
+}
+.preset-section.chog .ph{color:var(--purple)}
 .preset-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:5px;
 }
 .preset-btn{
-  padding:8px 6px;border-radius:10px;
+  padding:6px 4px 5px;border-radius:9px;
   background:rgba(255,255,255,.04);border:1px solid var(--rule);
   cursor:pointer;transition:.15s;text-align:center;
-  display:flex;flex-direction:column;align-items:center;gap:4px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
 }
-.preset-btn:hover{border-color:var(--pink);background:rgba(255,20,147,.06)}
-.preset-btn img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:rgba(0,0,0,.35)}
+.preset-btn:hover{border-color:var(--pink);background:rgba(255,20,147,.06);transform:translateY(-1px)}
+.preset-btn:active{transform:scale(.95)}
+.preset-section.chog .preset-btn:hover{border-color:var(--purple);background:rgba(168,85,247,.08)}
+.preset-btn img{width:32px;height:32px;border-radius:50%;object-fit:cover;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
 .preset-btn .nm{
-  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
-  color:var(--ink-dim);font-weight:700;text-transform:uppercase;
+  font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;
+  color:var(--ink-dim);font-weight:700;text-transform:uppercase;line-height:1;
 }
 
 /* sticker palette */
@@ -426,22 +447,77 @@ main, header{position:relative;z-index:2}
       <!-- BASE -->
       <div class="ctrl-section">
         <h3><span class="ico">📷</span> BASE IMAGE</h3>
-        <button class="upload-btn" id="uploadBtn">📁 UPLOAD YOUR PFP</button>
-        <div class="preset-grid" id="presetGrid">
-          <button class="preset-btn" data-preset="/chogi.png">
-            <img src="/chogi.png" alt=""><span class="nm">CHOGI</span>
-          </button>
-          <button class="preset-btn" data-preset="/pet-assets/baby-chogi.png">
-            <img src="/pet-assets/baby-chogi.png" alt=""><span class="nm">BABY</span>
-          </button>
-          <button class="preset-btn" data-preset="/pet-assets/teen-chogi.png">
-            <img src="/pet-assets/teen-chogi.png" alt=""><span class="nm">TEEN</span>
-          </button>
-          <button class="preset-btn" data-preset="/pet-assets/adult-prime-chogi.png">
-            <img src="/pet-assets/adult-prime-chogi.png" alt=""><span class="nm">PRIME</span>
-          </button>
+        <button class="upload-btn" id="uploadBtn">📁 UPLOAD YOUR OWN PFP</button>
+        <p class="hint">drag onto canvas · paste (Ctrl+V) · or pick a Chogi/Chog preset below</p>
+
+        <div class="preset-section chogi">
+          <div class="ph">💜 CHOGI · 10 stages</div>
+          <div class="preset-grid">
+            <button class="preset-btn" data-preset="/chogi.png" title="Official portrait">
+              <img src="/chogi.png" loading="lazy" alt=""><span class="nm">ICON</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/egg-chogi.png" title="Egg">
+              <img src="/pet-assets/egg-chogi.png" loading="lazy" alt=""><span class="nm">EGG</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/baby-chogi.png" title="Baby">
+              <img src="/pet-assets/baby-chogi.png" loading="lazy" alt=""><span class="nm">BABY</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/kid-chogi.png" title="Kid">
+              <img src="/pet-assets/kid-chogi.png" loading="lazy" alt=""><span class="nm">KID</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/teen-chogi.png" title="Teen">
+              <img src="/pet-assets/teen-chogi.png" loading="lazy" alt=""><span class="nm">TEEN</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-loyal-chogi.png" title="Loyal">
+              <img src="/pet-assets/adult-loyal-chogi.png" loading="lazy" alt=""><span class="nm">LOYAL</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-chaotic-chogi.png" title="Chaotic">
+              <img src="/pet-assets/adult-chaotic-chogi.png" loading="lazy" alt=""><span class="nm">CHAOS</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-feral-chogi.png" title="Feral">
+              <img src="/pet-assets/adult-feral-chogi.png" loading="lazy" alt=""><span class="nm">FERAL</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-glutton-chogi.png" title="Glutton">
+              <img src="/pet-assets/adult-glutton-chogi.png" loading="lazy" alt=""><span class="nm">GLUTTON</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-prime-chogi.png" title="Prime">
+              <img src="/pet-assets/adult-prime-chogi.png" loading="lazy" alt=""><span class="nm">PRIME</span>
+            </button>
+          </div>
         </div>
-        <p class="hint">drag, paste (ctrl+v), or pick a preset · stickers go on top</p>
+
+        <div class="preset-section chog">
+          <div class="ph">⚜ CHOG · 9 stages</div>
+          <div class="preset-grid">
+            <button class="preset-btn" data-preset="/pet-assets/egg-chog.png" title="Egg">
+              <img src="/pet-assets/egg-chog.png" loading="lazy" alt=""><span class="nm">EGG</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/baby-chog.png" title="Baby">
+              <img src="/pet-assets/baby-chog.png" loading="lazy" alt=""><span class="nm">BABY</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/kid-chog.png" title="Kid">
+              <img src="/pet-assets/kid-chog.png" loading="lazy" alt=""><span class="nm">KID</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/teen-chog.png" title="Teen">
+              <img src="/pet-assets/teen-chog.png" loading="lazy" alt=""><span class="nm">TEEN</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-loyal-chog.png" title="Loyal">
+              <img src="/pet-assets/adult-loyal-chog.png" loading="lazy" alt=""><span class="nm">LOYAL</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-chaotic-chog.png" title="Chaotic">
+              <img src="/pet-assets/adult-chaotic-chog.png" loading="lazy" alt=""><span class="nm">CHAOS</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-feral-chog.png" title="Feral">
+              <img src="/pet-assets/adult-feral-chog.png" loading="lazy" alt=""><span class="nm">FERAL</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-glutton-chog.png" title="Glutton">
+              <img src="/pet-assets/adult-glutton-chog.png" loading="lazy" alt=""><span class="nm">GLUTTON</span>
+            </button>
+            <button class="preset-btn" data-preset="/pet-assets/adult-prime-chog.png" title="Prime">
+              <img src="/pet-assets/adult-prime-chog.png" loading="lazy" alt=""><span class="nm">PRIME</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- STICKERS PALETTE -->
