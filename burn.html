@@ -552,6 +552,25 @@ footer a{color:var(--fire);text-decoration:none;}
         // refresh meter + balance
         if(window.ChogiBurnMeter) window.ChogiBurnMeter.refresh();
         refreshBalance();
+
+        /* ── RAFFLE HOOK · DISABLED until prize art is ready ──
+           When ready: uncomment this block + add /raffle back to nav.
+        try {
+          var rr = await fetch('/api/raffle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: account, burn_tx: txHash })
+          });
+          if(rr.ok){
+            var rj = await rr.json();
+            var n = rj && rj.entries ? Number(rj.entries) : 0;
+            if(n > 0){
+              status('success','✅ BURNED '+human.toLocaleString('en-US')+' CHOGI · earned <b style="color:#FFD55A">'+n.toLocaleString()+' 🎟 RAFFLE TICKETS</b> · <a href="/raffle" style="color:#FFD55A">view raffle →</a>');
+            }
+          }
+        } catch(rerr){ console.warn('raffle log failed (non-fatal):', rerr); }
+        */
+
         // build share text
         var shareText = '🔥 Just burned '+human.toLocaleString('en-US')+' $CHOGI · gone forever · standing with the lab\n\nchogi.xyz/burn';
         $('shareTG').href = 'https://t.me/share/url?url='+encodeURIComponent('https://chogi.xyz/burn')+'&text='+encodeURIComponent(shareText);

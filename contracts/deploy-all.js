@@ -84,9 +84,22 @@ async function main() {
   console.log(`RPC:     ${RPC_URL}`);
 
   // ─── load key ─────────────────────────────────────────────
-  if (!fs.existsSync(KEY_PATH)) throw new Error(`Key file not found: ${KEY_PATH}`);
-  let pk = fs.readFileSync(KEY_PATH, 'utf8').trim();
+  // Priority: DEPLOYER_PRIVATE_KEY env var → DEPLOYER_KEY_PATH env var → /root/.monpad-deployer-key
+  let pk = process.env.DEPLOYER_PRIVATE_KEY?.trim();
+  if (!pk) {
+    const keyPath = process.env.DEPLOYER_KEY_PATH?.trim() || KEY_PATH;
+    if (!fs.existsSync(keyPath)) {
+      throw new Error(
+        'No deployer key found.\n' +
+        '  Option A: set $env:DEPLOYER_PRIVATE_KEY = "0x..." (PowerShell)\n' +
+        '  Option B: set DEPLOYER_KEY_PATH to a file containing the key\n' +
+        '  Option C: place the key at ' + KEY_PATH
+      );
+    }
+    pk = fs.readFileSync(keyPath, 'utf8').trim();
+  }
   if (!pk.startsWith('0x')) pk = '0x' + pk;
+  if (pk.length !== 66) throw new Error(`Bad private key length: ${pk.length} (expected 66 incl. 0x)`);
 
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const wallet   = new ethers.Wallet(pk, provider);
@@ -107,20 +120,47 @@ async function main() {
   }
   console.log('═══════════════════════════════════════════════════════');
 
-  // ─── compile both contracts ───────────────────────────────
-  console.log('\n[1/3] compiling contracts');
-  const swapSrc = fs.readFileSync(path.join(CONTRACTS_DIR, 'ChogiSwapBurner.sol'),  'utf8');
-  const nftSrc  = fs.readFileSync(path.join(CONTRACTS_DIR, 'ChogiLabSubjects.sol'), 'utf8');
-  const swapArt = compile('ChogiSwapBurner.sol',  swapSrc);
-  const nftArt  = compile('ChogiLabSubjects.sol', nftSrc);
+  // ─── compile all contracts ────────────────────────────────
+  console.log('\n[1/4] compiling contracts');
+  const swapSrc  = fs.readFileSync(path.join(CONTRACTS_DIR, 'ChogiSwapBurner.sol'),  'utf8');
+  const nftSrc   = fs.readFileSync(path.join(CONTRACTS_DIR, 'ChogiLabSubjects.sol'), 'utf8');
+  const payrollSrc = fs.readFileSync(path.join(CONTRACTS_DIR, 'ChogiPayroll.sol'),       'utf8');
+  const swapArt  = compile('ChogiSwapBurner.sol',  swapSrc);
+  const nftArt   = compile('ChogiLabSubjects.sol', nftSrc);
+  const payrollArt = compile('ChogiPayroll.sol',       payrollSrc);
 
   // ─── deploy ChogiSwapBurner ───────────────────────────────
-  console.log('\n[2/3] deploying ChogiSwapBurner');
+  console.log('\n[2/4] deploying ChogiSwapBurner');
   const swapAddr = await deployOne(wallet, swapArt, 'SWAP');
 
   // ─── deploy ChogiLabSubjects ──────────────────────────────
-  console.log('\n[3/3] deploying ChogiLabSubjects');
+  console.log('\n[3/4] deploying ChogiLabSubjects');
   const nftAddr = await deployOne(wallet, nftArt, 'NFT');
+
+  // ─── deploy ChogiPayroll (staking) ──────────────────────────
+  console.log('\n[4/4] deploying ChogiPayroll');
+  const payrollAddr = await deployOne(wallet, payrollArt, 'PAYROLL');
+
+  // ─── post-deploy wiring ───────────────────────────────────
+  console.log('\n🔗 wiring:');
+  try {
+    const payroll = new ethers.Contract(payrollAddr, payrollArt.abi, wallet);
+    const setSwap = await payroll.setSwapBurner(swapAddr);
+    console.log(`  payroll.setSwapBurner(${swapAddr}) -> ${setSwap.hash}`);
+    await setSwap.wait();
+    const setNft = await payroll.setLabSubjectsNft(nftAddr);
+    console.log(`  payroll.setLabSubjectsNft(${nftAddr}) -> ${setNft.hash}`);
+    await setNft.wait();
+
+    const burner = new ethers.Contract(swapAddr, swapArt.abi, wallet);
+    // route 50 bps (0.50%) of the 1% burn fee to the payroll; remaining 50 bps still burns
+    const setPayroll = await burner.setPayroll(payrollAddr, 50);
+    console.log(`  burner.setPayroll(${payrollAddr}, 50) -> ${setPayroll.hash}`);
+    await setPayroll.wait();
+  } catch (e) {
+    console.warn(`  ⚠️ wiring failed: ${e?.shortMessage || e?.message || e}`);
+    console.warn('     run admin txs manually after deploy');
+  }
 
   // ─── save addresses ───────────────────────────────────────
   const result = {
@@ -131,6 +171,7 @@ async function main() {
     contracts: {
       ChogiSwapBurner:  swapAddr,
       ChogiLabSubjects: nftAddr,
+      ChogiPayroll:       payrollAddr,
     }
   };
   fs.writeFileSync(OUT_FILE, JSON.stringify(result, null, 2));
@@ -141,11 +182,12 @@ async function main() {
   console.log('═══════════════════════════════════════════════════════');
   console.log(`ChogiSwapBurner:  ${swapAddr}`);
   console.log(`ChogiLabSubjects: ${nftAddr}`);
+  console.log(`ChogiPayroll:       ${payrollAddr}`);
   console.log('═══════════════════════════════════════════════════════');
   console.log('\nNext steps:');
-  console.log('  1. Paste both addresses to the assistant — they patch swap.html + mint.html');
+  console.log('  1. Paste addresses into /js/config.js (PAYROLL_ADDRESS + SWAP_BURNER_ADDRESS)');
   console.log('  2. Set Vercel env CHOGI_NFT_ADDRESS to the NFT address above');
-  console.log('  3. Optionally tune burn % via setBurnBps() on the swap contract');
+  console.log('  3. Verify all three contracts on Monad explorer');
   console.log('');
 }
 

@@ -524,6 +524,11 @@ main, header{position:relative;z-index:2}
 
   /* ─── helpers ─── */
   function pad32(hex){return hex.toLowerCase().replace('0x','').padStart(64,'0');}
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
   function fmtPrice(n){
     if(n>=1e6) return (n/1e6).toFixed(1)+'M';
     if(n>=1e3) return (n/1e3).toFixed(n>=10000?0:1)+'K';
@@ -671,20 +676,21 @@ main, header{position:relative;z-index:2}
 
       // emoji-based image for items without art
       var imgHtml;
+      var safeId = String(it.id || '').replace(/[^a-z0-9_\-]/gi, '');
       if(isBondToken){
         imgHtml = '<div class="card-img bond-img"><div style="font-size:64px;filter:drop-shadow(0 6px 12px rgba(255,20,147,.5))">💜</div></div>';
       } else if(isReviveTonic){
         imgHtml = '<div class="card-img"><div style="font-size:64px;filter:drop-shadow(0 6px 12px rgba(168,85,247,.5))">🧪</div></div>';
       } else {
-        imgHtml = '<div class="card-img"><img src="/marketplace/items/'+it.id+'.png" alt="'+it.name+'" loading="lazy" onerror="this.parentNode.innerHTML=\'<div style=&quot;font-size:48px&quot;>🍓</div>\'"></div>';
+        imgHtml = '<div class="card-img"><img src="/marketplace/items/'+safeId+'.png" alt="'+escapeHtml(it.name)+'" loading="lazy" onerror="this.parentNode.innerHTML=\'<div style=&quot;font-size:48px&quot;>🍓</div>\'"></div>';
       }
 
       return '<div class="'+cls+'">' +
         stamp +
         imgHtml +
-        '<div class="card-name">'+it.name+'</div>' +
-        '<div class="card-meta">'+it.desc+'</div>' +
-        '<div class="card-cost"><span class="price"><b>'+fmtPrice(it.price)+'</b> $CHOGI</span>'+(effect?'<span class="effect">'+effect+'</span>':'')+'</div>' +
+        '<div class="card-name">'+escapeHtml(it.name)+'</div>' +
+        '<div class="card-meta">'+escapeHtml(it.desc)+'</div>' +
+        '<div class="card-cost"><span class="price"><b>'+fmtPrice(it.price)+'</b> $CHOGI</span>'+(effect?'<span class="effect">'+escapeHtml(effect)+'</span>':'')+'</div>' +
         btn +
       '</div>';
     }).join('');
@@ -740,14 +746,15 @@ main, header{position:relative;z-index:2}
         : 'day ' + (p.days_alive || 1) + ' / 30 · ' + (p.stage || 'baby').toUpperCase();
 
       var btn;
+      var safePid = String(p.pet_id || '').replace(/[^0-9a-f-]/gi, '');
       if(isDead && !isBuried){
-        btn = '<button class="card-btn" data-act="select" data-id="'+p.pet_id+'" disabled>BURY OR REVIVE</button>';
+        btn = '<button class="card-btn" data-act="select" data-id="'+safePid+'" disabled>BURY OR REVIVE</button>';
       } else if(isDead && isBuried){
         btn = '<button class="card-btn" disabled style="opacity:.5">BURIED</button>';
       } else if(isActive){
         btn = '<button class="card-btn" disabled>CURRENTLY ACTIVE</button>';
       } else {
-        btn = '<button class="card-btn" data-act="switch" data-id="'+p.pet_id+'">SWITCH TO ' + (p.name||'pet').toUpperCase() + '</button>';
+        btn = '<button class="card-btn" data-act="switch" data-id="'+safePid+'">SWITCH TO ' + escapeHtml((p.name||'pet').toUpperCase()) + '</button>';
       }
 
       var imgHtml = isDead
@@ -757,9 +764,9 @@ main, header{position:relative;z-index:2}
       return '<div class="'+cls+'">' +
         stamp +
         imgHtml +
-        '<div class="card-name">' + (p.name || 'unnamed') + '</div>' +
-        '<div class="card-meta">' + statLine + ' · burned ' + fmtPrice(p.total_burned||0) + '</div>' +
-        '<div class="card-cost"><span class="price">' + (p.type||'chogi').toUpperCase() + (p.bonded ? ' · 💜 BONDED' : '') + '</span></div>' +
+        '<div class="card-name">' + escapeHtml(p.name || 'unnamed') + '</div>' +
+        '<div class="card-meta">' + escapeHtml(statLine) + ' · burned ' + fmtPrice(p.total_burned||0) + '</div>' +
+        '<div class="card-cost"><span class="price">' + escapeHtml((p.type||'chogi').toUpperCase()) + (p.bonded ? ' · 💜 BONDED' : '') + '</span></div>' +
         btn +
       '</div>';
     }).join('');
@@ -789,7 +796,7 @@ main, header{position:relative;z-index:2}
     }
     $('shelf').classList.add('show');
     var status = pet.bonded ? '💜 BONDED' : '🥚 NOT BONDED';
-    $('shelfPetName').innerHTML = pet.name + ' · ' + (pet.type||'').toUpperCase() + ' · ' + (pet.stage||'baby').toUpperCase() + '<br><span style="color:var(--pink);font-size:9px">' + status + '</span>';
+    $('shelfPetName').innerHTML = escapeHtml(pet.name || '') + ' · ' + escapeHtml((pet.type||'').toUpperCase()) + ' · ' + escapeHtml((pet.stage||'baby').toUpperCase()) + '<br><span style="color:var(--pink);font-size:9px">' + status + '</span>';
     // hide loadout slots
     var ids = ['eqHead','eqOutfit','eqBoots','eqAcc'];
     ids.forEach(function(id){

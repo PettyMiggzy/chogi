@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>PAYROLL · Stake $CHOGI · Chogi runs the back office</title>
+<meta name="description" content="Get on Chogi's payroll. Family moves only. Stake $CHOGI (or any whitelisted Monad token), earn from real flow — no inflation, no emissions, ever.">
+<meta name="theme-color" content="#0a0118">
+<meta property="og:title" content="PAYROLL · Family moves only">
+<meta property="og:description" content="Get on the payroll. The back office runs the bag.">
+<meta property="og:image" content="https://chogi.xyz/payroll/chogi-payroll-hero.jpg">
+<meta property="og:url" content="https://chogi.xyz/payroll">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://chogi.xyz/payroll/chogi-payroll-hero.jpg">
+<link rel="canonical" href="https://chogi.xyz/payroll">
+<link rel="icon" type="image/png" href="/chogi.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="preload" as="image" href="/payroll/chogi-payroll-hero.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Fredoka:wght@500;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#1a0436;
+  --bg-2:#2a0a4a;
+  --bg-3:#3d1163;
+  --pink:#FF1493;
+  --pink-soft:#FF8FBA;
+  --pink-glow:rgba(255,20,147,.6);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --gold:#FFD55A;
+  --gold-deep:#E8A14F;
+  --gold-glow:rgba(255,213,90,.65);
+  --cream:#FFF4D6;
+  --ink:#FFE9F4;
+  --ink-dim:rgba(255,233,244,.78);
+  --ink-faint:rgba(255,233,244,.5);
+  --green:#5dffa0;
+  --red:#ff6b8a;
+  --rule:rgba(255,213,90,.22);
+  --rule-strong:rgba(255,213,90,.5);
+  --display:'Bungee',sans-serif;
+  --hand:'Fredoka',system-ui,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--mono);min-height:100vh;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font:inherit;color:inherit}
+
+.sky{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 25% 12%, rgba(255,143,186,.22), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 75% 90%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255,213,90,.06), transparent 70%),
+    linear-gradient(180deg, #2a0a4a 0%, #1a0436 50%, #0e0224 100%);
+}
+.sky::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='5'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.4 0 0 0 0 0.7 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity:.4;mix-blend-mode:overlay;
+}
+
+.cloud{
+  position:absolute;color:rgba(255,233,244,.18);font-size:42px;
+  font-family:var(--hand);font-weight:700;letter-spacing:-.02em;
+  pointer-events:none;animation:cloudDrift 22s ease-in-out infinite;z-index:1;
+}
+.cloud.c1{top:80px;left:6%;font-size:50px}
+.cloud.c2{top:140px;right:8%;font-size:38px;animation-delay:-7s}
+.cloud.c3{top:340px;left:10%;font-size:34px;animation-delay:-14s}
+.cloud.c4{top:280px;right:14%;font-size:46px;animation-delay:-3s}
+@keyframes cloudDrift{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(14px) translateY(-6px)}}
+
+main, header{position:relative;z-index:2}
+
+/* ═══ topbar ═══ */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(18px) saturate(150%);
+  background:rgba(26,4,54,.7);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-inner{
+  max-width:1240px;margin:0 auto;padding:13px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 6px 22px rgba(255,20,147,.35);
+}
+.brand-logo img{width:100%;height:100%;object-fit:cover}
+.brand-text{font-family:var(--display);font-size:13px;letter-spacing:2px;color:var(--cream)}
+.nav-back{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+  padding:8px 14px;border-radius:99px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  font-weight:600;transition:.2s;text-transform:uppercase;
+}
+.nav-back:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ hero ═══ */
+.hero{
+  max-width:1240px;margin:0 auto;padding:30px 22px 0;
+  display:grid;grid-template-columns:1.05fr 1fr;gap:36px;align-items:center;
+  position:relative;
+}
+@media(max-width:880px){.hero{grid-template-columns:1fr;padding-top:20px;gap:18px}}
+
+.hero-art{position:relative;aspect-ratio:1/1;max-width:560px;justify-self:center;width:100%}
+.hero-art img{
+  width:100%;height:100%;object-fit:contain;
+  filter:drop-shadow(0 22px 60px rgba(255,20,147,.4))
+         drop-shadow(0 0 60px rgba(255,213,90,.25));
+  animation:bob 4.5s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-art::before{
+  content:'';position:absolute;inset:8% 8% 14% 8%;
+  background:radial-gradient(ellipse at 50% 35%, rgba(255,213,90,.35), rgba(255,213,90,0) 65%);
+  z-index:-1;animation:halo 5s ease-in-out infinite;
+}
+@keyframes halo{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+.spark{
+  position:absolute;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle, var(--gold) 0%, transparent 60%);
+  filter:drop-shadow(0 0 8px var(--gold-glow));
+  animation:sparkle 2.4s ease-in-out infinite;pointer-events:none;
+}
+.spark.s1{top:18%;left:14%}
+.spark.s2{top:8%;right:22%;animation-delay:-.6s}
+.spark.s3{bottom:22%;left:6%;animation-delay:-1.2s;width:10px;height:10px}
+.spark.s4{top:36%;right:8%;animation-delay:-1.8s;width:8px;height:8px}
+.spark.s5{bottom:14%;right:24%;animation-delay:-.3s;width:11px;height:11px}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}
+
+.hero-copy h1{
+  font-family:var(--display);
+  font-size:clamp(50px,8.5vw,108px);line-height:.93;
+  color:var(--cream);
+  text-shadow:0 0 22px rgba(255,213,90,.32),0 0 56px rgba(168,85,247,.3);
+  margin-bottom:14px;
+}
+.hero-copy h1 span.gold{
+  background:linear-gradient(180deg,var(--cream) 0%,var(--gold) 55%,var(--gold-deep) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px var(--gold-glow));
+}
+.hero-copy .eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.4em;color:var(--gold);
+  font-weight:700;text-transform:uppercase;display:inline-flex;align-items:center;gap:14px;
+  margin-bottom:18px;
+}
+.hero-copy .eyebrow::before, .hero-copy .eyebrow::after{
+  content:'';width:30px;height:1px;background:var(--gold);box-shadow:0 0 8px var(--gold-glow);
+}
+.hero-copy p{
+  font-family:var(--serif);font-style:italic;font-size:clamp(17px,2.1vw,22px);
+  color:var(--ink-dim);max-width:520px;line-height:1.5;margin-bottom:20px;
+}
+.hero-tag{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;
+  color:var(--ink-faint);text-transform:uppercase;
+}
+.hero-cta{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.hero-cta a{
+  padding:13px 22px;border-radius:99px;
+  font-family:var(--display);font-size:11.5px;letter-spacing:1.7px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  color:#3d1163;box-shadow:0 8px 22px rgba(255,213,90,.32);
+  transition:.2s;text-transform:uppercase;
+}
+.hero-cta a:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(255,213,90,.45)}
+.hero-cta a.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule-strong);box-shadow:none}
+.hero-cta a.ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ pile strip ═══ */
+.pile-strip{
+  position:relative;height:90px;margin-top:-30px;margin-bottom:14px;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,213,90,.06) 100%);overflow:hidden;
+}
+.pile-strip::before{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:60px;
+  background:
+    radial-gradient(ellipse 24px 8px at 6%  100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 28px 9px at 14% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 22px 7px at 22% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 30px 9px at 32% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 26px 8px at 42% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 28px 9px at 52% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 24px 7px at 62% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 30px 9px at 72% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 26px 8px at 82% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%),
+    radial-gradient(ellipse 28px 8px at 92% 100%, var(--gold) 0%, var(--gold-deep) 60%, transparent 70%);
+  background-repeat:no-repeat;
+  filter:drop-shadow(0 -4px 12px rgba(255,213,90,.4));
+}
+
+/* ═══ ticker ═══ */
+.ticker{max-width:1240px;margin:0 auto 26px;padding:0 22px}
+.ticker-inner{
+  background:rgba(26,4,54,.55);border:1px solid var(--rule);
+  border-radius:99px;padding:8px 18px;overflow:hidden;
+  display:flex;align-items:center;gap:14px;
+}
+.ticker-label{
+  font-family:var(--display);font-size:9.5px;letter-spacing:1.5px;color:var(--gold);
+  flex-shrink:0;display:flex;align-items:center;gap:8px;
+}
+.ticker-label::before{
+  content:'';width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);animation:livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse{50%{opacity:.4}}
+.ticker-track{
+  flex:1;overflow:hidden;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  color:var(--ink-dim);white-space:nowrap;
+}
+.ticker-track .row{display:inline-block;animation:tickerScroll 40s linear infinite}
+.ticker-track .row span{margin-right:36px}
+.ticker-track .row b{color:var(--cream);font-weight:700}
+.ticker-track .row .amt{color:var(--gold)}
+@keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ═══ core ═══ */
+.core{
+  max-width:1240px;margin:14px auto 0;padding:30px 28px;
+  background:
+    linear-gradient(180deg,rgba(255,213,90,.10),rgba(168,85,247,.06)),
+    radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255,213,90,.18), transparent 50%);
+  border:1.5px solid var(--rule-strong);border-radius:24px;
+  position:relative;overflow:hidden;
+}
+.core::before{
+  content:'TREASURY · LIVE';position:absolute;top:14px;right:18px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.36em;color:var(--gold);font-weight:700;
+}
+.core::after{
+  content:'';position:absolute;left:-20%;right:-20%;top:-50%;height:200%;
+  background:radial-gradient(ellipse at 50% 0%, rgba(255,213,90,.12), transparent 55%);
+  z-index:0;pointer-events:none;animation:corePulse 3.5s ease-in-out infinite;
+}
+@keyframes corePulse{0%,100%{opacity:.7}50%{opacity:1}}
+.core-grid{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:1.4fr repeat(3, 1fr);gap:22px;align-items:center;
+}
+@media(max-width:780px){.core-grid{grid-template-columns:1fr 1fr;gap:16px}}
+.core-pile{display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;padding:6px}
+.pile-icon{width:120px;height:90px;position:relative;margin-bottom:10px;filter:drop-shadow(0 8px 18px rgba(255,213,90,.4))}
+.pile-icon::before, .pile-icon::after{
+  content:'';position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, var(--gold), var(--gold-deep) 60%, #8b6420 100%);
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.25), 0 2px 6px rgba(0,0,0,.4);
+}
+.pile-icon::before{width:50px;height:50px;left:36px;top:0}
+.pile-icon::after{width:60px;height:60px;left:30px;top:30px}
+.pile-coin{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, var(--gold), var(--gold-deep) 60%, #8b6420 100%);
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,.2), 0 2px 4px rgba(0,0,0,.4);
+}
+.pile-coin.c1{width:45px;height:45px;left:0;top:35px}
+.pile-coin.c2{width:42px;height:42px;left:78px;top:38px}
+.pile-coin.c3{width:38px;height:38px;left:14px;top:55px}
+.pile-coin.c4{width:36px;height:36px;left:70px;top:55px}
+.core-pile .label{font-family:var(--mono);font-size:10px;letter-spacing:.32em;color:var(--gold);font-weight:700;text-transform:uppercase;text-align:center}
+.core-pile .v{font-family:var(--display);font-size:clamp(22px,4vw,34px);color:var(--cream);letter-spacing:.04em;text-align:center;margin-top:4px}
+.core-pile .v small{font-size:11px;color:var(--ink-dim);font-family:var(--mono);font-weight:600;letter-spacing:.18em;margin-left:5px}
+.core-stat{position:relative;padding-left:18px;border-left:2px solid var(--rule)}
+.core-stat label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.28em;color:var(--ink-faint);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+.core-stat .v{font-family:var(--display);font-size:clamp(20px,3vw,28px);letter-spacing:.04em;color:var(--cream)}
+.core-stat .v small{font-size:10px;color:var(--ink-dim);font-family:var(--mono);font-weight:600;letter-spacing:.18em;margin-left:5px}
+.core-stat.recyc .v{color:var(--gold)}
+.core-stat.don .v{color:var(--pink-soft)}
+.coin-rain{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.coin-rain i{
+  position:absolute;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, var(--gold), var(--gold-deep) 60%, #8b6420 100%);
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.3), 0 0 8px var(--gold-glow);
+  animation:coinFall linear infinite;opacity:0;
+}
+@keyframes coinFall{0%{transform:translateY(-30px) rotate(0);opacity:0}10%{opacity:.9}100%{transform:translateY(140px) rotate(360deg);opacity:0}}
+
+/* ═══ layout ═══ */
+.layout{
+  max-width:1240px;margin:30px auto 70px;padding:0 22px;
+  display:grid;grid-template-columns:1.1fr 1fr;gap:26px;
+}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
+.panel{
+  background:radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255,213,90,.06), transparent 60%),rgba(26,4,54,.7);
+  border:1px solid var(--rule);border-radius:20px;
+  padding:26px;position:relative;
+}
+.panel h2{font-family:var(--display);font-size:14px;letter-spacing:2px;color:var(--cream);margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.panel h2 .ico{font-size:22px}
+.panel .panel-sub{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:18px}
+
+/* tabs */
+.tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--rule)}
+.tab{
+  padding:12px 18px;font-family:var(--display);font-size:11.5px;letter-spacing:1.6px;
+  color:var(--ink-faint);text-transform:uppercase;
+  border-bottom:2.5px solid transparent;margin-bottom:-1px;transition:.18s;
+  display:flex;align-items:center;gap:8px;
+}
+.tab .ico{font-size:18px}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* tier picker */
+.tiers{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+.tier{
+  cursor:pointer;border:1.5px solid var(--rule);border-radius:14px;
+  padding:14px 16px;background:rgba(255,255,255,.025);transition:.18s;
+  position:relative;overflow:hidden;text-align:left;
+}
+.tier:hover{border-color:var(--gold);background:rgba(255,213,90,.06);transform:translateY(-1px)}
+.tier.active{
+  border-color:var(--gold);background:rgba(255,213,90,.13);
+  box-shadow:0 0 0 1px var(--gold), 0 8px 24px rgba(255,213,90,.22);
+}
+.tier .tier-rank{
+  position:absolute;right:14px;top:14px;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;
+  color:var(--ink-faint);font-weight:700;text-transform:uppercase;
+}
+.tier .tier-name{font-family:var(--display);font-size:13px;letter-spacing:1.5px;color:var(--cream)}
+.tier .tier-meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--ink-faint);margin-top:6px;text-transform:uppercase}
+.tier .tier-cliff{font-family:var(--display);font-size:14px;color:var(--gold);margin-top:8px;letter-spacing:.04em}
+.tier .tier-fee{font-family:var(--mono);font-size:9.5px;color:var(--red);margin-top:4px;letter-spacing:.14em;text-transform:uppercase}
+.tier[data-tier="3"]{background:linear-gradient(135deg,rgba(255,213,90,.12),rgba(255,20,147,.06))}
+.tier[data-tier="3"].active{background:linear-gradient(135deg,rgba(255,213,90,.22),rgba(255,20,147,.14))}
+
+/* token selector */
+.token-row{
+  display:flex;gap:8px;align-items:center;
+  padding:10px 14px;border-radius:11px;
+  background:rgba(0,0,0,.32);border:1.5px solid var(--rule);
+  margin-bottom:10px;
+}
+.token-row label{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;
+  color:var(--ink-faint);text-transform:uppercase;font-weight:700;
+}
+.token-row select{
+  flex:1;background:transparent;border:0;outline:0;cursor:pointer;
+  font-family:var(--display);font-size:13px;color:var(--cream);
+  letter-spacing:.05em;padding:6px;
+}
+.token-row select option{background:#1a0436;color:var(--cream)}
+
+/* input row */
+.amount-row{display:flex;gap:8px;margin-bottom:12px;align-items:stretch}
+.amount-input{
+  flex:1;padding:14px 16px;border-radius:12px;
+  background:rgba(0,0,0,.34);border:1.5px solid var(--rule);
+  color:var(--cream);font-family:var(--display);font-size:18px;letter-spacing:.04em;
+  outline:none;transition:.15s;
+}
+.amount-input:focus{border-color:var(--gold);background:rgba(0,0,0,.44);box-shadow:0 0 0 3px rgba(255,213,90,.14)}
+.amount-input::placeholder{color:var(--ink-faint);font-family:var(--mono);font-weight:600}
+.max-btn{
+  padding:0 18px;border-radius:12px;
+  background:linear-gradient(135deg,var(--purple),var(--purple-deep));
+  color:#fff;font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+}
+.max-btn:hover{filter:brightness(1.1)}
+.quick-amounts{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.quick{
+  padding:7px 13px;border-radius:99px;
+  background:rgba(255,255,255,.04);border:1px solid var(--rule);
+  color:var(--ink-dim);font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;font-weight:700;transition:.15s;
+}
+.quick:hover{border-color:var(--gold);color:var(--gold);background:rgba(255,213,90,.08)}
+
+/* fee callout */
+.fee-callout{
+  padding:12px 14px;border-radius:11px;
+  background:linear-gradient(135deg,rgba(255,20,147,.08),rgba(168,85,247,.08));
+  border:1px dashed rgba(255,20,147,.4);
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.fee-callout .ico{font-size:20px;flex-shrink:0}
+.fee-callout .text{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+  color:var(--ink-dim);line-height:1.55;text-transform:uppercase;
+}
+.fee-callout .text b{color:var(--cream);font-weight:700}
+.fee-callout .text .amt{color:var(--pink);font-family:var(--display);font-size:13px;letter-spacing:.04em}
+
+/* primary cta */
+.cta{
+  width:100%;padding:18px;border-radius:14px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-deep) 100%);
+  color:#3d1163;font-family:var(--display);font-size:14px;letter-spacing:2.2px;
+  box-shadow:0 10px 30px rgba(255,213,90,.32), inset 0 -3px 10px rgba(0,0,0,.18);
+  transition:.18s;position:relative;overflow:hidden;
+}
+.cta:hover{transform:translateY(-1.5px);box-shadow:0 16px 42px rgba(255,213,90,.5), inset 0 -3px 10px rgba(0,0,0,.18)}
+.cta:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.cta::after{
+  content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:ctaShine 3s ease-in-out infinite;
+}
+@keyframes ctaShine{0%{transform:translateX(-100%) skewX(-20deg)}60%,100%{transform:translateX(450%) skewX(-20deg)}}
+.cta.alt{
+  background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;
+  box-shadow:0 10px 30px rgba(255,20,147,.32), inset 0 -3px 10px rgba(0,0,0,.18);
+}
+.cta.alt:hover{box-shadow:0 16px 42px rgba(255,20,147,.5), inset 0 -3px 10px rgba(0,0,0,.18)}
+.balance-line{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  color:var(--ink-faint);text-align:right;margin-top:10px;text-transform:uppercase;
+}
+.balance-line b{color:var(--cream);font-weight:700}
+
+/* positions */
+.pos{
+  background:linear-gradient(180deg,rgba(255,213,90,.04),rgba(0,0,0,.32));
+  border:1px solid var(--rule);border-radius:15px;
+  padding:16px 18px;margin-bottom:12px;position:relative;overflow:hidden;
+}
+.pos.locked{border-color:var(--rule-strong)}
+.pos.vested{border-color:rgba(93,255,160,.4)}
+.pos.unlocked{border-color:rgba(93,255,160,.5)}
+.pos-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.pos-tier{
+  font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+  padding:5px 12px;border-radius:99px;
+  background:rgba(255,213,90,.13);color:var(--gold);
+  border:1px solid var(--gold);display:inline-flex;align-items:center;gap:6px;
+}
+.pos-tier .coin{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold-glow)}
+.pos-amt{font-family:var(--display);font-size:16px;color:var(--cream);letter-spacing:.04em}
+.pos-amt small{font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);letter-spacing:.16em;display:block;text-align:right;margin-top:2px}
+
+/* vesting bar */
+.vest{margin:6px 0 12px}
+.vest-meta{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  color:var(--ink-faint);text-transform:uppercase;
+  display:flex;justify-content:space-between;margin-bottom:5px;
+}
+.vest-meta b{color:var(--cream);font-family:var(--display);font-size:11px;letter-spacing:.04em}
+.vest-bar{
+  height:8px;border-radius:99px;background:rgba(0,0,0,.4);
+  border:1px solid var(--rule);overflow:hidden;position:relative;
+}
+.vest-fill{
+  height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));
+  transition:width .4s ease;border-radius:99px;
+  box-shadow:0 0 10px rgba(255,213,90,.4);
+}
+.vest-cliff{
+  position:absolute;top:-2px;bottom:-2px;width:2px;
+  background:var(--green);box-shadow:0 0 8px var(--green);
+}
+.vest.vested .vest-fill{background:linear-gradient(90deg,var(--green),var(--gold))}
+
+.pos-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pos-row .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--ink-faint);text-transform:uppercase;display:block;margin-bottom:3px}
+.pos-row .val{font-family:var(--display);font-size:14px;color:var(--cream);letter-spacing:.04em}
+.pos-row .val.pending{color:var(--green)}
+.pos-row .val.locked{color:var(--ink-faint)}
+.pos-row .val.fee{color:var(--red)}
+.pos-foot{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--ink-faint);margin-top:10px;text-transform:uppercase}
+.pos-actions{display:flex;gap:8px;margin-top:12px}
+.pos-act{
+  flex:1;padding:11px;border-radius:11px;
+  font-family:var(--display);font-size:11px;letter-spacing:1.5px;
+  border:1px solid var(--rule);color:var(--ink-dim);
+  background:rgba(255,255,255,.03);transition:.15s;
+}
+.pos-act:hover{border-color:var(--gold);color:var(--gold);background:rgba(255,213,90,.08)}
+.pos-act:disabled{opacity:.4;cursor:not-allowed}
+.pos-act.danger{border-color:rgba(255,107,138,.4);color:var(--red)}
+.pos-act.danger:hover{background:rgba(255,107,138,.1);color:#ffaabb}
+.pos-act.primary{background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#3d1163;border:none}
+.pos-act.primary:hover{filter:brightness(1.06)}
+.pos.closed{opacity:.45}
+.pos.closed .pos-act{display:none}
+.empty-pos{
+  font-family:var(--serif);font-style:italic;
+  color:var(--ink-faint);text-align:center;padding:40px 14px;font-size:16px;line-height:1.55;
+}
+
+/* patron leaderboard */
+.patron-podium{
+  display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;align-items:end;
+  margin-bottom:18px;min-height:140px;
+}
+.podium-step{
+  background:linear-gradient(180deg,rgba(255,213,90,.18),rgba(255,213,90,.06));
+  border:1.5px solid var(--rule-strong);border-radius:11px 11px 4px 4px;
+  padding:14px 8px 12px;text-align:center;position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.podium-step.first{
+  height:140px;border-color:var(--gold);
+  background:linear-gradient(180deg,rgba(255,213,90,.32),rgba(255,213,90,.1));
+  box-shadow:0 0 24px rgba(255,213,90,.3);
+}
+.podium-step.second{height:110px}
+.podium-step.third{height:90px}
+.podium-step .crown{font-size:24px;line-height:1}
+.podium-step .pname{font-family:var(--display);font-size:10.5px;letter-spacing:1px;color:var(--cream);word-break:break-all;line-height:1.2}
+.podium-step .pamt{font-family:var(--display);font-size:12px;color:var(--gold);letter-spacing:.04em}
+.podium-step.empty{border-style:dashed;border-color:rgba(255,213,90,.25);background:rgba(0,0,0,.18);color:var(--ink-faint)}
+.podium-step.empty .crown{filter:grayscale(.8);opacity:.5}
+.patron-row{
+  display:grid;grid-template-columns:32px 1fr auto;gap:14px;align-items:center;
+  padding:10px 0;border-bottom:1px dashed rgba(255,213,90,.12);
+}
+.patron-row:last-child{border:0}
+.patron-row .rank{font-family:var(--display);font-size:11px;color:var(--ink-faint);text-align:center}
+.patron-row .addr{color:var(--cream);font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.1em}
+.patron-row .amt{font-family:var(--display);font-size:11px;color:var(--gold);letter-spacing:.05em}
+.badge{display:inline-block;padding:2px 7px;margin-left:8px;border-radius:5px;font-family:var(--display);font-size:9px;letter-spacing:.18em}
+.badge.t1{background:rgba(168,85,247,.22);color:var(--purple);border:1px solid rgba(168,85,247,.4)}
+.badge.t2{background:rgba(255,143,186,.22);color:var(--pink-soft);border:1px solid rgba(255,143,186,.4)}
+.badge.t3{background:rgba(255,213,90,.22);color:var(--gold);border:1px solid var(--gold)}
+.badge.t4{background:linear-gradient(135deg,#FF1493,#FFD55A);color:#1a0436;border:1px solid #fff}
+
+/* hiw */
+.hiw{max-width:1240px;margin:0 auto 60px;padding:0 22px}
+.hiw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:980px){.hiw-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.hiw-grid{grid-template-columns:1fr}}
+.hiw-card{padding:20px;background:rgba(26,4,54,.55);border:1px solid var(--rule);border-radius:16px;position:relative;overflow:hidden}
+.hiw-card::before{content:'';position:absolute;top:-30%;right:-30%;width:60%;height:60%;background:radial-gradient(circle,rgba(255,213,90,.18),transparent 70%);pointer-events:none}
+.hiw-card .icon{font-size:30px;margin-bottom:12px;display:block}
+.hiw-card h3{font-family:var(--display);font-size:12px;letter-spacing:1.4px;color:var(--cream);margin-bottom:8px}
+.hiw-card p{font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.55;color:var(--ink-dim)}
+.hiw-card.gold{border-color:var(--gold)}
+.hiw-card.pink{border-color:var(--pink-soft)}
+.hiw-card.purple{border-color:var(--purple)}
+.hiw-card.green{border-color:rgba(93,255,160,.5)}
+
+/* toast & shower */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(80px);
+  padding:14px 22px;border-radius:11px;
+  background:rgba(26,4,54,.96);border:1.5px solid var(--gold);
+  font-family:var(--display);font-size:11px;letter-spacing:1.6px;color:var(--cream);text-transform:uppercase;
+  box-shadow:0 10px 32px rgba(255,213,90,.4);z-index:999;transition:transform .25s ease;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.shower{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;display:none}
+.shower.go{display:block}
+.shower i{
+  position:absolute;width:18px;height:18px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, var(--gold), var(--gold-deep) 60%, #8b6420 100%);
+  box-shadow:inset 0 -3px 5px rgba(0,0,0,.3), 0 0 12px var(--gold-glow);
+  top:-24px;animation:showerFall 2.6s cubic-bezier(.45,.05,.55,.95) forwards;
+}
+@keyframes showerFall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+.disclaimer{
+  max-width:920px;margin:0 auto 40px;padding:0 22px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  color:var(--ink-faint);text-align:center;line-height:1.7;
+}
+.disclaimer b{color:var(--ink-dim)}
+</style>
+</head>
+<body>
+
+<div class="sky"></div>
+<div class="cloud c1">☁</div>
+<div class="cloud c2">⌒</div>
+<div class="cloud c3">☁</div>
+<div class="cloud c4">⌒</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand">
+      <span class="brand-logo"><img src="/chogi.png" alt=""></span>
+      <span class="brand-text">CHOGI · LAB</span>
+    </a>
+    <a href="/" class="nav-back">← BACK</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-art">
+      <span class="spark s1"></span>
+      <span class="spark s2"></span>
+      <span class="spark s3"></span>
+      <span class="spark s4"></span>
+      <span class="spark s5"></span>
+      <img src="/payroll/chogi-payroll-hero.jpg" alt="Chogi the CTO sitting on the company treasury"
+           onerror="this.style.opacity=0">
+    </div>
+    <div class="hero-copy">
+      <div class="eyebrow">⚜ FAMILY MOVES ONLY · LIVE</div>
+      <h1>SHE MADE<br>HERSELF<br><span class="gold">CTO.</span></h1>
+      <p>Chogi runs the back office. Get on payroll, earn from real flow — donations, swap fees, panic exits. No emissions. No inflation. The clipboards can't catch you now.</p>
+      <p class="hero-tag">10K $CHOGI ENTRY · 90% VESTING CLIFF · NO MIN STAKE</p>
+      <div class="hero-cta">
+        <a href="#fuel">⏱ CLOCK IN</a>
+        <a href="#how" class="ghost">HOW IT WORKS</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="pile-strip"></div>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-inner">
+      <span class="ticker-label">●  PAYROLL ACTIVITY</span>
+      <div class="ticker-track"><div class="row" id="tickerRow">
+        <span><b>0xb9d…7f0</b> joined as <b class="amt">C-SUITE</b> · <b class="amt">5.0M</b></span>
+        <span><b>0xa12…3c4</b> dropped <b class="amt">250K</b> bonus</span>
+        <span><b>0x8d2…91a</b> promoted to <b class="amt">PARTNER</b></span>
+        <span><b>SWAP-FEE SKIM</b> · <b class="amt">12.4K</b> hit treasury</span>
+        <span>EARLY RESIGN · <b class="amt">1.2M</b> clawed back · vested staff +</span>
+        <span><b>0xb9d…7f0</b> joined as <b class="amt">C-SUITE</b> · <b class="amt">5.0M</b></span>
+        <span><b>0xa12…3c4</b> dropped <b class="amt">250K</b> bonus</span>
+        <span><b>0x8d2…91a</b> promoted to <b class="amt">PARTNER</b></span>
+        <span><b>SWAP-FEE SKIM</b> · <b class="amt">12.4K</b> hit treasury</span>
+        <span>EARLY RESIGN · <b class="amt">1.2M</b> clawed back · vested staff +</span>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- CORE -->
+  <section class="core">
+    <div class="coin-rain">
+      <i style="left:8%;animation-duration:3.2s;animation-delay:0s"></i>
+      <i style="left:24%;animation-duration:4s;animation-delay:-1s"></i>
+      <i style="left:42%;animation-duration:3.6s;animation-delay:-2s"></i>
+      <i style="left:58%;animation-duration:4.4s;animation-delay:-.5s"></i>
+      <i style="left:74%;animation-duration:3.4s;animation-delay:-1.6s"></i>
+      <i style="left:88%;animation-duration:4s;animation-delay:-2.4s"></i>
+    </div>
+    <div class="core-grid">
+      <div class="core-pile">
+        <div class="pile-icon">
+          <span class="pile-coin c1"></span>
+          <span class="pile-coin c2"></span>
+          <span class="pile-coin c3"></span>
+          <span class="pile-coin c4"></span>
+        </div>
+        <div class="label">TREASURY</div>
+        <div class="v" id="statFloat">—<small>$CHOGI</small></div>
+      </div>
+      <div class="core-stat">
+        <label>ON THE BOOKS</label>
+        <div class="v" id="statStaked">—<small>$CHOGI</small></div>
+      </div>
+      <div class="core-stat don">
+        <label>BONUSES PAID</label>
+        <div class="v" id="statDonated">—<small>LIFETIME</small></div>
+      </div>
+      <div class="core-stat recyc">
+        <label>CLAWBACK + FEES</label>
+        <div class="v" id="statRecycled">—<small>BURN <span id="statBurned">—</span></small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYOUT -->
+  <section class="layout" id="fuel">
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="stake"><span class="ico">⏱</span> CLOCK IN</button>
+        <button class="tab" data-tab="donate"><span class="ico">💜</span> DROP A BONUS</button>
+      </div>
+
+      <!-- STAKE -->
+      <div id="paneStake">
+        <h2>PICK YOUR ROLE</h2>
+        <p class="panel-sub">Longer commit · later vest · bigger termination fee if you bail</p>
+
+        <div class="tiers">
+          <button class="tier active" data-tier="0">
+            <span class="tier-rank">RANK 1</span>
+            <div class="tier-name">STAFF</div>
+            <div class="tier-cliff">VEST DAY 27</div>
+            <div class="tier-meta">30d lock</div>
+            <div class="tier-fee">15% MAX TERM FEE</div>
+          </button>
+          <button class="tier" data-tier="1">
+            <span class="tier-rank">RANK 2</span>
+            <div class="tier-name">EXEC</div>
+            <div class="tier-cliff">VEST DAY 54</div>
+            <div class="tier-meta">60d lock</div>
+            <div class="tier-fee">20% MAX TERM FEE</div>
+          </button>
+          <button class="tier" data-tier="2">
+            <span class="tier-rank">RANK 3</span>
+            <div class="tier-name">PARTNER</div>
+            <div class="tier-cliff">VEST DAY 81</div>
+            <div class="tier-meta">90d lock</div>
+            <div class="tier-fee">25% MAX TERM FEE</div>
+          </button>
+          <button class="tier" data-tier="3">
+            <span class="tier-rank">RANK 4</span>
+            <div class="tier-name">C-SUITE</div>
+            <div class="tier-cliff">VEST DAY 162</div>
+            <div class="tier-meta">180d lock</div>
+            <div class="tier-fee">30% MAX TERM FEE</div>
+          </button>
+        </div>
+
+        <div class="token-row">
+          <label>TOKEN</label>
+          <select id="tokenSelect"></select>
+        </div>
+
+        <div class="amount-row">
+          <input class="amount-input" id="stakeAmt" type="text" inputmode="decimal" placeholder="0">
+          <button class="max-btn" id="stakeMax">MAX</button>
+        </div>
+        <div class="quick-amounts">
+          <button class="quick" data-q="100000">100K</button>
+          <button class="quick" data-q="500000">500K</button>
+          <button class="quick" data-q="1000000">1M</button>
+          <button class="quick" data-q="5000000">5M</button>
+          <button class="quick" data-q="25000000">25M</button>
+        </div>
+
+        <div class="fee-callout">
+          <span class="ico">💼</span>
+          <span class="text">
+            <b>STAKE FEE</b> · <span class="amt">10,000 $CHOGI</span> · paid every clock-in · goes straight to the treasury you'll earn from
+          </span>
+        </div>
+
+        <button class="cta" id="stakeBtn">⏱ CLOCK IN</button>
+        <div class="balance-line">YOUR BAG · <b id="balDisplay">—</b> · CHOGI <b id="chogiBal">—</b></div>
+      </div>
+
+      <!-- DONATE -->
+      <div id="paneDonate" style="display:none">
+        <h2>FUEL THE PAYROLL</h2>
+        <p class="panel-sub">No return. Permanent rank. Rewards every staffer.</p>
+
+        <div class="amount-row">
+          <input class="amount-input" id="donateAmt" type="text" inputmode="decimal" placeholder="0">
+          <button class="max-btn" id="donateMax">MAX</button>
+        </div>
+        <div class="quick-amounts">
+          <button class="quick" data-dq="50000">50K</button>
+          <button class="quick" data-dq="250000">250K</button>
+          <button class="quick" data-dq="1000000">1M</button>
+          <button class="quick" data-dq="10000000">10M</button>
+        </div>
+        <button class="cta alt" id="donateBtn">💜 DROP A BONUS</button>
+        <div class="balance-line" style="margin-top:18px;line-height:1.7">
+          PATRON RANKS · <b>100K = INVESTOR</b> · <b>1M = BENEFACTOR</b> · <b>10M = BOARD</b> · <b>100M = FOUNDER</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="panel" style="margin-bottom:22px">
+        <h2><span class="ico">📋</span> YOUR PAYROLL</h2>
+        <p class="panel-sub" id="posSubLine">Connect wallet to view</p>
+        <div id="posList"><div class="empty-pos">connect a wallet to see your shifts.</div></div>
+      </div>
+
+      <div class="panel">
+        <h2><span class="ico">👔</span> BOARD OF DIRECTORS</h2>
+        <p class="panel-sub">Lifetime donated · permanent rank</p>
+        <div class="patron-podium" id="patronPodium">
+          <div class="podium-step empty third"><span class="crown">🥉</span><div class="pname">—</div><div class="pamt">—</div></div>
+          <div class="podium-step empty first"><span class="crown">👑</span><div class="pname">—</div><div class="pamt">—</div></div>
+          <div class="podium-step empty second"><span class="crown">🥈</span><div class="pname">—</div><div class="pamt">—</div></div>
+        </div>
+        <div id="patronList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="hiw" id="how">
+    <div class="hiw-grid">
+      <div class="hiw-card pink">
+        <span class="icon">💼</span>
+        <h3>10K STAKE FEE</h3>
+        <p>Every clock-in pays 10K $CHOGI to the treasury. Bootstraps the pool from day one. Soft floor — only worth it if your bag is meaningfully bigger.</p>
+      </div>
+      <div class="hiw-card purple">
+        <span class="icon">⏳</span>
+        <h3>90% VESTING CLIFF</h3>
+        <p>Rewards lock until you've ridden 90% of your commit. STAFF vests day 27, C-SUITE day 162. Resign before? You forfeit pending rewards — they go to staff who stayed.</p>
+      </div>
+      <div class="hiw-card gold">
+        <span class="icon">🌀</span>
+        <h3>SWAP-FEE SKIM</h3>
+        <p>Half of every $CHOGI buy/sell fee routes here instead of the void. Vested payroll earns from every trade in the ecosystem.</p>
+      </div>
+      <div class="hiw-card green">
+        <span class="icon">🦷</span>
+        <h3>TERMINATION CLAWBACK</h3>
+        <p>Resign before lock-end? Linear-decay fee on principal. 30% burns, 70% recycles to staff who didn't quit. Diamond hands literally win the panic.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="disclaimer">
+    PAYROLL · ON-CHAIN ON MONAD · NO PRINCIPAL CUSTODY BEYOND THE CONTRACT<br>
+    OWNER CAN PAUSE NEW HIRES BUT <b>CANNOT</b> WITHDRAW USER FUNDS · YOUR STAKE LIVES IN THE CONTRACT<br>
+    NOT FINANCIAL ADVICE · STAKING TOKENS HAS RISK · LOCK COMMITMENTS ARE BINDING<br>
+    REWARDS = (YOUR WEIGHT / TOTAL WEIGHT) × POOL · NO PROMISED YIELD · NO INFLATION
+  </p>
+</main>
+
+<div class="toast" id="toast">CONNECTED</div>
+<div class="shower" id="shower"></div>
+
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/blocklist.js" defer></script>
+<script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/config.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+
+<script>
+(function(){
+  var CHAIN_HEX = '0x8f';
+  var RPC       = 'https://rpc.monad.xyz';
+  var CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var ZERO = '0x0000000000000000000000000000000000000000';
+
+  function readyConfig(){
+    var c = window.ChogiConfig || {};
+    if(c.RPC) RPC = c.RPC;
+    if(c.TOKEN) CHOGI_TOKEN = c.TOKEN;
+    if(c.CHAIN_HEX) CHAIN_HEX = c.CHAIN_HEX;
+    return c.PAYROLL_ADDRESS || ZERO;
+  }
+  var PAYROLL_ADDRESS = readyConfig();
+
+  var TIERS = [
+    { name:'STAFF',   days:30,  feeBps:1500 },
+    { name:'EXEC',    days:60,  feeBps:2000 },
+    { name:'PARTNER', days:90,  feeBps:2500 },
+    { name:'C-SUITE', days:180, feeBps:3000 }
+  ];
+  var ONE = 10n ** 18n;
+  var STAKE_FEE = 10000n * ONE;
+  var MAX_UINT = (1n << 256n) - 1n;
+
+  var PAYROLL_ABI = [
+    'function stake(address token, uint256 amount, uint8 tier) returns (uint256)',
+    'function unstake(uint256 posIdx) returns (uint256, uint256, uint256)',
+    'function claim(uint256 posIdx) returns (uint256)',
+    'function donate(uint256 amount)',
+    'function pendingReward(address user, uint256 posIdx) view returns (uint256, bool)',
+    'function quoteUnstake(address user, uint256 posIdx) view returns (uint256 returned, uint256 termFee, uint256 reward, bool vested, uint256 secondsToCliff)',
+    'function positionCount(address user) view returns (uint256)',
+    'function positions(address user, uint256 idx) view returns (address token, uint128 amount, uint128 weight, uint64 startTime, uint8 tier, uint8 active, uint256 rewardDebt)',
+    'function poolMeter() view returns (uint256 floatBalance, uint256 weighted)',
+    'function totalDonated() view returns (uint256)',
+    'function totalSwapFees() view returns (uint256)',
+    'function totalStakeFees() view returns (uint256)',
+    'function totalTermFeesRecycled() view returns (uint256)',
+    'function totalTermFeesBurned() view returns (uint256)',
+    'function totalForfeited() view returns (uint256)',
+    'function patronCount() view returns (uint256)',
+    'function patronAt(uint256 i) view returns (address)',
+    'function lifetimeDonated(address) view returns (uint256)',
+    'function patronTier(address) view returns (uint8)',
+    'function assetCount() view returns (uint256)',
+    'function assetList(uint256) view returns (address)',
+    'function assets(address) view returns (bool accepted, uint128 weightPerWei, uint256 totalDeposited, uint256 strandedFees)'
+  ];
+  var ERC20_ABI = [
+    'function balanceOf(address) view returns (uint256)',
+    'function allowance(address,address) view returns (uint256)',
+    'function approve(address,uint256) returns (bool)',
+    'function symbol() view returns (string)',
+    'function decimals() view returns (uint8)'
+  ];
+
+  var $ = function(id){ return document.getElementById(id); };
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function fmtBal(weiBig, sym){
+    var n = Number(weiBig) / 1e18;
+    var s;
+    if(n >= 1e9) s = (n/1e9).toFixed(2)+'B';
+    else if(n >= 1e6) s = (n/1e6).toFixed(2)+'M';
+    else if(n >= 1e3) s = (n/1e3).toFixed(1)+'K';
+    else if(n === 0) s = '0';
+    else if(n < 1) s = n.toFixed(3);
+    else s = n.toFixed(0);
+    return sym ? s+' '+sym : s;
+  }
+  function fmtAddr(a){ if(!a) return ''; return a.slice(0,6)+'…'+a.slice(-4); }
+  function parseAmt(s){
+    if(!s) return 0n;
+    s = String(s).replace(/[^0-9.]/g, '');
+    if(!s) return 0n;
+    var parts = s.split('.');
+    var whole = BigInt(parts[0] || '0');
+    var frac = (parts[1] || '').padEnd(18,'0').slice(0,18);
+    return whole * ONE + BigInt(frac || '0');
+  }
+  function fmtCountdown(sec){
+    if(sec <= 0) return 'NOW';
+    var d = Math.floor(sec / 86400);
+    var h = Math.floor((sec % 86400) / 3600);
+    if(d > 0) return d + 'd ' + h + 'h';
+    var m = Math.floor((sec % 3600) / 60);
+    if(h > 0) return h + 'h ' + m + 'm';
+    return m + 'm';
+  }
+  function patronTierName(t){
+    return ['','INVESTOR','BENEFACTOR','BOARD','FOUNDER'][t] || '';
+  }
+  function toast(msg, ms){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTo);
+    window._toastTo = setTimeout(function(){ t.classList.remove('show'); }, ms || 2200);
+  }
+  function coinShower(){
+    var s = $('shower'); s.innerHTML = '';
+    for(var i = 0; i < 28; i++){
+      var c = document.createElement('i');
+      c.style.left = (Math.random() * 100) + '%';
+      c.style.animationDelay = (Math.random() * 0.6) + 's';
+      c.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+      c.style.width = (12 + Math.floor(Math.random()*10)) + 'px';
+      c.style.height = c.style.width;
+      s.appendChild(c);
+    }
+    s.classList.add('go');
+    setTimeout(function(){ s.classList.remove('go'); }, 2800);
+  }
+
+  /* ─── state ─── */
+  var account = null, selectedTier = 0;
+  var selectedToken = CHOGI_TOKEN;
+  var balanceWei = 0n, allowanceWei = 0n, chogiBalanceWei = 0n, chogiAllowanceWei = 0n;
+  var provider = null, signer = null;
+  var payroll = null, payrollWrite = null;
+  var chogi = null, chogiWrite = null;
+  var stakeToken = null, stakeTokenWrite = null;
+  var assetCache = {};   // address → { symbol, decimals, weight }
+
+  function ensureContracts(){
+    if(!provider) provider = new ethers.JsonRpcProvider(RPC);
+    if(!payroll && PAYROLL_ADDRESS !== ZERO) payroll = new ethers.Contract(PAYROLL_ADDRESS, PAYROLL_ABI, provider);
+    if(!chogi) chogi = new ethers.Contract(CHOGI_TOKEN, ERC20_ABI, provider);
+  }
+  async function ensureSigner(){
+    if(signer) return signer;
+    if(!window.ethereum) return null;
+    var bp = new ethers.BrowserProvider(window.ethereum);
+    signer = await bp.getSigner();
+    if(PAYROLL_ADDRESS !== ZERO) payrollWrite = new ethers.Contract(PAYROLL_ADDRESS, PAYROLL_ABI, signer);
+    chogiWrite = new ethers.Contract(CHOGI_TOKEN, ERC20_ABI, signer);
+    return signer;
+  }
+
+  /* ─── load assets ─── */
+  async function loadAssets(){
+    ensureContracts();
+    var sel = $('tokenSelect');
+    sel.innerHTML = '';
+    if(PAYROLL_ADDRESS === ZERO || !payroll){
+      // fallback to CHOGI-only when not deployed
+      var opt = document.createElement('option');
+      opt.value = CHOGI_TOKEN;
+      opt.textContent = 'CHOGI · 1:1';
+      sel.appendChild(opt);
+      assetCache[CHOGI_TOKEN] = { symbol:'CHOGI', decimals:18, weight:1e18 };
+      return;
+    }
+    try {
+      var n = Number(await payroll.assetCount());
+      for(var i=0; i<n; i++){
+        var addr = await payroll.assetList(i);
+        var info = await payroll.assets(addr);
+        if(!info[0]) continue; // not accepted (delisted)
+        var sym = 'TOKEN', dec = 18;
+        try {
+          var erc20 = new ethers.Contract(addr, ERC20_ABI, provider);
+          sym = await erc20.symbol();
+          dec = Number(await erc20.decimals());
+        } catch(e){}
+        assetCache[addr] = { symbol: sym, decimals: dec, weight: Number(info[1]) };
+        var ratio = Number(info[1]) / 1e18;
+        var opt = document.createElement('option');
+        opt.value = addr;
+        opt.textContent = sym + ' · ' + (ratio === 1 ? '1:1' : ratio.toFixed(3) + ':1');
+        sel.appendChild(opt);
+      }
+      // default selection to CHOGI
+      sel.value = CHOGI_TOKEN;
+      selectedToken = CHOGI_TOKEN;
+    } catch(e){
+      console.warn('loadAssets:', e);
+    }
+  }
+
+  /* ─── data loaders ─── */
+  async function loadGlobals(){
+    ensureContracts();
+    if(PAYROLL_ADDRESS === ZERO || !payroll){
+      $('statFloat').innerHTML    = 'COMING SOON<small></small>';
+      $('statStaked').innerHTML   = '—<small></small>';
+      $('statDonated').innerHTML  = '—<small></small>';
+      $('statRecycled').innerHTML = '—<small></small>';
+      return;
+    }
+    try {
+      var meter    = await payroll.poolMeter();
+      var donated  = await payroll.totalDonated();
+      var stakeFs  = await payroll.totalStakeFees();
+      var recycled = await payroll.totalTermFeesRecycled();
+      var burned   = await payroll.totalTermFeesBurned();
+      $('statFloat').innerHTML    = fmtBal(meter[0]) + '<small>$CHOGI</small>';
+      // "On The Books" = chogi principal staked
+      var chogiAsset = await payroll.assets(CHOGI_TOKEN);
+      $('statStaked').innerHTML   = fmtBal(chogiAsset[2]) + '<small>$CHOGI</small>';
+      $('statDonated').innerHTML  = fmtBal(donated)  + '<small>LIFETIME</small>';
+      $('statRecycled').innerHTML = fmtBal(recycled) + '<small>BURN <span id="statBurned">'+fmtBal(burned)+'</span></small>';
+    } catch(e){ console.warn('loadGlobals:', e); }
+  }
+
+  async function loadBalances(){
+    ensureContracts();
+    if(!account){
+      $('balDisplay').textContent = '—';
+      $('chogiBal').textContent = '—';
+      return;
+    }
+    try {
+      chogiBalanceWei = BigInt(await chogi.balanceOf(account));
+      $('chogiBal').textContent = fmtBal(chogiBalanceWei);
+      if(selectedToken === CHOGI_TOKEN){
+        balanceWei = chogiBalanceWei;
+      } else {
+        var t = new ethers.Contract(selectedToken, ERC20_ABI, provider);
+        balanceWei = BigInt(await t.balanceOf(account));
+      }
+      var sym = (assetCache[selectedToken] && assetCache[selectedToken].symbol) || 'TOKEN';
+      $('balDisplay').textContent = fmtBal(balanceWei) + ' ' + sym;
+      if(PAYROLL_ADDRESS !== ZERO){
+        chogiAllowanceWei = BigInt(await chogi.allowance(account, PAYROLL_ADDRESS));
+        if(selectedToken === CHOGI_TOKEN){
+          allowanceWei = chogiAllowanceWei;
+        } else {
+          var t2 = new ethers.Contract(selectedToken, ERC20_ABI, provider);
+          allowanceWei = BigInt(await t2.allowance(account, PAYROLL_ADDRESS));
+        }
+      }
+    } catch(e){ console.warn('loadBalances:', e); }
+  }
+
+  async function loadPositions(){
+    ensureContracts();
+    var holder = $('posList');
+    if(!account){
+      holder.innerHTML = '<div class="empty-pos">connect a wallet to see your shifts.</div>';
+      $('posSubLine').textContent = 'Connect wallet to view';
+      return;
+    }
+    if(PAYROLL_ADDRESS === ZERO || !payroll){
+      holder.innerHTML = '<div class="empty-pos">payroll opens at deploy. soon.</div>';
+      return;
+    }
+    try {
+      var n = Number(await payroll.positionCount(account));
+      if(n === 0){
+        holder.innerHTML = '<div class="empty-pos">no shifts yet — clock in to start earning →</div>';
+        $('posSubLine').textContent = '0 shifts';
+        return;
+      }
+      var rows = [];
+      for(var i = 0; i < n; i++){
+        var pos = await payroll.positions(account, i);
+        var quote = await payroll.quoteUnstake(account, i);
+        rows.push({
+          idx: i,
+          token: pos[0],
+          amount: BigInt(pos[1]),
+          weight: BigInt(pos[2]),
+          startTime: Number(pos[3]),
+          tier: Number(pos[4]),
+          active: Number(pos[5]),
+          returned: BigInt(quote[0]),
+          termFee: BigInt(quote[1]),
+          reward: BigInt(quote[2]),
+          vested: !!quote[3],
+          secondsToCliff: Number(quote[4])
+        });
+      }
+      rows.sort(function(a,b){
+        if(a.active !== b.active) return b.active - a.active;
+        return b.startTime - a.startTime;
+      });
+      var act = rows.filter(function(r){return r.active===1}).length;
+      $('posSubLine').textContent = act + ' active · ' + (rows.length - act) + ' closed';
+
+      holder.innerHTML = rows.map(function(r){
+        var t = TIERS[r.tier] || TIERS[0];
+        var tokenSym = (assetCache[r.token] && assetCache[r.token].symbol) || 'TOKEN';
+        var lockSec = t.days * 86400;
+        var elapsed = Math.floor(Date.now() / 1000) - r.startTime;
+        var cliffSec = Math.floor(lockSec * 0.9);
+        var pctCommit = Math.max(0, Math.min(100, (elapsed / lockSec) * 100));
+        var cliffPct = 90;
+        var unlockMs = (r.startTime + lockSec) * 1000;
+        var locked = elapsed < lockSec;
+        var feePct = r.amount > 0n ? (Number(r.termFee * 10000n / r.amount) / 100).toFixed(1) : '0';
+        var clsLine = r.active === 0 ? 'pos closed' : (r.vested ? (locked ? 'pos vested' : 'pos unlocked') : 'pos locked');
+
+        var foot;
+        if(r.active === 0) foot = 'closed · all done';
+        else if(!r.vested) foot = 'vests in ' + fmtCountdown(r.secondsToCliff) + ' · current term fee ' + feePct + '%';
+        else if(locked) foot = '✓ vested · still locked, current fee ' + feePct + '% · unlocks ' + new Date(unlockMs).toLocaleDateString();
+        else foot = '✓ unlocked · 0% fee · earning continues';
+
+        var vestCls = r.vested ? 'vest vested' : 'vest';
+        var rewardLabel = r.vested ? 'PENDING' : 'PRE-VEST (LOCKED)';
+        var rewardCls = r.vested ? 'val pending' : 'val locked';
+
+        return '<div class="'+clsLine+'">' +
+          '<div class="pos-head">' +
+            '<span class="pos-tier"><span class="coin"></span> '+t.name+'</span>' +
+            '<span class="pos-amt">'+fmtBal(r.amount, tokenSym)+'<small>RANK '+(r.tier+1)+'</small></span>' +
+          '</div>' +
+
+          '<div class="'+vestCls+'">' +
+            '<div class="vest-meta">' +
+              '<span>VESTING <b>'+pctCommit.toFixed(1)+'%</b> / 100%</span>' +
+              '<span>'+(r.vested ? '✓ VESTED' : 'CLIFF AT 90%')+'</span>' +
+            '</div>' +
+            '<div class="vest-bar">' +
+              '<div class="vest-fill" style="width:'+pctCommit+'%"></div>' +
+              '<div class="vest-cliff" style="left:'+cliffPct+'%"></div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="pos-row">' +
+            '<div><span class="lbl">'+rewardLabel+'</span><span class="'+rewardCls+'">'+(r.vested ? fmtBal(r.reward) : '🔒 LOCKED')+'</span></div>' +
+            '<div><span class="lbl">'+(locked?'TERM FEE':'STATUS')+'</span><span class="val '+(locked?'fee':'')+'">'+(locked?fmtBal(r.termFee):(r.active===0?'CLOSED':'UNLOCKED'))+'</span></div>' +
+            '<div><span class="lbl">RETURNS</span><span class="val">'+fmtBal(r.returned + r.reward)+'</span></div>' +
+          '</div>' +
+
+          '<div class="pos-foot">'+foot+'</div>' +
+
+          (r.active === 1 ? (
+            '<div class="pos-actions">' +
+              '<button class="pos-act primary" '+(r.vested?'':'disabled')+' data-act="claim" data-idx="'+r.idx+'">CASH PAYCHECK</button>' +
+              '<button class="pos-act danger" data-act="unstake" data-idx="'+r.idx+'">'+(locked?'RESIGN EARLY':'RESIGN')+'</button>' +
+            '</div>'
+          ) : '') +
+        '</div>';
+      }).join('');
+
+      holder.querySelectorAll('.pos-act').forEach(function(b){
+        if(b.disabled) return;
+        b.addEventListener('click', function(){
+          var act = b.dataset.act, idx = Number(b.dataset.idx);
+          if(act === 'claim') doClaim(idx);
+          else if(act === 'unstake') doUnstake(idx);
+        });
+      });
+    } catch(e){
+      console.warn('loadPositions:', e);
+      holder.innerHTML = '<div class="empty-pos">could not load · check console</div>';
+    }
+  }
+
+  async function loadPatrons(){
+    ensureContracts();
+    var podium = $('patronPodium');
+    var list = $('patronList');
+    if(PAYROLL_ADDRESS === ZERO || !payroll){
+      list.innerHTML = '<div class="empty-pos">payroll opens at deploy.</div>';
+      return;
+    }
+    try {
+      var n = Number(await payroll.patronCount());
+      if(n === 0){
+        list.innerHTML = '<div class="empty-pos">no patrons yet — be first to drop a bonus.</div>';
+        return;
+      }
+      var rows = [];
+      var lim = Math.min(n, 100);
+      for(var i = 0; i < lim; i++){
+        var addr = await payroll.patronAt(i);
+        var amt  = BigInt(await payroll.lifetimeDonated(addr));
+        var tier = Number(await payroll.patronTier(addr));
+        rows.push({ addr: addr, amt: amt, tier: tier });
+      }
+      rows.sort(function(a,b){ return a.amt < b.amt ? 1 : a.amt > b.amt ? -1 : 0; });
+
+      var crowns = ['👑','🥈','🥉'];
+      var podiumOrder = [2, 0, 1];
+      var stepClasses = ['third','first','second'];
+      podium.innerHTML = podiumOrder.map(function(idx, i){
+        var r = rows[idx];
+        var stepCls = stepClasses[i];
+        if(!r){
+          return '<div class="podium-step empty '+stepCls+'"><span class="crown">'+crowns[idx]+'</span><div class="pname">—</div><div class="pamt">—</div></div>';
+        }
+        var badge = r.tier > 0 ? ('<span class="badge t'+r.tier+'">'+patronTierName(r.tier)+'</span>') : '';
+        return '<div class="podium-step '+stepCls+'"><span class="crown">'+crowns[idx]+'</span><div class="pname">'+escapeHtml(fmtAddr(r.addr))+badge+'</div><div class="pamt">'+fmtBal(r.amt)+'</div></div>';
+      }).join('');
+
+      list.innerHTML = rows.slice(3, 10).map(function(r, i){
+        var badge = r.tier > 0 ? ('<span class="badge t'+r.tier+'">'+patronTierName(r.tier)+'</span>') : '';
+        return '<div class="patron-row"><span class="rank">#'+(i+4)+'</span><span class="addr">'+escapeHtml(fmtAddr(r.addr))+badge+'</span><span class="amt">'+fmtBal(r.amt)+'</span></div>';
+      }).join('');
+    } catch(e){
+      console.warn('loadPatrons:', e);
+      list.innerHTML = '<div class="empty-pos">could not load leaderboard</div>';
+    }
+  }
+
+  /* ─── connect ─── */
+  async function ensureConnected(){
+    if(account){ await ensureSigner(); return true; }
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('Install a wallet (MetaMask, Rabby, Phantom).');
+      return false;
+    }
+    try {
+      var accs = await window.ethereum.request({ method:'eth_requestAccounts' });
+      account = accs[0];
+      var c = await window.ethereum.request({ method:'eth_chainId' });
+      if(c !== CHAIN_HEX){
+        try {
+          await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId: CHAIN_HEX}] });
+        } catch(e){
+          if(e.code === 4902){
+            await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
+              chainId: CHAIN_HEX, chainName:'Monad',
+              nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+              rpcUrls:[RPC], blockExplorerUrls:['https://monadexplorer.com']
+            }]});
+          } else throw e;
+        }
+      }
+      signer = null;
+      await ensureSigner();
+      await loadBalances();
+      await loadPositions();
+      return true;
+    } catch(e){ console.warn(e); return false; }
+  }
+
+  async function ensureApproval(token, amount){
+    var erc20 = token === CHOGI_TOKEN ? chogiWrite : new ethers.Contract(token, ERC20_ABI, signer);
+    if(!erc20) await ensureSigner();
+    erc20 = token === CHOGI_TOKEN ? chogiWrite : new ethers.Contract(token, ERC20_ABI, signer);
+    var current = token === CHOGI_TOKEN ? chogiAllowanceWei : allowanceWei;
+    if(current >= amount) return true;
+    toast('APPROVING ' + (assetCache[token] ? assetCache[token].symbol : 'TOKEN'));
+    var tx = await erc20.approve(PAYROLL_ADDRESS, MAX_UINT);
+    await tx.wait();
+    if(token === CHOGI_TOKEN) chogiAllowanceWei = MAX_UINT;
+    else allowanceWei = MAX_UINT;
+    return true;
+  }
+
+  async function doStake(){
+    if(!await ensureConnected()) return;
+    var amt = parseAmt($('stakeAmt').value);
+    if(amt === 0n){ toast('ENTER AMOUNT'); return; }
+    if(amt > balanceWei){ toast('NOT ENOUGH IN YOUR BAG'); return; }
+    if(chogiBalanceWei < STAKE_FEE){ toast('NEED 10K $CHOGI FOR FEE'); return; }
+    if(PAYROLL_ADDRESS === ZERO){ toast('PAYROLL NOT DEPLOYED'); return; }
+
+    var btn = $('stakeBtn');
+    try {
+      btn.disabled = true;
+      btn.textContent = 'APPROVING…';
+      // need both CHOGI (for fee) and stake-token approval
+      await ensureApproval(CHOGI_TOKEN, STAKE_FEE);
+      if(selectedToken !== CHOGI_TOKEN){
+        await ensureApproval(selectedToken, amt);
+      } else {
+        // CHOGI approval needs to cover both fee + stake
+        await ensureApproval(CHOGI_TOKEN, amt + STAKE_FEE);
+      }
+      btn.textContent = 'CONFIRM IN WALLET…';
+      var tx = await payrollWrite.stake(selectedToken, amt, selectedTier);
+      btn.textContent = 'CLOCKING IN…';
+      await tx.wait();
+      toast('CLOCKED IN · ' + TIERS[selectedTier].name);
+      coinShower();
+      $('stakeAmt').value = '';
+      await loadBalances();
+      await loadPositions();
+      await loadGlobals();
+    } catch(e){
+      console.error(e);
+      toast((e && (e.shortMessage || e.reason || e.message || '').slice(0,60)) || 'TX FAILED');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⏱ CLOCK IN';
+    }
+  }
+
+  async function doDonate(){
+    if(!await ensureConnected()) return;
+    var amt = parseAmt($('donateAmt').value);
+    if(amt === 0n){ toast('ENTER AMOUNT'); return; }
+    if(amt > chogiBalanceWei){ toast('NOT ENOUGH $CHOGI'); return; }
+    if(PAYROLL_ADDRESS === ZERO){ toast('PAYROLL NOT DEPLOYED'); return; }
+
+    var btn = $('donateBtn');
+    try {
+      btn.disabled = true;
+      btn.textContent = 'APPROVING…';
+      await ensureApproval(CHOGI_TOKEN, amt);
+      btn.textContent = 'CONFIRM IN WALLET…';
+      var tx = await payrollWrite.donate(amt);
+      btn.textContent = 'DROPPING BONUS…';
+      await tx.wait();
+      toast('💜 BONUS DROPPED');
+      coinShower();
+      $('donateAmt').value = '';
+      await loadBalances();
+      await loadPatrons();
+      await loadGlobals();
+    } catch(e){
+      console.error(e);
+      toast((e && (e.shortMessage || e.reason || e.message || '').slice(0,60)) || 'TX FAILED');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💜 DROP A BONUS';
+    }
+  }
+
+  async function doClaim(idx){
+    if(!await ensureConnected()) return;
+    try {
+      toast('CONFIRM CASH OUT…');
+      var tx = await payrollWrite.claim(idx);
+      await tx.wait();
+      toast('PAYCHECK CASHED');
+      coinShower();
+      await loadBalances();
+      await loadPositions();
+      await loadGlobals();
+    } catch(e){
+      console.error(e);
+      toast((e && (e.shortMessage || e.reason || e.message || '').slice(0,60)) || 'CLAIM FAILED');
+    }
+  }
+
+  async function doUnstake(idx){
+    if(!await ensureConnected()) return;
+    try {
+      var quote = await payroll.quoteUnstake(account, idx);
+      var fee = BigInt(quote[1]);
+      var vested = !!quote[3];
+      var msg = '';
+      if(!vested){
+        msg = 'NOT YET VESTED — you forfeit any pending rewards. ';
+      }
+      if(fee > 0n){
+        msg += 'TERMINATION FEE: ' + fmtBal(fee) + ' deducted from principal. Continue?';
+      }
+      if(msg && !confirm(msg)) return;
+      toast('CONFIRM RESIGN…');
+      var tx2 = await payrollWrite.unstake(idx);
+      await tx2.wait();
+      toast('RESIGNED');
+      await loadBalances();
+      await loadPositions();
+      await loadGlobals();
+    } catch(e){
+      console.error(e);
+      toast((e && (e.shortMessage || e.reason || e.message || '').slice(0,60)) || 'RESIGN FAILED');
+    }
+  }
+
+  /* ─── UI wiring ─── */
+  document.querySelectorAll('.tier').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tier').forEach(function(x){ x.classList.remove('active'); });
+      t.classList.add('active');
+      selectedTier = Number(t.dataset.tier);
+    });
+  });
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+      t.classList.add('active');
+      var which = t.dataset.tab;
+      $('paneStake').style.display  = which === 'stake'  ? '' : 'none';
+      $('paneDonate').style.display = which === 'donate' ? '' : 'none';
+    });
+  });
+  document.querySelectorAll('.quick[data-q]').forEach(function(b){
+    b.addEventListener('click', function(){ $('stakeAmt').value = b.dataset.q; });
+  });
+  document.querySelectorAll('.quick[data-dq]').forEach(function(b){
+    b.addEventListener('click', function(){ $('donateAmt').value = b.dataset.dq; });
+  });
+  $('stakeMax').addEventListener('click', function(){
+    if(balanceWei > 0n){
+      // if staking CHOGI, leave room for the 10K fee
+      var maxAmt = selectedToken === CHOGI_TOKEN
+        ? (balanceWei > STAKE_FEE ? balanceWei - STAKE_FEE : 0n)
+        : balanceWei;
+      $('stakeAmt').value = (Number(maxAmt) / 1e18).toFixed(0);
+    }
+  });
+  $('donateMax').addEventListener('click', function(){
+    if(chogiBalanceWei > 0n){ $('donateAmt').value = (Number(chogiBalanceWei) / 1e18).toFixed(0); }
+  });
+  $('tokenSelect').addEventListener('change', function(e){
+    selectedToken = e.target.value;
+    loadBalances();
+  });
+  $('stakeBtn').addEventListener('click', doStake);
+  $('donateBtn').addEventListener('click', doDonate);
+
+  window.addEventListener('chogi:connected', function(e){
+    account = e.detail && e.detail.account;
+    loadBalances(); loadPositions();
+  });
+  window.addEventListener('chogi:disconnected', function(){
+    account = null; balanceWei = 0n; allowanceWei = 0n; chogiBalanceWei = 0n; chogiAllowanceWei = 0n;
+    $('balDisplay').textContent = '—';
+    $('chogiBal').textContent = '—';
+    loadPositions();
+  });
+
+  /* ─── init ─── */
+  function init(){
+    PAYROLL_ADDRESS = readyConfig();
+    ensureContracts();
+    loadAssets().then(function(){
+      loadGlobals();
+      loadPatrons();
+    });
+    setInterval(function(){
+      loadGlobals();
+      if(account) loadPositions();
+    }, 30000);
+    if(window.ChogiConnect && typeof window.ChogiConnect.isConnected === 'function'){
+      if(window.ChogiConnect.isConnected()){
+        account = window.ChogiConnect.getAccount();
+        ensureSigner().then(loadBalances).then(loadPositions);
+      }
+    }
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>

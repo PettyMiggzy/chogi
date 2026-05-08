@@ -9,8 +9,9 @@ const RPC_URL  = process.env.RPC_URL?.trim() || 'https://rpc.monad.xyz';
 const KEY_PATH = '/root/.monpad-deployer-key';
 const NEW_OWNER = '0xB9d4B73bE18914c6d64Bee65a806648370be467f';
 
-const SWAP_ADDR = '0x9D386e1728Ba226C4bBC792dbFb676CE798174E2';
-const NFT_ADDR  = '0xF71AC6c411f278929eaE575AC16496cde9dc2665';
+const SWAP_ADDR    = '0x9Db6552ab771d57E108c77371c128FCc466291e9'; // ChogiSwapBurner v2 deployed 2026-05-08
+const NFT_ADDR     = '0xe753780772c1EAA676accA32e6030B346faF1C0F'; // ChogiLabSubjects v2 deployed 2026-05-08
+const PAYROLL_ADDR = '0x062E18beceF54077E6325B415aB74522d64D3af7'; // ChogiPayroll deployed 2026-05-08
 
 const ABI = [
   'function owner() view returns (address)',
@@ -46,8 +47,15 @@ async function main() {
   console.log(' 🔑 TRANSFER OWNERSHIP → Treasury');
   console.log('═══════════════════════════════════════════════════════');
 
-  if (!fs.existsSync(KEY_PATH)) throw new Error(`Key not found: ${KEY_PATH}`);
-  let pk = fs.readFileSync(KEY_PATH, 'utf8').trim();
+  // Priority: DEPLOYER_PRIVATE_KEY env var → DEPLOYER_KEY_PATH env var → /root/.monpad-deployer-key
+  let pk = process.env.DEPLOYER_PRIVATE_KEY?.trim();
+  if (!pk) {
+    const keyPath = process.env.DEPLOYER_KEY_PATH?.trim() || KEY_PATH;
+    if (!fs.existsSync(keyPath)) {
+      throw new Error('Set $env:DEPLOYER_PRIVATE_KEY = "0x..." or place key at ' + KEY_PATH);
+    }
+    pk = fs.readFileSync(keyPath, 'utf8').trim();
+  }
   if (!pk.startsWith('0x')) pk = '0x' + pk;
 
   const provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -61,14 +69,16 @@ async function main() {
   console.log(`New owner: ${NEW_OWNER}`);
   console.log('═══════════════════════════════════════════════════════');
 
-  await transferOne('SWAP', SWAP_ADDR, wallet);
-  await transferOne('NFT',  NFT_ADDR,  wallet);
+  await transferOne('SWAP',    SWAP_ADDR,    wallet);
+  await transferOne('NFT',     NFT_ADDR,     wallet);
+  await transferOne('PAYROLL', PAYROLL_ADDR, wallet);
 
   console.log('\n═══════════════════════════════════════════════════════');
-  console.log(' ✅ DONE · treasury now owns both contracts');
+  console.log(' ✅ DONE · treasury now owns all three contracts');
   console.log('═══════════════════════════════════════════════════════');
-  console.log(`SwapBurner:  https://monadexplorer.com/address/${SWAP_ADDR}`);
-  console.log(`LabSubjects: https://monadexplorer.com/address/${NFT_ADDR}`);
+  console.log(`SwapBurner:   https://monadexplorer.com/address/${SWAP_ADDR}`);
+  console.log(`LabSubjects:  https://monadexplorer.com/address/${NFT_ADDR}`);
+  console.log(`Payroll:      https://monadexplorer.com/address/${PAYROLL_ADDR}`);
   console.log('');
 }
 

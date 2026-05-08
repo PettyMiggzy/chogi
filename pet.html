@@ -894,8 +894,10 @@ main, header{position:relative;z-index:2}
       var isActive = p.pet_id === activePetId;
       var isCritical = (p.hunger||0) <= 10 || (p.thirst||0) <= 10 || (p.happiness||0) <= 10;
       var dotClass = isCritical ? ' critical' : '';
-      return '<button class="ps-pet'+(isActive?' active':'')+dotClass+'" data-type="'+p.type+'" data-id="'+p.pet_id+'">'+
-        '<span class="dot"></span>'+(p.name || 'unnamed')+'</button>';
+      var safeType = (p.type === 'chog' ? 'chog' : 'chogi');
+      var safeId = String(p.pet_id || '').replace(/[^0-9a-f-]/gi, '');
+      return '<button class="ps-pet'+(isActive?' active':'')+dotClass+'" data-type="'+safeType+'" data-id="'+safeId+'">'+
+        '<span class="dot"></span>'+escapeHtml(p.name || 'unnamed')+'</button>';
     }).join('');
     var canAddMore = allPets.length < 3;
     var addPill = canAddMore
@@ -1002,7 +1004,7 @@ main, header{position:relative;z-index:2}
         var head = dash.querySelector('.pet-head');
         dash.insertBefore(banner, head);
       }
-      banner.innerHTML = '⚠️ <span>'+(pet.name||'YOUR PET').toUpperCase()+' IS DYING</span> · TIMER <b>'+fmtTimer(critMs)+'</b> · FEED OR REVIVE NOW';
+      banner.innerHTML = '⚠️ <span>'+escapeHtml((pet.name||'YOUR PET').toUpperCase())+' IS DYING</span> · TIMER <b>'+fmtTimer(critMs)+'</b> · FEED OR REVIVE NOW';
     } else if(banner) {
       banner.remove();
     }
@@ -1209,12 +1211,12 @@ main, header{position:relative;z-index:2}
 
   function renderChatHistory(rows){
     var html = rows.map(function(m){
-      var who = m.role === 'user' ? 'YOU' : (pet.name || 'PET').toUpperCase();
+      var who = m.role === 'user' ? 'YOU' : escapeHtml((pet.name || 'PET').toUpperCase());
       var color = m.role === 'user' ? 'var(--ink-dim)' : 'var(--pink)';
       return '<div style="margin-bottom:8px"><span style="color:'+color+';font-family:var(--mono);font-size:9px;letter-spacing:.13em;font-weight:700">' + who + '</span><br><span style="font-size:13px;color:var(--ink);line-height:1.4">' + escapeHtml(m.content) + '</span></div>';
     }).join('');
     var ch = $('chatHistory');
-    ch.innerHTML = html || '<div style="font-family:var(--serif);font-style:italic;color:var(--ink-faint);text-align:center;padding:20px">say something to '+(pet.name||'your pet')+'…</div>';
+    ch.innerHTML = html || '<div style="font-family:var(--serif);font-style:italic;color:var(--ink-faint);text-align:center;padding:20px">say something to '+escapeHtml(pet.name||'your pet')+'…</div>';
     ch.scrollTop = ch.scrollHeight;
   }
 
@@ -1250,7 +1252,7 @@ main, header{position:relative;z-index:2}
       if(!r.ok){
         ch.innerHTML += '<div style="margin-bottom:8px;color:var(--red);font-family:var(--mono);font-size:11px">⚠ ' + (data.error || 'failed') + '</div>';
       } else {
-        ch.innerHTML += '<div style="margin-bottom:8px"><span style="color:var(--pink);font-family:var(--mono);font-size:9px;letter-spacing:.13em;font-weight:700">' + (pet.name || 'PET').toUpperCase() + '</span><br><span style="font-size:13px;color:var(--ink);line-height:1.4">' + escapeHtml(data.reply) + '</span></div>';
+        ch.innerHTML += '<div style="margin-bottom:8px"><span style="color:var(--pink);font-family:var(--mono);font-size:9px;letter-spacing:.13em;font-weight:700">' + escapeHtml((pet.name || 'PET').toUpperCase()) + '</span><br><span style="font-size:13px;color:var(--ink);line-height:1.4">' + escapeHtml(data.reply) + '</span></div>';
       }
       ch.scrollTop = ch.scrollHeight;
     } catch(e){

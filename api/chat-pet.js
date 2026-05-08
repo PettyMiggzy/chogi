@@ -25,26 +25,56 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'invalid json' });
   }
 
-  const { wallet, message, pet, pet_id } = body || {};
-  if (!wallet || !message || !pet) {
-    return res.status(400).json({ error: 'missing wallet, message, or pet' });
+  const { wallet, message, pet_id } = body || {};
+  if (!wallet || !message || !pet_id) {
+    return res.status(400).json({ error: 'missing wallet, message, or pet_id' });
+  }
+  if (typeof wallet !== 'string' || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
+    return res.status(400).json({ error: 'invalid wallet' });
   }
   if (typeof message !== 'string' || message.length < 1 || message.length > 280) {
     return res.status(400).json({ error: 'message must be 1-280 chars' });
   }
-  if (!pet.bonded) {
-    return res.status(403).json({ error: 'pet not bonded — burn BOND TOKEN first' });
+  if (typeof pet_id !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pet_id)) {
+    return res.status(400).json({ error: 'invalid pet_id' });
   }
 
-  // Use pet_id from explicit param OR fall back to pet.pet_id, OR legacy fallback to wallet-keying
-  const scopeId = pet_id || pet.pet_id || null;
+  const walletLc = wallet.toLowerCase();
+  const scopeId = pet_id;
+
+  // ── verify ownership + bonded status server-side ──
+  // The client cannot be trusted with `pet.bonded`. Re-fetch from Supabase
+  // every call. Read happens with anon key (pets are public) but no caller
+  // can forge a bonded=true response.
+  let pet;
+  try {
+    const lookup = await fetch(
+      `${SUPABASE_URL}/rest/v1/chogi_pets?pet_id=eq.${encodeURIComponent(scopeId)}&select=*&limit=1`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!lookup.ok) return res.status(502).json({ error: 'lookup failed' });
+    const rows = await lookup.json();
+    pet = rows && rows[0];
+    if (!pet) return res.status(404).json({ error: 'pet not found' });
+    if ((pet.wallet || '').toLowerCase() !== walletLc) {
+      return res.status(403).json({ error: 'not the owner of this pet' });
+    }
+    if (!pet.bonded) {
+      return res.status(403).json({ error: 'pet not bonded — burn BOND TOKEN first' });
+    }
+    if (pet.buried || pet.died_at) {
+      return res.status(403).json({ error: 'pet is gone' });
+    }
+  } catch (e) {
+    console.error('pet lookup failed:', e.message);
+    return res.status(502).json({ error: 'lookup failed' });
+  }
 
   // ── per-pet daily message cap ──
   const today = new Date().toISOString().slice(0, 10);
   try {
-    const filter = scopeId
-      ? `pet_id=eq.${encodeURIComponent(scopeId)}`
-      : `wallet=eq.${wallet.toLowerCase()}`;
+    const filter = `pet_id=eq.${encodeURIComponent(scopeId)}`;
     const countUrl = `${SUPABASE_URL}/rest/v1/chogi_pet_chats?${filter}&created_at=gte.${today}T00:00:00Z&select=id`;
     const countRes = await fetch(countUrl, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact' }
@@ -61,9 +91,7 @@ export default async function handler(req, res) {
   // ── pull last 6 messages for short context ──
   let history = [];
   try {
-    const filter = scopeId
-      ? `pet_id=eq.${encodeURIComponent(scopeId)}`
-      : `wallet=eq.${wallet.toLowerCase()}`;
+    const filter = `pet_id=eq.${encodeURIComponent(scopeId)}`;
     const histUrl = `${SUPABASE_URL}/rest/v1/chogi_pet_chats?${filter}&select=role,content&order=created_at.desc&limit=6`;
     const histRes = await fetch(histUrl, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -121,8 +149,8 @@ export default async function handler(req, res) {
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify([
-        { wallet: wallet.toLowerCase(), pet_id: scopeId, role: 'user', content: message.slice(0, 280) },
-        { wallet: wallet.toLowerCase(), pet_id: scopeId, role: 'assistant', content: reply.slice(0, 500) }
+        { wallet: walletLc, pet_id: scopeId, role: 'user', content: message.slice(0, 280) },
+        { wallet: walletLc, pet_id: scopeId, role: 'assistant', content: reply.slice(0, 500) }
       ])
     });
   } catch (e) {
@@ -134,7 +162,11 @@ export default async function handler(req, res) {
 
 // ─── personality voices ───
 function buildSystemPrompt(pet) {
-  const name = (pet.name || 'unnamed').slice(0, 40);
+  // Strip anything that could break out of the system prompt (newlines,
+  // backticks, prompt-injection-shaped content). Pet name comes from
+  // Supabase but the lock-rls.sql constraint also blocks angle brackets.
+  const rawName = (pet.name || 'unnamed').slice(0, 40);
+  const name = rawName.replace(/[`\r\n]/g, '').replace(/\s+/g, ' ').trim() || 'unnamed';
   const type = pet.type === 'chog' ? 'Chog (purple male monanimal)' : 'Chogi (pink female monanimal)';
   const stage = pet.stage || 'baby';
   const days = pet.days_alive || 1;

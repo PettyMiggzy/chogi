@@ -9,7 +9,7 @@ import fs from 'fs';
 import { ethers } from 'ethers';
 
 const KEY_PATH = '/root/.monpad-deployer-key';
-const NFT_CONTRACT = '0xF71AC6c411f278929eaE575AC16496cde9dc2665';
+const NFT_CONTRACT = '0xe753780772c1EAA676accA32e6030B346faF1C0F'; // ChogiLabSubjects v2 deployed 2026-05-08
 const RPC = 'https://rpc.monad.xyz';
 
 // CLI arg: pass "true" to lock back to soulbound, otherwise unlocks
@@ -23,8 +23,15 @@ const ABI = [
 ];
 
 async function main() {
-  if (!fs.existsSync(KEY_PATH)) throw new Error(`Key not found: ${KEY_PATH}`);
-  let pk = fs.readFileSync(KEY_PATH, 'utf8').trim();
+  // Priority: DEPLOYER_PRIVATE_KEY env var → DEPLOYER_KEY_PATH env var → /root/.monpad-deployer-key
+  let pk = process.env.DEPLOYER_PRIVATE_KEY?.trim();
+  if (!pk) {
+    const keyPath = process.env.DEPLOYER_KEY_PATH?.trim() || KEY_PATH;
+    if (!fs.existsSync(keyPath)) {
+      throw new Error('Set $env:DEPLOYER_PRIVATE_KEY = "0x..." or place key at ' + KEY_PATH);
+    }
+    pk = fs.readFileSync(keyPath, 'utf8').trim();
+  }
   if (!pk.startsWith('0x')) pk = '0x' + pk;
 
   const provider = new ethers.JsonRpcProvider(RPC);

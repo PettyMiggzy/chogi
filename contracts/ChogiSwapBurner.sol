@@ -54,13 +54,23 @@ contract ChogiSwapBurner {
     address public constant DEAD   = 0x000000000000000000000000000000000000dEaD;
 
     uint16 public constant MAX_BURN_BPS = 1000; // 10%
+    uint8  private constant _NOT_ENTERED = 1;
+    uint8  private constant _ENTERED     = 2;
 
     // ─── state ──────────────────────────────────────────────────
     address public owner;
     uint16  public burnBps   = 100;            // 1.00%
+    uint8   private _reentry = _NOT_ENTERED;
     uint256 public totalBurned;
     mapping(address => uint256) public burnedByWallet;
     mapping(address => uint256) public swapsByWallet;
+
+    // ─── payroll (optional reward stream) ─────────────────────────
+    /// Once set, part of the burnBps is streamed into the payroll
+    /// (staking pool) instead of burned. Pure burn until then.
+    address public payroll;
+    uint16  public payrollBps; // 0..burnBps; burnt = burnBps - payrollBps
+    uint256 public totalToPayroll;
 
     // ─── events ─────────────────────────────────────────────────
     event SwapAndBurn(
@@ -72,6 +82,7 @@ contract ChogiSwapBurner {
         uint24  fee
     );
     event BurnBpsUpdated(uint16 oldBps, uint16 newBps);
+    event PayrollUpdated(address indexed payroll, uint16 payrollBps);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // ─── errors ─────────────────────────────────────────────────
@@ -81,10 +92,19 @@ contract ChogiSwapBurner {
     error TransferFailed();
     error ZeroAmount();
     error InvalidAddress();
+    error Reentrant();
+    error PayrollBpsTooHigh();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
         _;
+    }
+
+    modifier nonReentrant() {
+        if (_reentry == _ENTERED) revert Reentrant();
+        _reentry = _ENTERED;
+        _;
+        _reentry = _NOT_ENTERED;
     }
 
     constructor() {
@@ -96,9 +116,18 @@ contract ChogiSwapBurner {
 
     // ─── BUY: native MON → CHOGI ────────────────────────────────
     function buyChogiAndBurn(uint24 fee, uint256 minOutToUser)
-        external payable returns (uint256 toUser)
+        external payable nonReentrant returns (uint256 toUser)
     {
         if (msg.value == 0) revert ZeroAmount();
+
+        // Push slippage protection into the router atomically. The router will
+        // revert if the pool can't deliver at least minRouterOut, so MEV can't
+        // sandwich us into a worst-case fill that we then revert on after-the-fact.
+        // minRouterOut = ceil(minOutToUser * 10000 / (10000 - burnBps))
+        uint256 denom = uint256(10000) - uint256(burnBps);
+        uint256 minRouterOut = denom == 0
+            ? minOutToUser
+            : (minOutToUser * 10000 + denom - 1) / denom;
 
         ISwapRouter02.ExactInputSingleParams memory params = ISwapRouter02.ExactInputSingleParams({
             tokenIn:  WMON,
@@ -106,31 +135,28 @@ contract ChogiSwapBurner {
             fee:      fee,
             recipient: address(this),
             amountIn: msg.value,
-            amountOutMinimum: 0,                 // checked after burn skim
+            amountOutMinimum: minRouterOut,
             sqrtPriceLimitX96: 0
         });
 
         uint256 received = ISwapRouter02(ROUTER).exactInputSingle{value: msg.value}(params);
 
-        uint256 burnAmt = (received * burnBps) / 10000;
-        toUser = received - burnAmt;
+        uint256 skim = (received * burnBps) / 10000;
+        toUser = received - skim;
 
+        // belt-and-suspenders: if oracle reports > router min, still assert
         if (toUser < minOutToUser) revert SlippageExceeded();
 
-        if (burnAmt > 0) {
-            _safeTransferChogi(DEAD, burnAmt);
-            totalBurned                += burnAmt;
-            burnedByWallet[msg.sender] += burnAmt;
-        }
-        _safeTransferChogi(msg.sender, toUser);
+        _routeSkim(skim);
+        if (toUser > 0) _safeTransferChogi(msg.sender, toUser);
         swapsByWallet[msg.sender]++;
 
-        emit SwapAndBurn(msg.sender, true, msg.value, toUser, burnAmt, fee);
+        emit SwapAndBurn(msg.sender, true, msg.value, toUser, skim, fee);
     }
 
     // ─── SELL: CHOGI → native MON ───────────────────────────────
     function sellChogiAndBurn(uint256 amountIn, uint24 fee, uint256 minOutToUser)
-        external returns (uint256 monOut)
+        external nonReentrant returns (uint256 monOut)
     {
         if (amountIn == 0) revert ZeroAmount();
 
@@ -138,14 +164,10 @@ contract ChogiSwapBurner {
         if (!IERC20(CHOGI).transferFrom(msg.sender, address(this), amountIn))
             revert TransferFailed();
 
-        uint256 burnAmt = (amountIn * burnBps) / 10000;
-        uint256 swapAmt = amountIn - burnAmt;
+        uint256 skim    = (amountIn * burnBps) / 10000;
+        uint256 swapAmt = amountIn - skim;
 
-        if (burnAmt > 0) {
-            _safeTransferChogi(DEAD, burnAmt);
-            totalBurned                += burnAmt;
-            burnedByWallet[msg.sender] += burnAmt;
-        }
+        _routeSkim(skim);
 
         // swap remaining CHOGI → WMON to this contract
         ISwapRouter02.ExactInputSingleParams memory params = ISwapRouter02.ExactInputSingleParams({
@@ -161,13 +183,39 @@ contract ChogiSwapBurner {
 
         // unwrap WMON → native MON, forward to user
         IWMON(WMON).withdraw(wmonOut);
-        (bool ok, ) = msg.sender.call{value: wmonOut}("");
-        if (!ok) revert TransferFailed();
-
         swapsByWallet[msg.sender]++;
         monOut = wmonOut;
 
-        emit SwapAndBurn(msg.sender, false, amountIn, monOut, burnAmt, fee);
+        emit SwapAndBurn(msg.sender, false, amountIn, monOut, skim, fee);
+
+        (bool ok, ) = msg.sender.call{value: wmonOut}("");
+        if (!ok) revert TransferFailed();
+    }
+
+    // ─── skim router: split between burn + optional payroll ───────
+    function _routeSkim(uint256 amount) private {
+        if (amount == 0) return;
+
+        // payrollBps is bounded ≤ burnBps via setPayroll
+        uint256 toPayroll = payroll == address(0) || payrollBps == 0
+            ? 0
+            : (amount * uint256(payrollBps)) / uint256(burnBps);
+        uint256 toBurn = amount - toPayroll;
+
+        if (toBurn > 0) {
+            _safeTransferChogi(DEAD, toBurn);
+            totalBurned                += toBurn;
+            burnedByWallet[msg.sender] += toBurn;
+        }
+        if (toPayroll > 0) {
+            _safeTransferChogi(payroll, toPayroll);
+            totalToPayroll += toPayroll;
+            // optional notify hook so payroll can update accumulators in-tx
+            (bool ok, ) = payroll.call(
+                abi.encodeWithSignature("notifySwapFee(uint256)", toPayroll)
+            );
+            ok; // ignore; Payroll must handle nothing-to-do path
+        }
     }
 
     // ─── views ──────────────────────────────────────────────────
@@ -196,8 +244,19 @@ contract ChogiSwapBurner {
     // ─── admin ──────────────────────────────────────────────────
     function setBurnBps(uint16 bps) external onlyOwner {
         if (bps > MAX_BURN_BPS) revert BurnTooHigh();
+        // keep payroll share <= burnBps so accounting can't underflow
+        if (payrollBps > bps) payrollBps = bps;
         emit BurnBpsUpdated(burnBps, bps);
         burnBps = bps;
+    }
+
+    /// @notice Set Payroll (staking) address and how much of `burnBps` is routed to it.
+    /// `_payrollBps` must be <= current `burnBps`. Set `_payroll=0x0` to disable.
+    function setPayroll(address _payroll, uint16 _payrollBps) external onlyOwner {
+        if (_payrollBps > burnBps) revert PayrollBpsTooHigh();
+        payroll    = _payroll;
+        payrollBps = _payroll == address(0) ? 0 : _payrollBps;
+        emit PayrollUpdated(_payroll, payrollBps);
     }
 
     function transferOwnership(address newOwner) external onlyOwner {

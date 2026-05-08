@@ -700,7 +700,6 @@ main, header{position:relative;z-index:2}
   }
 
   /* ─── HATCH FLOW ─── */
-  var DEV_WALLET = '0xb9d4b73be18914c6d64bee65a806648370be467f';
 
   /* ─── paint name modal copy + colors based on pet type ─── */
   function paintNameModal(petType){
@@ -737,61 +736,6 @@ main, header{position:relative;z-index:2}
         alert('You can only have 3 active pets at a time. Bury one first or wait.');
         return;
       }
-    }
-
-    // ─── DEV WALLET FAST-PATH (free hatch, no burn, no tx) ───
-    if(account.toLowerCase() === DEV_WALLET){
-      var overlay = $('hatchOverlay');
-      var video = $('hatchVideo');
-      var statusEl = $('hatchStatus');
-      var microEl = $('hatchMicro');
-
-      video.src = '/hatch/hatch-anim-' + petType + '.mp4';
-      video.load();
-      overlay.classList.add('show');
-      statusEl.firstChild.textContent = 'HATCHING (DEV · FREE)…';
-      microEl.textContent = 'no burn · dev wallet';
-
-      video.play().catch(function(){});
-      // wait for video
-      await new Promise(function(resolve){
-        var to = setTimeout(resolve, 3500);
-        video.onended = function(){clearTimeout(to); resolve();};
-      });
-
-      statusEl.firstChild.textContent = 'HATCHED.';
-      microEl.textContent = 'shell cracked · meet your '+petType;
-
-      var pet = {
-        type: petType,
-        name: '',
-        born_at: Date.now(),
-        last_fed_at: Date.now(),
-        last_watered_at: Date.now(),
-        hunger: 100,
-        thirst: 100,
-        happiness: 80,
-        stage: 'baby',
-        days_alive: 1,
-        total_burned: 0,
-        feed_count: 0,
-        water_count: 0,
-        hungry_events: 0,
-        thirsty_events: 0,
-        wallet: account,
-        hatch_tx: '0xDEV-FREE',
-        cosmetics: {head:null, outfit:null, boots:null, accessory:null},
-        owned_items: [],
-      };
-      window._pendingPet = pet;
-
-      setTimeout(function(){
-        overlay.classList.remove('show');
-        paintNameModal(petType);
-        $('nameModal').classList.add('show');
-        $('petName').focus();
-      }, 800);
-      return;
     }
 
     // balance check

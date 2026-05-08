@@ -21,7 +21,10 @@ if (!process.env.CHAT_ID) {
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const CHAT_ID = process.env.CHAT_ID;
 const ADMINS = (process.env.ADMINS || '').split(',').map(s => s.trim()).filter(Boolean);
-const isAdmin = (ctx) => ADMINS.length === 0 || ADMINS.includes(String(ctx.from?.id));
+if (ADMINS.length === 0) {
+  console.warn('⚠️  ADMINS env var empty — admin-only commands disabled. Set ADMINS=tgid1,tgid2 to enable.');
+}
+const isAdmin = (ctx) => ADMINS.length > 0 && ADMINS.includes(String(ctx.from?.id));
 
 process.on('unhandledRejection', (err) => console.error('🔥 unhandledRejection:', err?.stack || err));
 process.on('uncaughtException',  (err) => console.error('🔥 uncaughtException:',  err?.stack || err));

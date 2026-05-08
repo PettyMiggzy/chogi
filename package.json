@@ -1,0 +1,17 @@
+{
+  "name": "chogi-main",
+  "version": "1.0.0",
+  "description": "> An experiment sparked her existence. Now she's loose on Monad. 💜",
+  "main": "middleware.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "ethers": "^6.16.0",
+    "solc": "^0.8.20"
+  }
+}

@@ -81,7 +81,9 @@
   }
   migrateLegacy();
 
-  /* ─── Supabase REST ─── */
+  /* ─── server-mediated pet writes (RLS-safe) ─── */
+  // We still keep SB_URL/SB_KEY for low-trust *reads* (events stream etc),
+  // but writes always go through /api/pet so they pass server validation.
   function sbConfigured(){ return !!(SB_URL && SB_KEY); }
   function sbHeaders(extra){
     var h = {
@@ -93,66 +95,50 @@
     return h;
   }
   async function sbFetchAll(wallet){
-    if(!sbConfigured()) return [];
     try {
-      var url = SB_URL + '/rest/v1/chogi_pets?wallet=eq.' + encodeURIComponent(wallet.toLowerCase()) + '&select=*&order=created_at.asc';
-      var r = await fetch(url, { headers: sbHeaders() });
+      var r = await fetch('/api/pet?wallet=' + encodeURIComponent(wallet.toLowerCase()));
       if(!r.ok) return [];
-      var rows = await r.json();
-      return (rows || []).map(rowToPet);
+      var data = await r.json();
+      return (data.pets || []).map(rowToPet);
     } catch(e){ return []; }
   }
   async function sbFetchById(pet_id){
-    if(!sbConfigured()) return null;
     try {
-      var url = SB_URL + '/rest/v1/chogi_pets?pet_id=eq.' + encodeURIComponent(pet_id) + '&select=*&limit=1';
-      var r = await fetch(url, { headers: sbHeaders() });
+      var r = await fetch('/api/pet?pet_id=' + encodeURIComponent(pet_id));
       if(!r.ok) return null;
-      var rows = await r.json();
-      return rows && rows[0] ? rowToPet(rows[0]) : null;
+      var data = await r.json();
+      var rows = data.pets || [];
+      return rows[0] ? rowToPet(rows[0]) : null;
     } catch(e){ return null; }
   }
   async function sbUpsert(pet){
-    if(!sbConfigured()) return false;
     try {
-      var r = await fetch(SB_URL + '/rest/v1/chogi_pets', {
+      var r = await fetch('/api/pet', {
         method: 'POST',
-        headers: sbHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-        body: JSON.stringify(petToRow(pet))
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: (pet.wallet || '').toLowerCase(), pet: petToRow(pet) })
       });
-      if(!r.ok) console.warn('sbUpsert failed:', r.status);
+      if(!r.ok) console.warn('pet upsert failed:', r.status);
       return r.ok;
     } catch(e){ return false; }
   }
   async function sbBury(pet_id){
-    if(!sbConfigured()) return false;
+    var p = getLocalById(pet_id);
+    if(!p) return false;
     try {
-      var r = await fetch(SB_URL + '/rest/v1/chogi_pets?pet_id=eq.' + encodeURIComponent(pet_id), {
-        method: 'PATCH',
-        headers: sbHeaders({ 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({ buried: true })
+      var r = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: (p.wallet||'').toLowerCase(), pet_id: pet_id, bury: true })
       });
       return r.ok;
     } catch(e){ return false; }
   }
+  // Events still go via anon key — RLS forbids writes from anon now,
+  // so this becomes a no-op until you add /api/pet-event. The pet store
+  // worked without it before (events are append-only audit, not gating).
   async function sbLogEvent(pet_id, wallet, evt){
-    if(!sbConfigured()) return false;
-    try {
-      var r = await fetch(SB_URL + '/rest/v1/chogi_pet_events', {
-        method: 'POST',
-        headers: sbHeaders({ 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({
-          pet_id: pet_id || null,
-          wallet: (wallet || '').toLowerCase(),
-          event_type: evt.type,
-          item_id: evt.item_id || null,
-          burn_amount: evt.burn_amount || 0,
-          tx_hash: evt.tx_hash || null,
-          metadata: evt.metadata || {}
-        })
-      });
-      return r.ok;
-    } catch(e){ return false; }
+    return false;
   }
 
   function petToRow(p){
