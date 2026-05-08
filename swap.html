@@ -297,11 +297,11 @@ footer a{color:var(--pink);text-decoration:none;}
   var POOL       = '0x75C3Ab752e313544f00F08fC945FCe7d22EF4F0D'; // Capricorn V3 CHOGI/WMON 1%
   var POOL_FEE   = 10000;  // 1%
   var CHAIN_HEX  = '0x8f';
-  var RPC        = '/api/rpc';
+  var RPC        = location.origin + '/api/rpc';
   var EXPLORER   = 'https://monadexplorer.com/tx/';
 
   var $ = function(id){ return document.getElementById(id); };
-  var rp = new ethers.JsonRpcProvider(RPC);
+  var rp = new ethers.JsonRpcProvider(RPC, { chainId: 143, name: "monad" }, { staticNetwork: true });
   var signer = null;
   var wallet = null;
   var mode = 'buy';

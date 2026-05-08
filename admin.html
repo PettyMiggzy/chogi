@@ -555,7 +555,7 @@ main, header{position:relative;z-index:2}
   var $ = function(id){ return document.getElementById(id); };
 
   var CHAIN_HEX = '0x8f';
-  var RPC = '/api/rpc';
+  var RPC = location.origin + '/api/rpc';
   var ZERO = '0x0000000000000000000000000000000000000000';
   var EXPLORER = 'https://monadexplorer.com/tx/';
 
@@ -655,7 +655,7 @@ main, header{position:relative;z-index:2}
   var c = { payroll:{r:null,w:null,owner:null}, burner:{r:null,w:null,owner:null}, nft:{r:null,w:null,owner:null} };
 
   function setupReadContracts(){
-    if(!provider) provider = new ethers.JsonRpcProvider(RPC);
+    if(!provider) provider = new ethers.JsonRpcProvider(RPC, { chainId: 143, name: "monad" }, { staticNetwork: true });
     if(addrs.payroll !== ZERO) c.payroll.r = new ethers.Contract(addrs.payroll, PAYROLL_ABI, provider);
     if(addrs.burner  !== ZERO) c.burner.r  = new ethers.Contract(addrs.burner, BURNER_ABI, provider);
     if(addrs.nft     !== ZERO) c.nft.r     = new ethers.Contract(addrs.nft, NFT_ABI, provider);
