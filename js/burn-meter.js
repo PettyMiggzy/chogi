@@ -4,7 +4,7 @@
 (function(){
   var TOKEN  = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
   var DEAD   = '0x000000000000000000000000000000000000dead';
-  var RPC    = 'https://rpc.monad.xyz';
+  var RPC    = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
   var DEC    = 1e18;
 
   function pad(addr){ return addr.toLowerCase().replace('0x','').padStart(64,'0'); }

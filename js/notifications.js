@@ -10,7 +10,7 @@
   var TOKEN    = '0x5e1b1a14c8758104b8560514e94ab8320e587777';
   var POOL     = '0x75c3ab752e313544f00f08fc945fce7d22ef4f0d';
   var DEAD     = '0x000000000000000000000000000000000000dead';
-  var RPC      = 'https://rpc.monad.xyz';
+  var RPC      = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
   var TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
   var POLL_MS  = 30000;
   var LS_KEY   = 'chogi-notif-cfg';

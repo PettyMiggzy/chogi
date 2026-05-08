@@ -16,7 +16,7 @@ import { isBlocked } from './blocklist.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cuqhqcmrgpdjlhyqztnc.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
-const RPC = process.env.MONAD_RPC || 'https://rpc.monad.xyz';
+const RPC = process.env.MONAD_RPC || 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
 const CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777'.toLowerCase();
 const DEAD = '0x000000000000000000000000000000000000dead';
 

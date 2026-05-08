@@ -18,7 +18,7 @@ import path from 'path';
 import { ethers } from 'ethers';
 import solc from 'solc';
 
-const RPC_URL = process.env.RPC_URL?.trim() || 'https://rpc.monad.xyz';
+const RPC_URL = process.env.RPC_URL?.trim() || 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
 const KEY_PATH = '/root/.monpad-deployer-key';
 const CONTRACTS_DIR = './contracts';
 const OUT_FILE = './deployed-addresses.json';

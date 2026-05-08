@@ -18,6 +18,6 @@ export const config = {
 
   // Chain
   chainId:  143,
-  rpcHttp:  'https://rpc.monad.xyz',
+  rpcHttp:  'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/',
   explorer: 'https://monadexplorer.com',
 };
