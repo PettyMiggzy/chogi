@@ -246,8 +246,8 @@ footer a{color:var(--pink);text-decoration:none;}
   <div class="slip-row">
     <span>SLIPPAGE</span>
     <div class="pill" data-slip="50">0.5%</div>
-    <div class="pill active" data-slip="100">1%</div>
-    <div class="pill" data-slip="300">3%</div>
+    <div class="pill" data-slip="100">1%</div>
+    <div class="pill active" data-slip="300">3%</div>
   </div>
 
   <div class="details" id="detailsBox" style="display:none;">
@@ -305,7 +305,7 @@ footer a{color:var(--pink);text-decoration:none;}
   var signer = null;
   var wallet = null;
   var mode = 'buy';
-  var slipBps = 100n;
+  var slipBps = 300n; // default 3% — covers integer-rounding edge in v2 burner inner-min math
   var burnBps = 100n;
   var bestQuote = null;
 

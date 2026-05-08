@@ -123,11 +123,13 @@ contract ChogiSwapBurner {
         // Push slippage protection into the router atomically. The router will
         // revert if the pool can't deliver at least minRouterOut, so MEV can't
         // sandwich us into a worst-case fill that we then revert on after-the-fact.
-        // minRouterOut = ceil(minOutToUser * 10000 / (10000 - burnBps))
+        // FLOOR division (not ceil) — ceiling would create an off-by-one wei
+        // unreachable bound on tight slippage. The post-skim check below acts
+        // as the strict belt-and-suspenders.
         uint256 denom = uint256(10000) - uint256(burnBps);
         uint256 minRouterOut = denom == 0
             ? minOutToUser
-            : (minOutToUser * 10000 + denom - 1) / denom;
+            : (minOutToUser * 10000) / denom;
 
         ISwapRouter02.ExactInputSingleParams memory params = ISwapRouter02.ExactInputSingleParams({
             tokenIn:  WMON,
