@@ -969,6 +969,26 @@ main, header{position:relative;z-index:2}
   var stakeToken = null, stakeTokenWrite = null;
   var assetCache = {};   // address → { symbol, decimals, weight }
 
+  /* Poll our QuickNode JsonRpcProvider for the receipt instead of using
+     tx.wait(), which polls through MetaMask's RPC and can choke on a
+     malformed `nonce` field returned by some Monad RPCs. */
+  async function waitForTx(hash, timeoutMs){
+    var deadline = Date.now() + (timeoutMs || 120000);
+    while (Date.now() < deadline) {
+      try {
+        var r = await provider.getTransactionReceipt(hash);
+        if (r) {
+          if (r.status === 0) throw new Error('Transaction reverted: ' + hash);
+          return r;
+        }
+      } catch(e) {
+        if (String(e).indexOf('reverted') !== -1) throw e;
+      }
+      await new Promise(function(r){ setTimeout(r, 1500); });
+    }
+    throw new Error('Timeout waiting for tx ' + hash);
+  }
+
   function ensureContracts(){
     if(!provider) provider = new ethers.JsonRpcProvider(RPC);
     if(!payroll && PAYROLL_ADDRESS !== ZERO) payroll = new ethers.Contract(PAYROLL_ADDRESS, PAYROLL_ABI, provider);
@@ -1284,7 +1304,7 @@ main, header{position:relative;z-index:2}
     if(current >= amount) return true;
     toast('APPROVING ' + (assetCache[token] ? assetCache[token].symbol : 'TOKEN'));
     var tx = await erc20.approve(PAYROLL_ADDRESS, MAX_UINT);
-    await tx.wait();
+    await waitForTx(tx.hash);
     if(token === CHOGI_TOKEN) chogiAllowanceWei = MAX_UINT;
     else allowanceWei = MAX_UINT;
     return true;
@@ -1313,7 +1333,7 @@ main, header{position:relative;z-index:2}
       btn.textContent = 'CONFIRM IN WALLET…';
       var tx = await payrollWrite.stake(selectedToken, amt, selectedTier);
       btn.textContent = 'CLOCKING IN…';
-      await tx.wait();
+      await waitForTx(tx.hash);
       toast('CLOCKED IN · ' + TIERS[selectedTier].name);
       coinShower();
       $('stakeAmt').value = '';
@@ -1344,7 +1364,7 @@ main, header{position:relative;z-index:2}
       btn.textContent = 'CONFIRM IN WALLET…';
       var tx = await payrollWrite.donate(amt);
       btn.textContent = 'DROPPING BONUS…';
-      await tx.wait();
+      await waitForTx(tx.hash);
       toast('💜 BONUS DROPPED');
       coinShower();
       $('donateAmt').value = '';
@@ -1365,7 +1385,7 @@ main, header{position:relative;z-index:2}
     try {
       toast('CONFIRM CASH OUT…');
       var tx = await payrollWrite.claim(idx);
-      await tx.wait();
+      await waitForTx(tx.hash);
       toast('PAYCHECK CASHED');
       coinShower();
       await loadBalances();
