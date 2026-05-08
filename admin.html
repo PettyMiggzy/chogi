@@ -337,10 +337,10 @@ main, header{position:relative;z-index:2}
 
     <div class="section">
       <h2><span class="ico">🪙</span> WHITELIST TOKENS</h2>
-      <p class="sub">add or update assets that can be staked · weight = CHOGI-equivalent units per 1 wei</p>
+      <p class="sub">approve a token for staking and set its <b>weight</b> · weight = how much one wei of the token counts vs one wei of $CHOGI · CHOGI is fixed at 1:1 (1e18) · changes apply to NEW stakes only</p>
 
       <div class="fn-row">
-        <span class="fn-label">ADD TOKEN<small>weight 1e18 = 1:1 with CHOGI</small></span>
+        <span class="fn-label">ADD TOKEN<small>1e18 = 1:1 with CHOGI · 2e18 = double weight · 5e17 = half weight</small></span>
         <div class="fn-inputs">
           <input type="text" id="addTokenAddr" placeholder="0xTOKEN ADDRESS">
           <input type="text" id="addTokenWeight" placeholder="1e18" value="1000000000000000000">
