@@ -3,9 +3,15 @@
              cache-first for static assets (icons, video, json).
    Versioned cache → bumping CHOGI_VERSION invalidates everything cleanly. */
 
-const CHOGI_VERSION   = 'v1.74.0-memes-comic-bonus';
+const CHOGI_VERSION   = 'v2.0.0-payroll-launch';
 const CACHE_RUNTIME   = 'chogi-runtime-' + CHOGI_VERSION;
 const CACHE_PRECACHE  = 'chogi-shell-'   + CHOGI_VERSION;
+
+/* Files that change between deploys without renaming — must always be fresh.
+   These bypass cache-first and use network-first instead. */
+const NEVER_CACHE_PATHS = [
+  '/js/config.js',   // contract addresses change; can't be served stale
+];
 
 /* shell-level files we want available offline immediately */
 const PRECACHE_URLS = [
@@ -32,8 +38,9 @@ const PRECACHE_URLS = [
   '/js/burn-meter.js',
   '/js/wallet-helper.js',
   '/js/add-token.js',
-  '/js/pet-store.js',
-  '/js/config.js'
+  '/js/pet-store.js'
+  // NOTE: /js/config.js is intentionally excluded — it must always be
+  // fetched fresh because contract addresses change between deploys.
 ];
 
 self.addEventListener('install', (event) => {
@@ -69,6 +76,23 @@ self.addEventListener('fetch', (event) => {
 
   /* skip RPC / API endpoints — must always be fresh */
   if (url.pathname.startsWith('/api/')) return;
+
+  /* never-cache files (config that changes per-deploy): network-first,
+     fall back to cache only on offline. */
+  if (NEVER_CACHE_PATHS.includes(url.pathname)) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE_RUNTIME).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
 
   /* HTML navigation: network-first */
   if (req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html')) {
