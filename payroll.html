@@ -990,7 +990,7 @@ main, header{position:relative;z-index:2}
   }
 
   function ensureContracts(){
-    if(!provider) provider = new ethers.JsonRpcProvider(RPC);
+    if(!provider) provider = new ethers.JsonRpcProvider(RPC, { chainId: 143, name: "monad" }, { staticNetwork: true });
     if(!payroll && PAYROLL_ADDRESS !== ZERO) payroll = new ethers.Contract(PAYROLL_ADDRESS, PAYROLL_ABI, provider);
     if(!chogi) chogi = new ethers.Contract(CHOGI_TOKEN, ERC20_ABI, provider);
   }
