@@ -55,7 +55,7 @@
                 chainId:'0x8f',
                 chainName:'Monad',
                 nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
-                rpcUrls:['https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/'],
+                rpcUrls:['https://rpc.monad.xyz'],
                 blockExplorerUrls:['https://monadexplorer.com']
               }]
             });

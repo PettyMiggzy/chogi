@@ -7,7 +7,7 @@
    Set CHOGI_NFT_ADDRESS in Vercel env vars after you deploy the contract.
    ──────────────────────────────────────────────────────────────────── */
 
-const RPC = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
+const RPC = process.env.MONAD_RPC;
 
 const TIERS = [
   { name: 'Common',     color: '#94A3B8', clearance: 'TIER D' },

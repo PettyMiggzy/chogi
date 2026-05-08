@@ -17,7 +17,7 @@
 import fs from 'fs';
 import { ethers } from 'ethers';
 
-const RPC_URL  = process.env.RPC_URL?.trim() || 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
+const RPC_URL  = process.env.RPC_URL?.trim() || process.env.MONAD_RPC || 'https://rpc.monad.xyz';
 const KEY_PATH = '/root/.monpad-deployer-key';
 
 // ─── EDIT THIS LIST ────────────────────────────────────────────────

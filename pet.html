@@ -741,7 +741,7 @@ main, header{position:relative;z-index:2}
   var TOKEN     = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
   var DEAD      = '0x000000000000000000000000000000000000dead';
   var CHAIN_HEX = '0x8f';
-  var RPC       = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
+  var RPC       = '/api/rpc';
   var EXPLORER  = 'https://monadexplorer.com/tx/';
   var ONE       = 10n ** 18n;
 
@@ -1113,7 +1113,7 @@ main, header{position:relative;z-index:2}
             await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
               chainId:CHAIN_HEX,chainName:'Monad',
               nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
-              rpcUrls:[RPC],blockExplorerUrls:['https://monadexplorer.com']
+              rpcUrls:['https://rpc.monad.xyz'],blockExplorerUrls:['https://monadexplorer.com']
             }]});
           } else throw e;
         }

@@ -12,7 +12,7 @@
   if(window.ChogiConnect) return;
 
   var TOKEN  = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
-  var RPC    = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
+  var RPC    = '/api/rpc';
   var CHAIN  = '0x8f';   // 143
 
   var account = null;
@@ -199,7 +199,7 @@
             params:[{
               chainId:CHAIN, chainName:'Monad',
               nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
-              rpcUrls:[RPC], blockExplorerUrls:['https://monadexplorer.com']
+              rpcUrls:['https://rpc.monad.xyz'], blockExplorerUrls:['https://monadexplorer.com']
             }]
           });
         } else throw e;

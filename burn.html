@@ -397,7 +397,7 @@ footer a{color:var(--fire);text-decoration:none;}
   var DEAD      = '0x000000000000000000000000000000000000dead';
   var CHAIN_HEX = '0x8f';                      // Monad mainnet 143
   var CHAIN_ID  = 143;
-  var RPC       = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
+  var RPC       = '/api/rpc';
   var EXPLORER  = 'https://monadexplorer.com/tx/';
   var DEC       = 18;
   var ONE       = 10n**18n;
@@ -466,7 +466,7 @@ footer a{color:var(--fire);text-decoration:none;}
                 chainId:CHAIN_HEX,
                 chainName:'Monad',
                 nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
-                rpcUrls:[RPC],
+                rpcUrls:['https://rpc.monad.xyz'],
                 blockExplorerUrls:['https://monadexplorer.com']
               }]
             });

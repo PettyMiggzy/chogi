@@ -10,7 +10,7 @@ import { ethers } from 'ethers';
 
 const KEY_PATH = '/root/.monpad-deployer-key';
 const NFT_CONTRACT = '0xe753780772c1EAA676accA32e6030B346faF1C0F'; // ChogiLabSubjects v2 deployed 2026-05-08
-const RPC = 'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
+const RPC = process.env.MONAD_RPC || 'https://rpc.monad.xyz';
 
 // CLI arg: pass "true" to lock back to soulbound, otherwise unlocks
 const target = (process.argv[2] || 'false').toLowerCase();
