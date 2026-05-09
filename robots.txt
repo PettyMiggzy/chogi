@@ -1,0 +1,10 @@
+# Chogi · experiment 7777 · welcome crawlers
+User-agent: *
+Allow: /
+
+# Block admin / non-public surface
+Disallow: /admin
+Disallow: /banned
+
+# Canonical sitemap (www, no redirects)
+Sitemap: https://www.chogi.xyz/sitemap.xml

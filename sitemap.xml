@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.chogi.xyz/</loc><priority>1.0</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/swap</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/burn</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/mint</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/payroll</loc><priority>0.95</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/tools</loc><priority>0.95</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/decode</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/trace</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/inspect</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/radar</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/ecosystem</loc><priority>0.85</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/lab</loc><priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/feed</loc><priority>0.7</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/hatch</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/pet</loc><priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.chogi.xyz/marketplace</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/pfp</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/memes</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/comic</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/subject</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/map</loc><priority>0.6</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/cto</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/badge</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.chogi.xyz/security</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
+</urlset>
