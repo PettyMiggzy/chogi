@@ -307,6 +307,11 @@ main, header{position:relative;z-index:2}
   border:1px solid var(--rule);border-radius:20px;
   padding:26px;position:relative;
 }
+@media(max-width:600px){
+  .panel{padding:18px 14px;border-radius:16px;}
+  .panel .panel-sub{margin-bottom:14px;}
+  .layout{padding:0 12px;margin-top:18px;gap:18px;}
+}
 .panel h2{font-family:var(--display);font-size:14px;letter-spacing:2px;color:var(--cream);margin-bottom:4px;display:flex;align-items:center;gap:10px}
 .panel h2 .ico{font-size:22px}
 .panel .panel-sub{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:18px}
