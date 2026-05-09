@@ -1031,7 +1031,19 @@ main, header{position:relative;z-index:2}
     if(window.ChogiConnect && window.ChogiConnect.isConnected && window.ChogiConnect.isConnected()){
       account = window.ChogiConnect.getAccount();
       // signer comes via the connect event
+      connect().catch(function(e){ console.error('auto-connect failed', e); });
     }
+    // Hook the shared connect-pill event so the admin panel sets up its
+    // signer + write contracts whenever the pill connects/disconnects.
+    window.addEventListener('chogi:connected', function(e){
+      if(e && e.detail && e.detail.account) account = e.detail.account;
+      connect().catch(function(err){ console.error('connect() failed after pill event', err); });
+    });
+    window.addEventListener('chogi:disconnected', function(){
+      account = null;
+      signer = null;
+      refreshAuth();
+    });
     refreshAuth();
     loadCurrentTab();
   }
