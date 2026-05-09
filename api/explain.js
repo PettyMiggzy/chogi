@@ -1,31 +1,8 @@
 // /api/explain.js — Solidity decoder endpoint
-// Accepts POST { wallet, code } → verifies wallet holds 100K $CHOGI on-chain,
+// Accepts POST { wallet, code } → verifies wallet has 100K $CHOGI (wallet+staked),
 // calls OpenAI to analyze the code, returns structured explanation.
-//
-// Hard caps:
-//   - 100,000 $CHOGI hold required
-//   - 50KB input
-//   - 1500 output tokens
-//   - 5 calls / hour / wallet (IP fallback)
 
-const CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
-const RPC_URL     = 'https://rpc.monad.xyz';
-const MIN_HOLD    = 100_000n * (10n ** 18n); // 100K * 1e18
-
-async function getChogiBalance(wallet) {
-  const data = '0x70a08231' + wallet.toLowerCase().replace('0x','').padStart(64, '0');
-  const res = await fetch(RPC_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0', id: 1, method: 'eth_call',
-      params: [{ to: CHOGI_TOKEN, data }, 'latest']
-    })
-  });
-  const j = await res.json();
-  if (!j.result || j.result === '0x') return 0n;
-  return BigInt(j.result);
-}
+import { checkHolder } from './_lib/holder-check.js';
 
 const SYSTEM_PROMPT = `You are CHOGI, the cyborg dog CTO of the Chogi protocol on Monad. Users paste Solidity contracts at you and you decode what they actually do — in plain language, with attitude, and with brutal honesty about red flags.
 
@@ -81,21 +58,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'code too long (50KB max). Paste only the relevant contract.' });
   }
 
-  // ── on-chain holder check ──
-  let bal;
-  try {
-    bal = await getChogiBalance(wallet);
-  } catch (e) {
-    console.error('balance check failed:', e.message);
-    return res.status(502).json({ error: 'on-chain check failed, retry' });
-  }
-  if (bal < MIN_HOLD) {
-    const balH = Number(bal / (10n ** 16n)) / 100;
-    return res.status(403).json({
-      error: `Need 100,000 $CHOGI to use Decode. You hold ${balH.toLocaleString()}.`,
-      held: balH,
-      required: 100_000
-    });
+  // ── holder check (wallet balance + active CHOGI stakes) ──
+  const gate = await checkHolder(wallet);
+  if (!gate.ok) {
+    return res.status(403).json({ error: gate.reason, held: gate.held });
   }
 
   // ── OpenAI call ──

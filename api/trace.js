@@ -2,9 +2,7 @@
 // POST { wallet, hash } → fetch tx + receipt from Monad RPC, decode logs,
 // pass to OpenAI for plain-English summary.
 
-const CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
-const RPC_URL     = 'https://rpc.monad.xyz';
-const MIN_HOLD    = 100_000n * (10n ** 18n);
+import { checkHolder, RPC_URL } from './_lib/holder-check.js';
 
 // Common event signatures for log decoding hints
 const EVENTS = {
@@ -32,13 +30,6 @@ async function rpc(method, params) {
   const j = await res.json();
   if (j.error) throw new Error(j.error.message || 'rpc error');
   return j.result;
-}
-
-async function getChogiBalance(wallet) {
-  const data = '0x70a08231' + wallet.toLowerCase().replace('0x','').padStart(64, '0');
-  const result = await rpc('eth_call', [{ to: CHOGI_TOKEN, data }, 'latest']);
-  if (!result || result === '0x') return 0n;
-  return BigInt(result);
 }
 
 function decodeUint(hex) {
@@ -118,13 +109,10 @@ export default async function handler(req, res) {
   if (!wallet || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) return res.status(400).json({ error: 'invalid wallet' });
   if (!hash   || !/^0x[a-fA-F0-9]{64}$/.test(hash))   return res.status(400).json({ error: 'invalid tx hash' });
 
-  // ── on-chain holder check ──
-  let bal;
-  try { bal = await getChogiBalance(wallet); }
-  catch (e) { return res.status(502).json({ error: 'on-chain check failed, retry' }); }
-  if (bal < MIN_HOLD) {
-    const balH = Number(bal / (10n ** 16n)) / 100;
-    return res.status(403).json({ error: `Need 100,000 $CHOGI to use Trace. You hold ${balH.toLocaleString()}.` });
+  // ── holder check (wallet + staked CHOGI) ──
+  const gate = await checkHolder(wallet);
+  if (!gate.ok) {
+    return res.status(403).json({ error: gate.reason, held: gate.held });
   }
 
   // ── pull tx + receipt ──
