@@ -1024,7 +1024,12 @@ main, header{position:relative;z-index:2}
 
   // palette
   document.querySelectorAll('.pal-btn').forEach(function(b){
-    b.addEventListener('click', function(){
+    b.addEventListener('click', function(e){
+      // iOS Safari sometimes fires synthetic click after touch + :active transform;
+      // 200ms cooldown per button blocks the duplicate without affecting normal use.
+      if(b.dataset.cooling === '1') { e.preventDefault(); return; }
+      b.dataset.cooling = '1';
+      setTimeout(function(){ b.dataset.cooling = '0'; }, 200);
       addSticker(b.dataset.add, b.dataset.emoji);
     });
   });
