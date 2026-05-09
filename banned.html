@@ -11,11 +11,12 @@
 
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#000;color:#FFE9F4;
-    font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;overflow:hidden}
+  html,body{min-height:100%;background:#000;color:#FFE9F4;
+    font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased}
 
   body{background:radial-gradient(ellipse at center,#3a0418 0%,#0a0118 50%,#000 100%);
-    display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative}
+    display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;
+    min-height:100vh}
 
   /* glitchy red scan lines + alarm strobe */
   body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
@@ -87,6 +88,25 @@
 
   .footer-tag{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
     z-index:5;font-size:9px;letter-spacing:0.18em;color:rgba(255,233,244,0.3);text-align:center;width:100%}
+
+  /* === REGISTRY === */
+  .registry{margin-top:20px;text-align:left;padding:14px;background:rgba(0,0,0,0.5);
+    border:1px solid rgba(255,30,80,0.35);border-radius:6px}
+  .registry-head{font-family:Bungee;font-size:9px;letter-spacing:0.22em;color:#ff1e50;
+    margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .registry-count{color:rgba(255,233,244,0.6);font-size:9px;letter-spacing:0.15em}
+  .registry-row{padding:8px 0;border-top:1px dashed rgba(255,30,80,0.18);
+    font-size:10px;line-height:1.6;display:flex;flex-direction:column;gap:2px}
+  .registry-row:first-of-type{border-top:none;padding-top:4px}
+  .reg-line{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .reg-label{font-family:Bungee;font-size:10px;color:#ff1e50;letter-spacing:0.1em}
+  .reg-date{color:rgba(255,233,244,0.4);font-size:9px;letter-spacing:0.1em}
+  .reg-addr{color:rgba(255,233,244,0.55);font-size:9.5px;letter-spacing:0.04em;word-break:break-all}
+  .reg-addr a{color:rgba(255,233,244,0.55);text-decoration:none;border-bottom:1px dotted rgba(255,30,80,0.4)}
+  .reg-addr a:hover{color:#fff;border-bottom-color:#ff1e50}
+  .reg-reason{color:rgba(255,233,244,0.65);font-style:italic;font-size:10px}
+  .registry-empty{text-align:center;color:rgba(255,233,244,0.4);font-size:10px;padding:14px 0;letter-spacing:0.12em}
+  .registry-loading{text-align:center;color:rgba(255,233,244,0.4);font-size:10px;padding:14px 0;letter-spacing:0.12em}
 </style>
 </head>
 <body>
@@ -120,6 +140,16 @@
     Behavior change resets the flag.<br>
     Until then, access remains revoked.
   </div>
+
+  <div class="registry">
+    <div class="registry-head">
+      <span>▌ CONTAINMENT REGISTRY</span>
+      <span class="registry-count" id="registry-count">— flagged</span>
+    </div>
+    <div id="registry-list">
+      <div class="registry-loading">▌ loading registry...</div>
+    </div>
+  </div>
 </div>
 
 <div class="footer-tag">▌LAB 7777 · CONTAINMENT INTEGRITY · WALLET BLOCKLIST v1</div>
@@ -135,6 +165,50 @@
   } else {
     document.getElementById('flagged-wallet').textContent = '0x9E83…c166';
   }
+
+  // ─── Containment Registry ──────────────────────────────────────────────
+  // Fetches the public blocklist and renders each flagged wallet.
+  function trunc(addr){ return addr.slice(0, 8) + '…' + addr.slice(-6); }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  fetch('/api/blocked-list')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var listEl = document.getElementById('registry-list');
+      var countEl = document.getElementById('registry-count');
+      var wallets = (data && data.wallets) || [];
+      countEl.textContent = wallets.length + ' flagged';
+
+      if(!wallets.length){
+        listEl.innerHTML = '<div class="registry-empty">▌ No subjects in containment.</div>';
+        return;
+      }
+
+      var html = wallets.map(function(w){
+        var addr = w.addr || '';
+        var label = escapeHtml(w.label || '—');
+        var reason = escapeHtml(w.reason || '');
+        var date = escapeHtml(w.flaggedAt || '');
+        var explorerUrl = 'https://monadscan.com/address/' + addr;
+        return '<div class="registry-row">' +
+          '<div class="reg-line">' +
+            '<span class="reg-label">▌ ' + label + '</span>' +
+            '<span class="reg-date">' + date + '</span>' +
+          '</div>' +
+          '<div class="reg-addr"><a href="' + explorerUrl + '" target="_blank" rel="noopener">' + escapeHtml(trunc(addr)) + '</a></div>' +
+          (reason ? '<div class="reg-reason">' + reason + '</div>' : '') +
+        '</div>';
+      }).join('');
+      listEl.innerHTML = html;
+    })
+    .catch(function(){
+      document.getElementById('registry-list').innerHTML =
+        '<div class="registry-empty">▌ Registry temporarily unavailable.</div>';
+    });
 })();
 </script>
 
