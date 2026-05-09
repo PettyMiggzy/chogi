@@ -447,6 +447,11 @@ footer .made-by a{color:var(--pink);}
 
   <div class="nav-mobile">
     <a href="/swap" class="nav-cta-mobile">🔁 SWAP</a>
+    <div class="nav-quick">
+      <a href="/lab" class="nav-quick-link">🧪 LAB</a>
+      <a href="/ecosystem" class="nav-quick-link">🌐 ECO</a>
+      <a href="/memes" class="nav-quick-link">🎨 MEMES</a>
+    </div>
     <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -465,6 +470,7 @@ footer .made-by a{color:var(--pink);}
     <a href="/pfp" class="drawer-link p-mint"><span class="ico">🎀</span><div><b>PFP MACHINE</b><i>Drop your face · stack stickers · escape the lab</i></div></a>
     <a href="/lab"   class="drawer-link p-lab"><span class="ico">🧪</span><div><b>LAB</b><i>Live dashboard · containment</i></div></a>
     <a href="/tools" class="drawer-link p-lab"><span class="ico">🧰</span><div><b>TOOLS</b><i>Decode any Solidity · more utilities incoming</i></div></a>
+    <a href="/ecosystem" class="drawer-link p-lab"><span class="ico">🌐</span><div><b>ECOSYSTEM</b><i>The Monad family · partners + integrated tokens</i></div></a>
     <a href="/comic" class="drawer-link p-vault"><span class="ico">📜</span><div><b>COMIC</b><i>Origin · 11 panels · canon</i></div></a>
     <a href="/memes" class="drawer-link p-vault"><span class="ico">🎨</span><div><b>VAULT</b><i>Memes · share · raid kit</i></div></a>
     <a href="/feed" class="drawer-link p-vault"><span class="ico">📡</span><div><b>LIVE FEED</b><i>Lab CCTV · every trade is an incident</i></div></a>
@@ -497,6 +503,15 @@ footer .made-by a{color:var(--pink);}
 .nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
 
 .nav-cta-mobile{padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,#FF4500,#FF1493);color:#fff;text-decoration:none;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.8px;box-shadow:0 0 14px rgba(255,69,0,.35);}
+.nav-quick{display:flex;gap:6px;align-items:center;}
+.nav-quick-link{
+  font-family:'Bungee',sans-serif;font-size:10px;letter-spacing:1.5px;
+  color:#FFE9F4;text-decoration:none;padding:9px 12px;border-radius:9px;
+  background:rgba(168,85,247,.10);border:1px solid rgba(168,85,247,.32);
+  transition:background .15s,transform .15s;white-space:nowrap;
+}
+.nav-quick-link:hover{background:rgba(168,85,247,.22);transform:translateY(-1px);}
+@media(max-width:760px){.nav-quick{display:none;}}
 
 .nav-drawer{position:fixed;inset:0;z-index:99990;background:rgba(10,1,24,.95);backdrop-filter:blur(12px);display:none;padding:90px 18px 40px;overflow-y:auto;}
 .nav-drawer.open{display:block;animation:drawerIn .25s ease;}
@@ -701,6 +716,14 @@ footer .made-by a{color:var(--pink);}
         <h3>TOOLS</h3>
         <p>Decode any Solidity, trace any tx, inspect any token, watch whales live. Free utilities for $CHOGI holders.</p>
         <div class="feat-cta">Enter the lab →</div>
+      </a>
+
+      <a href="/ecosystem" class="feat feat-mint" style="border-color:rgba(168,85,247,.3);">
+        <div class="feat-icon">🌐</div>
+        <div class="feat-tag">PARTNERS · MONAD FAMILY</div>
+        <h3>ECOSYSTEM</h3>
+        <p>The Monad family. Whitelisted partners ($CHOG, $RENE), integrated tokens, and the rest of experiment 7777's orbit.</p>
+        <div class="feat-cta">Meet the family →</div>
       </a>
 
       <a href="/hatch" class="feat feat-mint">
