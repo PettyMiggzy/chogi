@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<title>INSPECT · CHOGI · Token Snapshot</title>
+<meta name="description" content="Paste any Monad token address. Get on-chain stats, DEX data, ownership, and Chogi's verdict.">
+<meta property="og:title" content="🔍 CHOGI INSPECT · Token Snapshot">
+<meta property="og:description" content="Paste a token, see everything. On-chain + DEX + AI verdict. 100K $CHOGI to use.">
+<meta property="og:image" content="https://chogi.xyz/chogi.png">
+<meta name="theme-color" content="#A855F7">
+<link rel="stylesheet" href="/css/tool-shared.css">
+<style>
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
+  .stat{background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.25);border-radius:12px;padding:12px 14px;}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,233,244,.5);margin-bottom:4px;}
+  .stat-val{font-family:'Bungee',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;word-break:break-word;}
+  .stat-val.small{font-size:14px;font-family:'JetBrains Mono',monospace;letter-spacing:0;}
+  .stat-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);margin-top:3px;}
+  .stat-sub.red{color:var(--red);}
+  .stat-sub.green{color:var(--green);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/tools" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">INSPECT · v1</div>
+    </div>
+  </a>
+  <a href="/tools" class="nav-back">← TOOLS</a>
+</nav>
+
+<section class="hero">
+  <span class="eyebrow">// CHOGI · CTO LAB · INSPECT</span>
+  <h1>INSPECT</h1>
+  <p>Paste any Monad token address. Chogi pulls on-chain metadata, DEX liquidity, ownership, and gives a plain-English verdict before you ape.</p>
+</section>
+
+<section class="work">
+
+  <div class="gate-banner" id="gateBanner">
+    <div class="gate-status">
+      <span class="gate-dot" id="gateDot"></span>
+      <span id="gateLabel" class="gate-text">CONNECT WALLET TO CHECK ACCESS</span>
+    </div>
+    <button class="connect-btn" id="connectBtn">CONNECT</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">PASTE TOKEN ADDRESS</div>
+    </div>
+    <input type="text" id="addr" class="input-text" placeholder="0x… 40 hex chars" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="actions">
+      <button class="btn btn-primary" id="goBtn" disabled>🔍 INSPECT</button>
+      <button class="btn btn-ghost" id="clearBtn">CLEAR</button>
+    </div>
+    <div class="error-box" id="errBox"></div>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <div class="result-meta">
+      <span>SNAPSHOT</span>
+      <button class="btn btn-ghost" id="copyBtn" style="padding:6px 12px;font-size:10px;letter-spacing:1.5px;flex:0 0 auto;">COPY VERDICT</button>
+    </div>
+    <div id="statsBlock"></div>
+    <div class="result-body" id="resultBody"></div>
+    <div class="disclaimer">
+      Snapshot from on-chain reads + DexScreener. AI verdict is opinionated, not a guarantee. Always verify before depositing real funds.
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  CHOGI · EXPERIMENT 7777 · BUILT ON MONAD<br>
+  <a href="/tools">TOOLS</a> · <a href="/payroll">PAYROLL</a> · <a href="/burn">BURN</a> · <a href="/lab">LAB</a>
+</footer>
+
+<script src="/js/config.js"></script>
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/pwa.js" defer></script>
+<script src="/js/tool-shared.js"></script>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var input = $('addr'), errBox = $('errBox'), resCard = $('resultCard'), resBody = $('resultBody'), statsBlock = $('statsBlock');
+  var goBtn = $('goBtn'), clearBtn = $('clearBtn'), copyBtn = $('copyBtn');
+
+  function refresh(){
+    var ok = gate.canUse() && /^0x[a-fA-F0-9]{40}$/.test(input.value.trim());
+    goBtn.disabled = !ok;
+  }
+  input.addEventListener('input', refresh);
+  var gate = ChogiTool.setupGate({ onChange: refresh });
+
+  function fmtNum(n){
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(2) + 'K';
+    return Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+  function fmtPrice(p){
+    if (!p) return '—';
+    p = Number(p);
+    if (p >= 1)    return '$' + p.toFixed(4);
+    if (p >= 0.01) return '$' + p.toFixed(6);
+    return '$' + p.toFixed(10);
+  }
+  function fmtAddr(a){ return a.slice(0,6) + '…' + a.slice(-4); }
+
+  function renderStats(s){
+    var changeClass = s.change_24h > 0 ? 'green' : (s.change_24h < 0 ? 'red' : '');
+    var changeSign  = s.change_24h > 0 ? '+' : '';
+    statsBlock.innerHTML = '<div class="stats-grid">' +
+      '<div class="stat"><div class="stat-label">NAME</div><div class="stat-val">' + ChogiTool.escapeHtml(s.name || '?') + '</div><div class="stat-sub">$' + ChogiTool.escapeHtml(s.symbol || '?') + '</div></div>' +
+      '<div class="stat"><div class="stat-label">PRICE</div><div class="stat-val">' + fmtPrice(s.price_usd) + '</div>' + (s.change_24h !== null ? '<div class="stat-sub ' + changeClass + '">' + changeSign + s.change_24h.toFixed(2) + '% 24h</div>' : '') + '</div>' +
+      '<div class="stat"><div class="stat-label">LIQUIDITY</div><div class="stat-val">$' + fmtNum(s.liquidity_usd) + '</div></div>' +
+      '<div class="stat"><div class="stat-label">24H VOLUME</div><div class="stat-val">$' + fmtNum(s.volume_24h) + '</div></div>' +
+      '<div class="stat"><div class="stat-label">SUPPLY</div><div class="stat-val">' + fmtNum(s.total_supply) + '</div><div class="stat-sub">' + s.decimals + ' decimals</div></div>' +
+      '<div class="stat"><div class="stat-label">MARKET CAP</div><div class="stat-val">' + (s.market_cap ? '$' + fmtNum(s.market_cap) : '—') + '</div></div>' +
+      '<div class="stat"><div class="stat-label">OWNER</div><div class="stat-val small">' + (s.owner ? fmtAddr(s.owner) : 'no owner()') + '</div>' + (s.owner_renounced ? '<div class="stat-sub green">RENOUNCED ✓</div>' : (s.owner ? '<div class="stat-sub">active</div>' : '')) + '</div>' +
+      '<div class="stat"><div class="stat-label">PAIR AGE</div><div class="stat-val">' + (s.pair_age_days !== null ? s.pair_age_days + 'd' : '—') + '</div></div>' +
+      '</div>';
+  }
+
+  async function inspect(){
+    errBox.classList.remove('show');
+    resCard.classList.remove('show');
+    if (!gate.canUse()) return;
+    var addr = input.value.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)){
+      errBox.textContent = 'That doesn\'t look like a token address.';
+      errBox.classList.add('show'); return;
+    }
+    var oldText = goBtn.textContent;
+    goBtn.disabled = true;
+    goBtn.innerHTML = '<span class="spinner"></span> INSPECTING…';
+    try {
+      var res = await fetch('/api/inspect', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ wallet: gate.getAccount(), token: addr })
+      });
+      var j = await res.json();
+      if (!res.ok){
+        errBox.textContent = j.error || 'Something broke. Try again.';
+        errBox.classList.add('show');
+        return;
+      }
+      renderStats(j.snapshot);
+      resBody.innerHTML = ChogiTool.renderMarkdown(j.verdict);
+      resCard.classList.add('show');
+      resCard.scrollIntoView({ behavior:'smooth', block:'start' });
+    } catch(e){
+      errBox.textContent = 'Network error: ' + e.message;
+      errBox.classList.add('show');
+    } finally {
+      goBtn.disabled = false;
+      goBtn.textContent = oldText;
+      refresh();
+    }
+  }
+  goBtn.addEventListener('click', inspect);
+  clearBtn.addEventListener('click', function(){
+    input.value = ''; errBox.classList.remove('show'); resCard.classList.remove('show'); refresh();
+  });
+  copyBtn.addEventListener('click', async function(){
+    try {
+      await navigator.clipboard.writeText(resBody.innerText);
+      copyBtn.textContent = 'COPIED ✓';
+      setTimeout(function(){ copyBtn.textContent = 'COPY VERDICT'; }, 1500);
+    } catch {}
+  });
+})();
+</script>
+</body>
+</html>

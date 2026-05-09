@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<title>RADAR · CHOGI · Whale Watch</title>
+<meta name="description" content="Live feed of large transfers on Monad. Real on-chain data, not aggregated buckets.">
+<meta property="og:title" content="📡 CHOGI RADAR · Whale Tracker">
+<meta property="og:description" content="Live feed of big trades + transfers on Monad. Built by Chogi. 100K $CHOGI to use.">
+<meta property="og:image" content="https://chogi.xyz/chogi.png">
+<meta name="theme-color" content="#A855F7">
+<link rel="stylesheet" href="/css/tool-shared.css">
+<style>
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+  .control-pill{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(168,85,247,.06);color:var(--ink);cursor:pointer;}
+  .control-pill.active{background:linear-gradient(135deg, var(--purple), var(--pink));border-color:var(--pink);color:#fff;}
+  .control-input{font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(0,0,0,.4);color:var(--ink);width:90px;}
+  .feed{display:flex;flex-direction:column;gap:8px;max-height:600px;overflow-y:auto;}
+  .trade{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:12px;animation:fadein .3s;}
+  .trade.buy{border-left:3px solid var(--green);}
+  .trade.sell{border-left:3px solid var(--red);}
+  .trade.transfer{border-left:3px solid var(--purple);}
+  .trade-side{font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;padding:4px 8px;border-radius:6px;white-space:nowrap;}
+  .trade-side.buy{color:var(--green);background:rgba(92,231,133,.12);}
+  .trade-side.sell{color:var(--red);background:rgba(255,77,109,.12);}
+  .trade-side.transfer{color:var(--purple);background:rgba(168,85,247,.12);}
+  .trade-mid{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .trade-tok{font-family:'JetBrains Mono',monospace;font-size:13px;color:#fff;font-weight:700;}
+  .trade-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,233,244,.5);letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .trade-amt{text-align:right;}
+  .trade-usd{font-family:'Bungee',sans-serif;font-size:14px;color:var(--gold);letter-spacing:1px;}
+  .trade-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,233,244,.4);margin-top:2px;}
+  .empty{text-align:center;padding:40px 20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,233,244,.4);letter-spacing:1px;}
+  .feed-status{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,233,244,.5);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .feed-status .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.5s infinite;}
+  .trade-link{color:var(--purple);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10px;}
+  .trade-link:hover{text-decoration:underline;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+  @keyframes fadein{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/tools" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">RADAR · v1</div>
+    </div>
+  </a>
+  <a href="/tools" class="nav-back">← TOOLS</a>
+</nav>
+
+<section class="hero">
+  <span class="eyebrow">// CHOGI · CTO LAB · RADAR</span>
+  <h1>RADAR</h1>
+  <p>Live feed of big transfers on Monad's tracked tokens — pulled directly from chain via Transfer events. Spot whales the moment they fire.</p>
+</section>
+
+<section class="work">
+
+  <div class="gate-banner" id="gateBanner">
+    <div class="gate-status">
+      <span class="gate-dot" id="gateDot"></span>
+      <span id="gateLabel" class="gate-text">CONNECT WALLET TO CHECK ACCESS</span>
+    </div>
+    <button class="connect-btn" id="connectBtn">CONNECT</button>
+  </div>
+
+  <div class="card" id="radarCard" style="display:none;">
+    <div class="card-head">
+      <div class="card-title">LIVE FEED</div>
+      <div class="feed-status"><span class="pulse"></span><span id="feedStatus">Initializing…</span></div>
+    </div>
+
+    <div class="controls">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,233,244,.6);letter-spacing:1px;">SHOW:</span>
+      <button class="control-pill active" data-side="all">ALL</button>
+      <button class="control-pill" data-side="buy">BUYS</button>
+      <button class="control-pill" data-side="sell">SELLS</button>
+      <button class="control-pill" data-side="transfer">TRANSFERS</button>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,233,244,.6);letter-spacing:1px;margin-left:auto;">MIN $:</span>
+      <input class="control-input" type="number" id="minUsd" value="500" min="0" step="100">
+    </div>
+
+    <div class="feed" id="feed">
+      <div class="empty" id="empty">Waiting for the first event…</div>
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  CHOGI · EXPERIMENT 7777 · BUILT ON MONAD<br>
+  <a href="/tools">TOOLS</a> · <a href="/payroll">PAYROLL</a> · <a href="/burn">BURN</a> · <a href="/lab">LAB</a>
+</footer>
+
+<script src="/js/config.js"></script>
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/pwa.js" defer></script>
+<script src="/js/tool-shared.js"></script>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var feedEl = $('feed'), statusEl = $('feedStatus');
+  var radarCard = $('radarCard'), minUsdEl = $('minUsd');
+
+  var RPC = 'https://rpc.monad.xyz';
+  var TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+  var DEAD = '0x000000000000000000000000000000000000dead';
+  var ZERO = '0x0000000000000000000000000000000000000000';
+  var EXPLORER = 'https://monadexplorer.com';
+
+  var TRACKED = [
+    { sym:'CHOGI',   addr:'0x5E1b1A14c8758104B8560514e94ab8320e587777' },
+    { sym:'MONWOLF', addr:'0x8361a59d340466211ad4aB41C09a32e4530a7777' },
+    { sym:'CHOG',    addr:'0x350035555E10d9AfAF1566AaebfCeD5BA6C27777' },
+    { sym:'RENE',    addr:'0xaCA86430cCCEdbedB35910fC8A5AFEF07dA37777' },
+    { sym:'PHUCK',   addr:'0x148a3a811979e5BF8366FC279B2d67742Fe17777' }
+  ];
+
+  var meta = {}; // by token addr lowercase
+  var sideFilter = 'all';
+  var minUsd = 500;
+  var seen = new Set();
+  var trades = [];
+  var pollHandle = null;
+  var lastBlock = 0;
+  var pollTick = 0;
+
+  function topicToAddr(t){ return '0x' + t.slice(-40).toLowerCase(); }
+  function fmtAddr(a){ return a.slice(0,6) + '…' + a.slice(-4); }
+  function fmtUsd(n){
+    if (!n) return '$0';
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
+    return '$' + Number(n).toFixed(0);
+  }
+  function fmtTok(n){
+    n = Number(n);
+    if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(2) + 'K';
+    if (n >= 1) return n.toFixed(2);
+    return n.toFixed(4);
+  }
+  function timeAgo(ms){
+    var s = Math.floor((Date.now() - ms) / 1000);
+    if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s/60) + 'm ago';
+    return Math.floor(s/3600) + 'h ago';
+  }
+
+  async function rpc(method, params){
+    var r = await fetch(RPC, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ jsonrpc:'2.0', id:1, method, params })
+    });
+    var j = await r.json();
+    if (j.error) throw new Error(j.error.message || 'rpc error');
+    return j.result;
+  }
+
+  async function bootstrap(){
+    statusEl.textContent = 'Mapping pairs + decimals…';
+    await Promise.all(TRACKED.map(async function(t){
+      var lc = t.addr.toLowerCase();
+      meta[lc] = { sym: t.sym, decimals: 18, price_usd: 0, pairs: new Set() };
+      try {
+        var r = await fetch('https://api.dexscreener.com/latest/dex/tokens/' + t.addr);
+        var j = await r.json();
+        var pairs = j.pairs || [];
+        if (pairs.length){
+          pairs.sort(function(a,b){ return (b.liquidity?.usd||0) - (a.liquidity?.usd||0); });
+          meta[lc].price_usd = Number(pairs[0].priceUsd) || 0;
+          for (var i = 0; i < pairs.length; i++){
+            if (pairs[i].pairAddress) meta[lc].pairs.add(pairs[i].pairAddress.toLowerCase());
+          }
+        }
+      } catch(e){}
+      try {
+        var dec = await rpc('eth_call', [{ to: t.addr, data: '0x313ce567' }, 'latest']);
+        if (dec && dec !== '0x') meta[lc].decimals = Number(BigInt(dec));
+      } catch(e){}
+    }));
+  }
+
+  async function refreshPrices(){
+    await Promise.all(TRACKED.map(async function(t){
+      var lc = t.addr.toLowerCase();
+      try {
+        var r = await fetch('https://api.dexscreener.com/latest/dex/tokens/' + t.addr);
+        var j = await r.json();
+        var pairs = j.pairs || [];
+        if (pairs.length){
+          pairs.sort(function(a,b){ return (b.liquidity?.usd||0) - (a.liquidity?.usd||0); });
+          if (pairs[0].priceUsd) meta[lc].price_usd = Number(pairs[0].priceUsd);
+        }
+      } catch(e){}
+    }));
+  }
+
+  async function pollLogs(){
+    var latest;
+    try { latest = parseInt(await rpc('eth_blockNumber', []), 16); }
+    catch(e){ statusEl.textContent = 'RPC error: ' + e.message; return; }
+
+    var fromBlock = lastBlock === 0 ? Math.max(latest - 99, 0) : Math.max(lastBlock + 1, latest - 99);
+    if (fromBlock > latest) return;
+
+    statusEl.textContent = 'Scanning ' + fromBlock + '–' + latest + '…';
+
+    var blockTimes = {};
+    async function getBlockTime(blkHex){
+      if (blockTimes[blkHex]) return blockTimes[blkHex];
+      try {
+        var b = await rpc('eth_getBlockByNumber', [blkHex, false]);
+        var ts = b ? parseInt(b.timestamp, 16) * 1000 : Date.now();
+        blockTimes[blkHex] = ts;
+        return ts;
+      } catch { return Date.now(); }
+    }
+
+    for (var i = 0; i < TRACKED.length; i++){
+      var t = TRACKED[i];
+      var lc = t.addr.toLowerCase();
+      var info = meta[lc];
+      try {
+        var logs = await rpc('eth_getLogs', [{
+          address:   t.addr,
+          topics:    [TRANSFER_TOPIC],
+          fromBlock: '0x' + fromBlock.toString(16),
+          toBlock:   '0x' + latest.toString(16)
+        }]);
+        for (var k = 0; k < logs.length; k++){
+          var log = logs[k];
+          if (!log.topics || log.topics.length < 3) continue;
+          var key = log.transactionHash + ':' + log.logIndex;
+          if (seen.has(key)) continue;
+          seen.add(key);
+
+          var from = topicToAddr(log.topics[1]);
+          var to   = topicToAddr(log.topics[2]);
+          var amountRaw = BigInt(log.data || '0x0');
+          var amount = Number(amountRaw) / Math.pow(10, info.decimals);
+          var usd = amount * info.price_usd;
+
+          var side = 'transfer';
+          if (info.pairs.has(from)) side = 'buy';
+          else if (info.pairs.has(to)) side = 'sell';
+          var note = '';
+          if (to === DEAD) { side = 'transfer'; note = '🔥 BURN'; }
+          else if (from === ZERO) { side = 'transfer'; note = '✨ MINT'; }
+
+          var ts = await getBlockTime(log.blockNumber);
+
+          trades.unshift({
+            ts: ts, sym: info.sym, side: side, note: note,
+            from: from, to: to, amount: amount, usd: usd, tx: log.transactionHash
+          });
+        }
+      } catch(e){
+        console.warn('logs ' + t.sym + ' failed:', e.message);
+      }
+    }
+
+    if (trades.length > 300) trades.length = 300;
+    if (seen.size > 5000){ // periodic GC of dedup set
+      seen = new Set();
+      trades.forEach(function(t){ seen.add(t.tx); });
+    }
+    lastBlock = latest;
+    statusEl.textContent = 'Live · last poll ' + new Date().toLocaleTimeString();
+    render();
+  }
+
+  function findInfo(sym){
+    for (var k in meta) if (meta[k].sym === sym) return meta[k];
+    return null;
+  }
+
+  function render(){
+    var visible = trades.filter(function(t){
+      if (sideFilter !== 'all' && t.side !== sideFilter) return false;
+      if (t.usd < minUsd) return false;
+      return true;
+    }).slice(0, 80);
+    if (visible.length === 0){
+      feedEl.innerHTML = '<div class="empty">No events match your filters yet — tracked tokens may be quiet, or lower the min $.</div>';
+      return;
+    }
+    feedEl.innerHTML = visible.map(function(t){
+      var label = t.note || (t.side === 'buy' ? '↑ BUY' : (t.side === 'sell' ? '↓ SELL' : '↔ XFER'));
+      var info = findInfo(t.sym);
+      var price = info && info.price_usd ? info.price_usd : 0;
+      var priceStr = price ? '$' + (price < 0.01 ? price.toFixed(8) : price.toFixed(6)) : '—';
+      return '<div class="trade ' + t.side + '">' +
+        '<div class="trade-side ' + t.side + '">' + label + '</div>' +
+        '<div class="trade-mid">' +
+          '<div class="trade-tok">$' + ChogiTool.escapeHtml(t.sym) + ' <span style="opacity:.4;font-weight:400;">@ ' + priceStr + '</span></div>' +
+          '<div class="trade-meta">' + fmtTok(t.amount) + ' tokens · ' + fmtAddr(t.from) + ' → ' + fmtAddr(t.to) + '</div>' +
+        '</div>' +
+        '<div class="trade-amt">' +
+          '<div class="trade-usd">' + fmtUsd(t.usd) + '</div>' +
+          '<div class="trade-time"><a class="trade-link" target="_blank" href="' + EXPLORER + '/tx/' + t.tx + '">' + timeAgo(t.ts) + ' ↗</a></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  document.querySelectorAll('[data-side]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-side]').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      sideFilter = b.dataset.side;
+      render();
+    });
+  });
+  minUsdEl.addEventListener('input', function(){
+    minUsd = Number(minUsdEl.value) || 0;
+    render();
+  });
+
+  async function start(){
+    radarCard.style.display = '';
+    await bootstrap();
+    await pollLogs();
+    pollHandle = setInterval(async function(){
+      pollTick++;
+      if (pollTick % 5 === 0) refreshPrices();
+      pollLogs();
+    }, 12000);
+    setInterval(render, 30000);
+  }
+  function stop(){
+    if (pollHandle){ clearInterval(pollHandle); pollHandle = null; }
+    radarCard.style.display = 'none';
+  }
+
+  ChogiTool.setupGate({
+    onChange: function(s){
+      if (s.canUse){ if (!pollHandle) start(); }
+      else stop();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<title>TRACE · CHOGI · TX Translator</title>
+<meta name="description" content="Paste any Monad tx hash. Get a human-readable breakdown of what actually happened.">
+<meta property="og:title" content="📜 CHOGI TRACE · Decode Any Transaction">
+<meta property="og:description" content="Paste a tx, get the truth. Built by Chogi for Monad. 100K $CHOGI to use.">
+<meta property="og:image" content="https://chogi.xyz/chogi.png">
+<meta name="theme-color" content="#A855F7">
+<link rel="stylesheet" href="/css/tool-shared.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/tools" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">TRACE · v1</div>
+    </div>
+  </a>
+  <a href="/tools" class="nav-back">← TOOLS</a>
+</nav>
+
+<section class="hero">
+  <span class="eyebrow">// CHOGI · CTO LAB · TRACE</span>
+  <h1>TRACE</h1>
+  <p>Paste a Monad transaction hash. Chogi reads the receipt, decodes the logs, and tells you in plain English what just happened.</p>
+</section>
+
+<section class="work">
+
+  <div class="gate-banner" id="gateBanner">
+    <div class="gate-status">
+      <span class="gate-dot" id="gateDot"></span>
+      <span id="gateLabel" class="gate-text">CONNECT WALLET TO CHECK ACCESS</span>
+    </div>
+    <button class="connect-btn" id="connectBtn">CONNECT</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">PASTE TX HASH</div>
+    </div>
+    <input type="text" id="txhash" class="input-text" placeholder="0x… 64 hex chars" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="actions">
+      <button class="btn btn-primary" id="traceBtn" disabled>📜 TRACE</button>
+      <button class="btn btn-ghost" id="clearBtn">CLEAR</button>
+    </div>
+    <div class="error-box" id="errBox"></div>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <div class="result-meta">
+      <span>CHOGI'S READOUT</span>
+      <button class="btn btn-ghost" id="copyBtn" style="padding:6px 12px;font-size:10px;letter-spacing:1.5px;flex:0 0 auto;">COPY</button>
+    </div>
+    <div class="result-body" id="resultBody"></div>
+    <div class="disclaimer">
+      AI summary based on the tx receipt and event logs. Not every contract emits clean events — for ambiguous traces, cross-check on the explorer.
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  CHOGI · EXPERIMENT 7777 · BUILT ON MONAD<br>
+  <a href="/tools">TOOLS</a> · <a href="/payroll">PAYROLL</a> · <a href="/burn">BURN</a> · <a href="/lab">LAB</a>
+</footer>
+
+<script src="/js/config.js"></script>
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/pwa.js" defer></script>
+<script src="/js/tool-shared.js"></script>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var input = $('txhash'), errBox = $('errBox'), resCard = $('resultCard'), resBody = $('resultBody');
+  var traceBtn = $('traceBtn'), clearBtn = $('clearBtn'), copyBtn = $('copyBtn');
+
+  function refresh(){
+    var ok = gate.canUse() && /^0x[a-fA-F0-9]{64}$/.test(input.value.trim());
+    traceBtn.disabled = !ok;
+  }
+  input.addEventListener('input', refresh);
+
+  var gate = ChogiTool.setupGate({ onChange: refresh });
+
+  async function trace(){
+    errBox.classList.remove('show');
+    resCard.classList.remove('show');
+    if (!gate.canUse()) return;
+    var hash = input.value.trim();
+    if (!/^0x[a-fA-F0-9]{64}$/.test(hash)){
+      errBox.textContent = 'That doesn\'t look like a tx hash.';
+      errBox.classList.add('show');
+      return;
+    }
+    var oldText = traceBtn.textContent;
+    traceBtn.disabled = true;
+    traceBtn.innerHTML = '<span class="spinner"></span> READING…';
+    try {
+      var res = await fetch('/api/trace', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ wallet: gate.getAccount(), hash: hash })
+      });
+      var j = await res.json();
+      if (!res.ok){
+        errBox.textContent = j.error || 'Something broke. Try again.';
+        errBox.classList.add('show');
+        return;
+      }
+      resBody.innerHTML = ChogiTool.renderMarkdown(j.explanation);
+      resCard.classList.add('show');
+      resCard.scrollIntoView({ behavior:'smooth', block:'start' });
+    } catch(e){
+      errBox.textContent = 'Network error: ' + e.message;
+      errBox.classList.add('show');
+    } finally {
+      traceBtn.disabled = false;
+      traceBtn.textContent = oldText;
+      refresh();
+    }
+  }
+  traceBtn.addEventListener('click', trace);
+  clearBtn.addEventListener('click', function(){
+    input.value = ''; errBox.classList.remove('show'); resCard.classList.remove('show'); refresh();
+  });
+  copyBtn.addEventListener('click', async function(){
+    try {
+      await navigator.clipboard.writeText(resBody.innerText);
+      copyBtn.textContent = 'COPIED ✓';
+      setTimeout(function(){ copyBtn.textContent = 'COPY'; }, 1500);
+    } catch {}
+  });
+})();
+</script>
+</body>
+</html>
