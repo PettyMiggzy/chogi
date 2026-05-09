@@ -100,6 +100,24 @@ body::after{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;bac
 .tier.t4 .tier-name{color:var(--gold);}
 .tier-cost{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);margin-top:6px;font-weight:700;}
 .tier-cost .lbl{opacity:.6;font-weight:400;}
+.tier-cap{
+  display:inline-block;margin-top:6px;padding:3px 8px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.4px;font-weight:700;
+  border-radius:5px;text-transform:uppercase;line-height:1.2;
+}
+.tier-cap.unlimited{background:rgba(148,163,184,.12);color:var(--slate);border:1px solid rgba(148,163,184,.25);}
+.tier-cap.capped{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.4);}
+.tier-cap.capped-rare{background:rgba(168,85,247,.18);color:#d6b3ff;border:1px solid rgba(168,85,247,.55);box-shadow:0 0 10px rgba(168,85,247,.25);}
+.tier-cap.capped-legend{
+  background:linear-gradient(135deg,rgba(252,211,77,.22),rgba(255,69,0,.18));
+  color:var(--gold);border:1px solid rgba(252,211,77,.6);
+  box-shadow:0 0 14px rgba(252,211,77,.35);
+  animation:legendaryPulse 2.5s ease-in-out infinite;
+}
+@keyframes legendaryPulse{
+  0%,100%{box-shadow:0 0 14px rgba(252,211,77,.35);}
+  50%{box-shadow:0 0 22px rgba(252,211,77,.6);}
+}
 .tier-minted{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
 
 /* card */
@@ -186,6 +204,7 @@ footer a{color:var(--pink);text-decoration:none;}
   <h1>🧪 LAB SUBJECTS</h1>
   <p>NO MON COST · BURN $CHOGI · TRADEABLE · 5 TIERS</p>
   <p class="lead">Mint a permanent record of allegiance. <b>No MON, no fees</b> — only $CHOGI sent to the void. Higher tier = bigger burn = rarer subject. <b>Tradeable</b> on Monad NFT marketplaces.</p>
+  <p class="lead" style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1.5px;color:var(--gold);"><b>HARD CAPS:</b> Only <b>7 Legendaries</b>, <b>77 Epics</b>, and <b>777 Rares</b> will ever exist. Hardcoded in the contract. No exceptions.</p>
 </section>
 
 <div class="tiers" id="tiers">
@@ -193,31 +212,36 @@ footer a{color:var(--pink);text-decoration:none;}
     <div class="tier-img"><img src="/nft/tier-0.png" alt="Common"></div>
     <div class="tier-name">COMMON</div>
     <div class="tier-cost"><span class="lbl">burn</span> 100K</div>
+    <div class="tier-cap unlimited">UNLIMITED</div>
     <div class="tier-minted"><span data-mint-count="0">0</span> minted</div>
   </div>
   <div class="tier t1" data-tier="1">
     <div class="tier-img"><img src="/nft/tier-1.png" alt="Uncommon"></div>
     <div class="tier-name">UNCOMMON</div>
     <div class="tier-cost"><span class="lbl">burn</span> 500K</div>
+    <div class="tier-cap unlimited">UNLIMITED</div>
     <div class="tier-minted"><span data-mint-count="1">0</span> minted</div>
   </div>
   <div class="tier t2" data-tier="2">
     <div class="tier-img"><img src="/nft/tier-2.png" alt="Rare"></div>
     <div class="tier-name">RARE</div>
     <div class="tier-cost"><span class="lbl">burn</span> 1M</div>
-    <div class="tier-minted"><span data-mint-count="2">0</span> minted</div>
+    <div class="tier-cap capped">ONLY 777 EVER</div>
+    <div class="tier-minted"><span data-mint-count="2">0</span> / 777 minted</div>
   </div>
   <div class="tier t3" data-tier="3">
     <div class="tier-img"><img src="/nft/tier-3.png" alt="Epic"></div>
     <div class="tier-name">EPIC</div>
     <div class="tier-cost"><span class="lbl">burn</span> 5M</div>
-    <div class="tier-minted"><span data-mint-count="3">0</span> minted</div>
+    <div class="tier-cap capped-rare">ONLY 77 EVER</div>
+    <div class="tier-minted"><span data-mint-count="3">0</span> / 77 minted</div>
   </div>
   <div class="tier t4" data-tier="4">
     <div class="tier-img"><img src="/nft/tier-4.png" alt="Legendary"></div>
     <div class="tier-name">LEGENDARY</div>
     <div class="tier-cost"><span class="lbl">burn</span> 10M</div>
-    <div class="tier-minted"><span data-mint-count="4">0</span> minted</div>
+    <div class="tier-cap capped-legend">⚠ ONLY 7 EVER · 1/1 TIER</div>
+    <div class="tier-minted"><span data-mint-count="4">0</span> / 7 minted</div>
   </div>
 </div>
 
