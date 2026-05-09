@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chogi Decode">
+<meta name="mobile-web-app-capable" content="yes">
+<title>DECODE · CHOGI · Solidity Translator</title>
+<meta name="description" content="Paste any Solidity contract. Get plain-English explanation + red flag review. Powered by Chogi.">
+<meta property="og:title" content="🧬 CHOGI DECODE · Read Any Contract">
+<meta property="og:description" content="Paste Solidity, get the truth. Built by Chogi for the Monad pack. 100K $CHOGI to use.">
+<meta property="og:image" content="https://chogi.xyz/chogi.png">
+<meta property="og:url" content="https://chogi.xyz/decode">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="chogi.xyz">
+<meta name="twitter:url" content="https://chogi.xyz/decode">
+<meta name="twitter:image" content="https://chogi.xyz/chogi.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<meta name="theme-color" content="#A855F7">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --cyan:#22D3EE;
+  --gold:#FCD34D;
+  --green:#5ce785;
+  --red:#FF4D6D;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+  --border:rgba(168,85,247,.4);
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(168,85,247,.2),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(34,211,238,.12),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(255,20,147,.14),transparent 50%);
+  z-index:-3;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(168,85,247,.025) 0,rgba(168,85,247,.025) 1px,transparent 1px,transparent 4px);
+  pointer-events:none;z-index:-2;
+}
+
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;background:rgba(10,1,24,.78);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{
+  width:36px;height:36px;border-radius:50%;
+  border:2px solid var(--purple);
+  box-shadow:0 0 16px rgba(168,85,247,.55);
+  overflow:hidden;flex-shrink:0;background:#000;
+}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--purple);opacity:.85;}
+.nav-back{
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  color:var(--ink);text-decoration:none;padding:8px 14px;
+  border:1px solid var(--border);border-radius:10px;
+  background:rgba(168,85,247,.06);
+}
+.nav-back:hover{background:rgba(168,85,247,.18);}
+
+.hero{
+  max-width:980px;margin:40px auto 24px;padding:0 22px;text-align:center;
+}
+.hero .eyebrow{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:3px;color:var(--purple);
+  padding:6px 14px;border:1px solid var(--border);border-radius:999px;
+  margin-bottom:18px;background:rgba(168,85,247,.08);
+}
+.hero h1{
+  font-family:'Bungee',sans-serif;font-size:clamp(40px, 7vw, 68px);
+  line-height:1;letter-spacing:1px;margin-bottom:14px;
+  background:linear-gradient(135deg, #FFE9F4 0%, #A855F7 50%, #FF1493 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{
+  font-size:17px;line-height:1.5;max-width:600px;margin:0 auto;
+  color:rgba(255,233,244,.78);
+}
+
+.work{
+  max-width:980px;margin:24px auto;padding:0 22px;
+}
+
+.gate-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:14px 18px;border-radius:14px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(168,85,247,.10), rgba(168,85,247,.02));
+  margin-bottom:20px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;
+  flex-wrap:wrap;
+}
+.gate-status{display:flex;align-items:center;gap:10px;}
+.gate-dot{width:9px;height:9px;border-radius:50%;background:#666;box-shadow:0 0 8px #666;}
+.gate-dot.ok{background:var(--green);box-shadow:0 0 10px var(--green);}
+.gate-dot.bad{background:var(--red);box-shadow:0 0 10px var(--red);}
+.gate-text{color:rgba(255,233,244,.7);}
+.gate-bal{color:var(--gold);font-weight:700;}
+.connect-btn{
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  padding:10px 18px;border-radius:10px;cursor:pointer;
+  background:linear-gradient(135deg, var(--purple), var(--pink));
+  color:#fff;border:none;
+}
+
+.card{
+  background:linear-gradient(180deg, rgba(168,85,247,.08), rgba(10,1,24,.4));
+  border:1.5px solid var(--border);border-radius:18px;
+  padding:22px;margin-bottom:20px;
+}
+.card-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;flex-wrap:wrap;gap:8px;
+}
+.card-title{
+  font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;
+}
+.char-count{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,233,244,.5);
+}
+.char-count.warn{color:var(--gold);}
+.char-count.bad{color:var(--red);}
+
+textarea#code{
+  width:100%;min-height:280px;
+  background:rgba(0,0,0,.4);
+  color:var(--ink);
+  border:1px solid rgba(168,85,247,.3);
+  border-radius:12px;
+  padding:14px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  line-height:1.5;
+  resize:vertical;
+}
+textarea#code:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(168,85,247,.18);}
+textarea#code::placeholder{color:rgba(255,233,244,.3);}
+
+.actions{
+  display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;
+}
+.btn{
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2.5px;
+  padding:14px 28px;border-radius:12px;cursor:pointer;
+  border:none;color:#fff;flex:1;min-width:180px;
+  transition:transform .1s, opacity .15s, filter .15s;
+}
+.btn-primary{
+  background:linear-gradient(135deg, var(--purple), var(--pink));
+  box-shadow:0 6px 20px rgba(168,85,247,.35);
+}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-ghost{
+  background:rgba(168,85,247,.08);
+  border:1px solid var(--border);
+  color:var(--ink);
+  flex:0 0 auto;min-width:auto;
+  padding:14px 18px;
+}
+.btn-ghost:hover{background:rgba(168,85,247,.18);}
+
+.result{
+  display:none;
+}
+.result.show{display:block;}
+.result-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:rgba(255,233,244,.5);letter-spacing:1px;
+}
+.result-body{
+  font-size:15px;line-height:1.65;color:rgba(255,233,244,.92);
+}
+.result-body h2{
+  font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2px;
+  color:#fff;margin:24px 0 10px;padding-top:14px;
+  border-top:1px solid rgba(168,85,247,.2);
+}
+.result-body h2:first-child{margin-top:0;padding-top:0;border-top:none;}
+.result-body ul{margin:8px 0 8px 20px;}
+.result-body li{margin:4px 0;}
+.result-body code{
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  background:rgba(168,85,247,.15);
+  padding:2px 6px;border-radius:5px;color:#fff;
+}
+.result-body strong{color:#fff;}
+
+.error-box{
+  display:none;padding:14px 18px;border-radius:12px;
+  background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.4);
+  color:#ffaab7;font-size:14px;line-height:1.5;
+  margin-top:14px;
+}
+.error-box.show{display:block;}
+.error-box a{color:var(--gold);}
+
+.spinner{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin 1s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+footer{
+  text-align:center;padding:24px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;color:rgba(255,233,244,.4);
+  letter-spacing:1.5px;
+}
+footer a{color:var(--purple);text-decoration:none;}
+
+.disclaimer{
+  margin-top:14px;padding:12px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:rgba(255,233,244,.5);line-height:1.5;
+  border-left:2px solid var(--purple);
+  background:rgba(168,85,247,.05);
+  border-radius:0 8px 8px 0;
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/tools" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">DECODE · v1</div>
+    </div>
+  </a>
+  <a href="/tools" class="nav-back">← TOOLS</a>
+</nav>
+
+<section class="hero">
+  <span class="eyebrow">// CHOGI · CTO LAB · DECODE</span>
+  <h1>DECODE</h1>
+  <p>Paste any Solidity contract. Get a plain-English breakdown of what it actually does, what each function controls, and which red flags to watch for. Don't ape blind.</p>
+</section>
+
+<section class="work">
+
+  <div class="gate-banner" id="gateBanner">
+    <div class="gate-status">
+      <span class="gate-dot" id="gateDot"></span>
+      <span id="gateLabel" class="gate-text">CONNECT WALLET TO CHECK ACCESS</span>
+    </div>
+    <button class="connect-btn" id="connectBtn">CONNECT</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">PASTE SOLIDITY</div>
+      <div class="char-count" id="charCount">0 / 50,000</div>
+    </div>
+    <textarea id="code" placeholder="// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract MyToken {
+    // paste contract source here...
+}"></textarea>
+    <div class="actions">
+      <button class="btn btn-primary" id="decodeBtn" disabled>🧬 DECODE</button>
+      <button class="btn btn-ghost" id="clearBtn">CLEAR</button>
+    </div>
+    <div class="error-box" id="errBox"></div>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <div class="result-meta">
+      <span>CHOGI'S TAKE</span>
+      <button class="btn btn-ghost" id="copyBtn" style="padding:6px 12px;font-size:10px;letter-spacing:1.5px;flex:0 0 auto;">COPY</button>
+    </div>
+    <div class="result-body" id="resultBody"></div>
+    <div class="disclaimer">
+      AI-generated analysis. Not a formal audit. Always verify on-chain and read the code yourself before depositing real funds. Chogi is opinionated, not infallible.
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  CHOGI · EXPERIMENT 7777 · BUILT ON MONAD<br>
+  <a href="/tools">TOOLS</a> · <a href="/payroll">PAYROLL</a> · <a href="/burn">BURN</a> · <a href="/lab">LAB</a>
+</footer>
+
+<!-- shared scripts -->
+<script src="/js/config.js"></script>
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/pwa.js" defer></script>
+
+<script>
+(function(){
+  'use strict';
+
+  const CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  const RPC_URL    = 'https://rpc.monad.xyz';
+  const MIN_HOLD   = 100_000;
+
+  const $ = id => document.getElementById(id);
+  const codeEl  = $('code');
+  const countEl = $('charCount');
+  const errBox  = $('errBox');
+  const resCard = $('resultCard');
+  const resBody = $('resultBody');
+  const decodeBtn = $('decodeBtn');
+  const clearBtn  = $('clearBtn');
+  const copyBtn   = $('copyBtn');
+  const connectBtn = $('connectBtn');
+  const gateDot   = $('gateDot');
+  const gateLabel = $('gateLabel');
+
+  let account = null;
+  let balance = 0;
+  let canDecode = false;
+
+  // ─── char counter ───
+  function updateCount(){
+    const len = codeEl.value.length;
+    countEl.textContent = len.toLocaleString() + ' / 50,000';
+    countEl.classList.remove('warn','bad');
+    if (len > 45000) countEl.classList.add('warn');
+    if (len > 50000) countEl.classList.add('bad');
+    refreshDecodeBtn();
+  }
+  codeEl.addEventListener('input', updateCount);
+
+  // ─── balance check ───
+  function pad(addr){ return addr.toLowerCase().replace('0x','').padStart(64,'0'); }
+  async function fetchBalance(addr){
+    try {
+      const data = '0x70a08231' + pad(addr);
+      const res = await fetch(RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ jsonrpc:'2.0', id:1, method:'eth_call', params:[{ to:CHOGI_TOKEN, data }, 'latest'] })
+      });
+      const j = await res.json();
+      if (!j.result || j.result === '0x') return 0;
+      return Number(BigInt(j.result) / (10n ** 16n)) / 100;
+    } catch(e){
+      console.error('bal err', e);
+      return 0;
+    }
+  }
+
+  function setGate(state){
+    gateDot.classList.remove('ok','bad');
+    if (state === 'connect'){
+      gateLabel.innerHTML = '<span class="gate-text">CONNECT WALLET TO CHECK ACCESS</span>';
+      connectBtn.style.display = 'inline-block';
+      connectBtn.textContent = 'CONNECT';
+      canDecode = false;
+    } else if (state === 'checking'){
+      gateLabel.innerHTML = '<span class="gate-text">CHECKING $CHOGI BALANCE…</span>';
+      connectBtn.style.display = 'none';
+      canDecode = false;
+    } else if (state === 'ok'){
+      gateDot.classList.add('ok');
+      gateLabel.innerHTML = '<span class="gate-text">UNLOCKED · </span><span class="gate-bal">' + balance.toLocaleString() + ' $CHOGI</span>';
+      connectBtn.style.display = 'inline-block';
+      connectBtn.textContent = 'SWITCH';
+      canDecode = true;
+    } else if (state === 'short'){
+      gateDot.classList.add('bad');
+      const need = MIN_HOLD - balance;
+      gateLabel.innerHTML = '<span class="gate-text">NEED ' + need.toLocaleString() + ' MORE · YOU HOLD </span><span class="gate-bal">' + balance.toLocaleString() + '</span>';
+      connectBtn.style.display = 'inline-block';
+      connectBtn.textContent = 'SWITCH';
+      canDecode = false;
+    }
+    refreshDecodeBtn();
+  }
+
+  function refreshDecodeBtn(){
+    const len = codeEl.value.trim().length;
+    decodeBtn.disabled = !canDecode || len < 30 || len > 50000;
+  }
+
+  async function checkAccess(addr){
+    if (!addr){ setGate('connect'); return; }
+    account = addr;
+    setGate('checking');
+    balance = await fetchBalance(addr);
+    setGate(balance >= MIN_HOLD ? 'ok' : 'short');
+  }
+
+  // ─── wallet connection (uses ChogiConnect from connect-pill.js) ───
+  async function tryConnect(){
+    if (!window.ethereum){
+      if (window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('Install MetaMask or another wallet.');
+      return;
+    }
+    try {
+      const accs = await window.ethereum.request({ method:'eth_requestAccounts' });
+      if (accs && accs[0]) checkAccess(accs[0]);
+    } catch(e){
+      console.error('connect failed', e);
+    }
+  }
+  connectBtn.addEventListener('click', tryConnect);
+
+  window.addEventListener('chogi:connected', function(e){
+    if (e && e.detail && e.detail.account) checkAccess(e.detail.account);
+  });
+  window.addEventListener('chogi:disconnected', function(){
+    account = null; balance = 0; setGate('connect');
+  });
+
+  // boot — check if already connected via the pill
+  function boot(){
+    if (window.ChogiConnect && window.ChogiConnect.isConnected && window.ChogiConnect.isConnected()){
+      checkAccess(window.ChogiConnect.getAccount());
+    } else if (window.ethereum){
+      window.ethereum.request({ method:'eth_accounts' }).then(function(accs){
+        if (accs && accs[0]) checkAccess(accs[0]);
+        else setGate('connect');
+      }).catch(function(){ setGate('connect'); });
+    } else {
+      setGate('connect');
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 200);
+
+  // ─── markdown-lite render ───
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function renderMarkdown(md){
+    const lines = md.split('\n');
+    let html = '';
+    let inList = false;
+    for (let i = 0; i < lines.length; i++){
+      let line = lines[i];
+      if (/^##\s/.test(line)){
+        if (inList){ html += '</ul>'; inList = false; }
+        html += '<h2>' + escapeHtml(line.replace(/^##\s/, '')) + '</h2>';
+        continue;
+      }
+      if (/^\s*[-*]\s/.test(line)){
+        if (!inList){ html += '<ul>'; inList = true; }
+        let item = line.replace(/^\s*[-*]\s/, '');
+        item = escapeHtml(item)
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        html += '<li>' + item + '</li>';
+        continue;
+      }
+      if (inList){ html += '</ul>'; inList = false; }
+      if (line.trim() === ''){ html += '<br>'; continue; }
+      let p = escapeHtml(line)
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      html += '<p>' + p + '</p>';
+    }
+    if (inList) html += '</ul>';
+    return html;
+  }
+
+  // ─── decode action ───
+  async function decode(){
+    errBox.classList.remove('show');
+    resCard.classList.remove('show');
+    if (!canDecode || !account) return;
+    const code = codeEl.value.trim();
+    if (code.length < 30){
+      errBox.textContent = 'Paste at least a real contract.';
+      errBox.classList.add('show');
+      return;
+    }
+    if (code.length > 50000){
+      errBox.textContent = 'Code is too long (50KB max).';
+      errBox.classList.add('show');
+      return;
+    }
+
+    decodeBtn.disabled = true;
+    const oldText = decodeBtn.textContent;
+    decodeBtn.innerHTML = '<span class="spinner"></span> DECODING…';
+
+    try {
+      const res = await fetch('/api/explain', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ wallet: account, code })
+      });
+      const j = await res.json();
+      if (!res.ok){
+        errBox.innerHTML = j.error || 'Something broke. Try again.';
+        errBox.classList.add('show');
+        return;
+      }
+      resBody.innerHTML = renderMarkdown(j.explanation);
+      resCard.classList.add('show');
+      resCard.scrollIntoView({ behavior:'smooth', block:'start' });
+    } catch(e){
+      errBox.textContent = 'Network error: ' + e.message;
+      errBox.classList.add('show');
+    } finally {
+      decodeBtn.disabled = false;
+      decodeBtn.textContent = oldText;
+      refreshDecodeBtn();
+    }
+  }
+  decodeBtn.addEventListener('click', decode);
+
+  clearBtn.addEventListener('click', function(){
+    codeEl.value = '';
+    errBox.classList.remove('show');
+    resCard.classList.remove('show');
+    updateCount();
+  });
+
+  copyBtn.addEventListener('click', async function(){
+    try {
+      await navigator.clipboard.writeText(resBody.innerText);
+      copyBtn.textContent = 'COPIED ✓';
+      setTimeout(function(){ copyBtn.textContent = 'COPY'; }, 1500);
+    } catch {}
+  });
+
+  updateCount();
+})();
+</script>
+
+</body>
+</html>

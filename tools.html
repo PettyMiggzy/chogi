@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chogi Tools">
+<meta name="mobile-web-app-capable" content="yes">
+<title>CHOGI TOOLS · Built by the CTO</title>
+<meta name="description" content="Tools by Chogi for the Monad ecosystem. Solidity decoder, more coming.">
+<meta property="og:title" content="🧰 CHOGI TOOLS">
+<meta property="og:description" content="Free tools for Monad. Built by Chogi, for the chain.">
+<meta property="og:image" content="https://chogi.xyz/chogi.png">
+<meta property="og:url" content="https://chogi.xyz/tools">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="chogi.xyz">
+<meta name="twitter:url" content="https://chogi.xyz/tools">
+<meta name="twitter:image" content="https://chogi.xyz/chogi.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<meta name="theme-color" content="#A855F7">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --cyan:#22D3EE;
+  --gold:#FCD34D;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+  --border:rgba(168,85,247,.4);
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  color:var(--ink);position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(168,85,247,.18),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(34,211,238,.12),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(255,20,147,.14),transparent 50%);
+  z-index:-3;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(168,85,247,.025) 0,rgba(168,85,247,.025) 1px,transparent 1px,transparent 4px);
+  pointer-events:none;z-index:-2;
+}
+
+.nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;background:rgba(10,1,24,.75);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{
+  width:36px;height:36px;border-radius:50%;
+  border:2px solid var(--purple);
+  box-shadow:0 0 16px rgba(168,85,247,.55);
+  overflow:hidden;flex-shrink:0;background:#000;
+}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--purple);opacity:.85;}
+.nav-back{
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
+  color:var(--ink);text-decoration:none;padding:8px 14px;
+  border:1px solid var(--border);border-radius:10px;
+  background:rgba(168,85,247,.06);
+}
+.nav-back:hover{background:rgba(168,85,247,.18);}
+
+.hero{
+  max-width:980px;margin:48px auto 28px;padding:0 22px;text-align:center;
+}
+.hero .eyebrow{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:3px;color:var(--purple);
+  padding:6px 14px;border:1px solid var(--border);border-radius:999px;
+  margin-bottom:18px;background:rgba(168,85,247,.08);
+}
+.hero h1{
+  font-family:'Bungee',sans-serif;font-size:clamp(42px, 8vw, 78px);
+  line-height:1;letter-spacing:1px;margin-bottom:14px;
+  background:linear-gradient(135deg, #FFE9F4 0%, #A855F7 50%, #FF1493 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{
+  font-size:18px;line-height:1.5;max-width:640px;margin:0 auto;
+  color:rgba(255,233,244,.78);
+}
+
+.grid{
+  max-width:1140px;margin:32px auto 80px;padding:0 22px;
+  display:grid;grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+  gap:18px;
+}
+.tool{
+  position:relative;
+  display:flex;flex-direction:column;
+  text-decoration:none;color:var(--ink);
+  background:linear-gradient(180deg, rgba(168,85,247,.10), rgba(168,85,247,.02));
+  border:1.5px solid var(--border);border-radius:18px;
+  padding:24px 22px;min-height:240px;
+  transition:transform .15s, border-color .15s, box-shadow .15s;
+}
+.tool:hover{
+  transform:translateY(-4px);
+  border-color:var(--purple);
+  box-shadow:0 12px 36px rgba(168,85,247,.25);
+}
+.tool.locked{
+  opacity:.55;cursor:not-allowed;
+  background:linear-gradient(180deg, rgba(150,150,150,.05), rgba(150,150,150,.01));
+  border-color:rgba(150,150,150,.25);
+}
+.tool.locked:hover{transform:none;border-color:rgba(150,150,150,.25);box-shadow:none;}
+.tool-icon{
+  font-size:36px;margin-bottom:10px;
+  text-shadow:0 0 18px rgba(168,85,247,.6);
+}
+.tool-tag{
+  position:absolute;top:14px;right:14px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+  padding:4px 9px;border-radius:6px;
+}
+.tag-live{background:rgba(34,197,94,.15);color:#5ce785;border:1px solid rgba(34,197,94,.4);}
+.tag-soon{background:rgba(150,150,150,.12);color:#aaa;border:1px solid rgba(150,150,150,.3);}
+.tool h3{
+  font-family:'Bungee',sans-serif;font-size:22px;letter-spacing:2px;
+  color:#fff;margin-bottom:8px;
+}
+.tool p{
+  font-size:14px;line-height:1.5;color:rgba(255,233,244,.72);
+  flex:1;
+}
+.tool-foot{
+  margin-top:14px;padding-top:14px;
+  border-top:1px solid rgba(168,85,247,.18);
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+}
+.gate{
+  color:var(--gold);letter-spacing:1px;
+}
+.gate.free{color:#5ce785;}
+.tool-arrow{
+  font-family:'Bungee',sans-serif;font-size:14px;color:var(--purple);
+}
+
+footer{
+  text-align:center;padding:24px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;color:rgba(255,233,244,.4);
+  letter-spacing:1.5px;
+}
+footer a{color:var(--purple);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">TOOLS · CTO BUILT</div>
+    </div>
+  </a>
+  <a href="/" class="nav-back">← HOME</a>
+</nav>
+
+<section class="hero">
+  <span class="eyebrow">// LAB · TOOLS · CTO BUILT</span>
+  <h1>CHOGI TOOLS</h1>
+  <p>She made herself CTO. Now she's building. Free utilities for the Monad pack — paste contracts, decode them, stay safe.</p>
+</section>
+
+<div class="grid">
+
+  <!-- DECODE -->
+  <a href="/decode" class="tool">
+    <span class="tool-tag tag-live">● LIVE</span>
+    <div class="tool-icon">🧬</div>
+    <h3>DECODE</h3>
+    <p>Paste any Solidity contract. Get a plain-English breakdown of what it does, what each function controls, and which red flags to watch for. Don't ape blind.</p>
+    <div class="tool-foot">
+      <span class="gate">🔒 100K $CHOGI</span>
+      <span class="tool-arrow">OPEN →</span>
+    </div>
+  </a>
+
+  <!-- PLACEHOLDERS — easy to swap with real tools -->
+  <div class="tool locked">
+    <span class="tool-tag tag-soon">SOON</span>
+    <div class="tool-icon">🛡️</div>
+    <h3>HONEYPOT CHECK</h3>
+    <p>Drop a token address, get a buy/sell simulation + tax detection + ownership breakdown. Catches honeypots before you do.</p>
+    <div class="tool-foot">
+      <span class="gate">🔒 TBD</span>
+      <span class="tool-arrow" style="opacity:.4;">—</span>
+    </div>
+  </div>
+
+  <div class="tool locked">
+    <span class="tool-tag tag-soon">SOON</span>
+    <div class="tool-icon">📡</div>
+    <h3>WHALE RADAR</h3>
+    <p>Live feed of large wallet movements on Monad. Alpha for the pack. Filter by token, size, and direction.</p>
+    <div class="tool-foot">
+      <span class="gate">🔒 TBD</span>
+      <span class="tool-arrow" style="opacity:.4;">—</span>
+    </div>
+  </div>
+
+  <div class="tool locked">
+    <span class="tool-tag tag-soon">SOON</span>
+    <div class="tool-icon">📜</div>
+    <h3>TX EXPLAIN</h3>
+    <p>Paste a tx hash, get a human-readable trace of what actually happened. No more "transfer · success" mysteries.</p>
+    <div class="tool-foot">
+      <span class="gate">🔒 TBD</span>
+      <span class="tool-arrow" style="opacity:.4;">—</span>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  CHOGI · EXPERIMENT 7777 · BUILT ON MONAD<br>
+  <a href="/">HOME</a> · <a href="/payroll">PAYROLL</a> · <a href="/burn">BURN</a> · <a href="/lab">LAB</a>
+</footer>
+
+<!-- shared scripts -->
+<script src="/js/config.js"></script>
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/pwa.js" defer></script>
+
+</body>
+</html>
