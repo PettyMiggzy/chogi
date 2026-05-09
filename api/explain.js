@@ -3,6 +3,7 @@
 // calls OpenAI to analyze the code, returns structured explanation.
 
 import { checkHolder } from './_lib/holder-check.js';
+import { isBlocked } from './blocklist.js';
 
 const SYSTEM_PROMPT = `You are CHOGI, the cyborg dog CTO of the Chogi protocol on Monad. Users paste Solidity contracts at you and you decode what they actually do — in plain language, with attitude, and with brutal honesty about red flags.
 
@@ -59,6 +60,10 @@ export default async function handler(req, res) {
   }
 
   // ── holder check (wallet balance + active CHOGI stakes) ──
+  if (isBlocked(wallet)) {
+    return res.status(403).json({ error: 'wallet blocked' });
+  }
+
   const gate = await checkHolder(wallet);
   if (!gate.ok) {
     return res.status(403).json({ error: gate.reason, held: gate.held });

@@ -3,6 +3,7 @@
 // pass to OpenAI for plain-English summary.
 
 import { checkHolder, RPC_URL } from './_lib/holder-check.js';
+import { isBlocked } from './blocklist.js';
 
 // Common event signatures for log decoding hints
 const EVENTS = {
@@ -108,6 +109,11 @@ export default async function handler(req, res) {
   const { wallet, hash } = body || {};
   if (!wallet || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) return res.status(400).json({ error: 'invalid wallet' });
   if (!hash   || !/^0x[a-fA-F0-9]{64}$/.test(hash))   return res.status(400).json({ error: 'invalid tx hash' });
+
+  // Blocklist (banned wallets) — runs BEFORE holder check.
+  if (isBlocked(wallet)) {
+    return res.status(403).json({ error: 'wallet blocked' });
+  }
 
   // ── holder check (wallet + staked CHOGI) ──
   const gate = await checkHolder(wallet);

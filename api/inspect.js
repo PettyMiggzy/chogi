@@ -2,6 +2,7 @@
 // POST { wallet, token } → on-chain reads + DexScreener data + GPT verdict.
 
 import { checkHolder, RPC_URL } from './_lib/holder-check.js';
+import { isBlocked } from './blocklist.js';
 
 async function rpc(method, params) {
   const res = await fetch(RPC_URL, {
@@ -128,6 +129,12 @@ export default async function handler(req, res) {
   const { wallet, token } = body || {};
   if (!wallet || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) return res.status(400).json({ error: 'invalid wallet' });
   if (!token  || !/^0x[a-fA-F0-9]{40}$/.test(token))  return res.status(400).json({ error: 'invalid token address' });
+
+  // Blocklist (banned wallets) — runs BEFORE holder check so banned addresses
+  // can't probe whether they'd otherwise pass the gate.
+  if (isBlocked(wallet)) {
+    return res.status(403).json({ error: 'wallet blocked' });
+  }
 
   // Holder check (wallet + staked CHOGI)
   const gate = await checkHolder(wallet);
