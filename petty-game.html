@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CHOGI LAB · v0.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF1493">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink:        #FF1493;
+  --pink-soft:   #FF69B4;
+  --pink-glow:   rgba(255,20,147,0.5);
+  --purple:      #A855F7;
+  --purple-deep: #7C3AED;
+  --bg-deep:     #0a0118;
+  --bg-mid:      #11052a;
+  --bg-light:    #1a0b3d;
+  --ink:         #f8fafc;
+  --crt-line:    rgba(255,255,255,0.025);
+  --hp-green:    #22c55e;
+  --hp-amber:    #f59e0b;
+  --hp-red:      #ef4444;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body {
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-family: 'VT323', monospace;
+  overflow:hidden;
+  height:100vh;
+  -webkit-tap-highlight-color: transparent;
+  user-select:none;
+}
+button { font-family:inherit; cursor:pointer; user-select:none; background:none; border:none; color:inherit; }
+
+/* ── App container ── */
+.app {
+  position:relative;
+  width:100vw; height:100dvh;
+  background:
+    radial-gradient(ellipse at center, rgba(168,85,247,0.18), transparent 70%),
+    radial-gradient(ellipse at bottom, rgba(255,20,147,0.18), transparent 70%),
+    var(--bg-deep);
+  overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.app::after {
+  content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(to bottom, transparent 0, transparent 2px, var(--crt-line) 2px, var(--crt-line) 3px);
+  pointer-events:none; z-index:99;
+}
+
+/* Concept banner */
+.preview-banner {
+  background:linear-gradient(90deg, var(--pink), var(--purple));
+  color:#fff;
+  font-family:'Press Start 2P', monospace;
+  font-size:7px; letter-spacing:0.1em;
+  padding:4px 8px; text-align:center;
+  border-bottom:2px solid #000;
+  flex-shrink:0;
+}
+
+/* ── Scene wrapper (only one visible at a time) ── */
+.scene { display:none; flex:1; flex-direction:column; min-height:0; }
+.scene.active { display:flex; }
+
+/* ─────── TITLE SCREEN ─────── */
+#scene-title {
+  align-items:center; justify-content:center;
+  padding:24px;
+}
+.title-box {
+  text-align:center;
+  background:rgba(8,0,15,0.85);
+  border:3px solid var(--pink);
+  border-radius:12px;
+  padding:32px 28px;
+  box-shadow:0 0 30px var(--pink-glow), inset 0 0 12px rgba(255,20,147,0.1);
+  max-width:340px; width:100%;
+}
+.title-logo { width:96px; height:96px; border-radius:50%; margin-bottom:14px; box-shadow:0 0 24px var(--pink-glow); }
+.title-name {
+  font-family:'Press Start 2P', monospace;
+  font-size:18px; letter-spacing:0.1em;
+  color:#fff; margin-bottom:6px;
+  text-shadow:2px 2px 0 #000, 0 0 16px var(--pink);
+}
+.title-sub {
+  font-family:'Press Start 2P', monospace;
+  font-size:8px; letter-spacing:0.18em;
+  color:var(--pink); margin-bottom:24px;
+}
+.title-btn {
+  display:block; width:100%;
+  background:rgba(255,20,147,0.15);
+  border:3px solid var(--pink);
+  padding:14px;
+  font-family:'Press Start 2P', monospace;
+  font-size:11px; letter-spacing:0.06em;
+  color:#fff; text-shadow:1px 1px 0 #000;
+  margin-bottom:10px;
+  border-radius:6px;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,0.4);
+  transition:background 0.15s, transform 0.1s;
+}
+.title-btn:active { transform:scale(0.97); background:rgba(255,20,147,0.3); }
+.title-btn.secondary { border-color:var(--purple); background:rgba(168,85,247,0.1); }
+.title-version {
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px; color:rgba(255,255,255,0.4);
+  margin-top:18px; letter-spacing:0.1em;
+}
+
+/* ─────── HUB SCREEN ─────── */
+#scene-hub {
+  padding:14px; gap:12px;
+}
+.hub-header {
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(8,0,15,0.6); border:2px solid var(--purple);
+  border-radius:8px; padding:10px 14px;
+}
+.hub-title {
+  font-family:'Press Start 2P', monospace;
+  font-size:11px; letter-spacing:0.08em; color:#fff;
+}
+.hub-stats {
+  font-family:'Press Start 2P', monospace;
+  font-size:8px; letter-spacing:0.06em; color:var(--pink);
+  display:flex; gap:10px;
+}
+.hub-stat .label { color:rgba(255,255,255,0.5); }
+
+.party-row {
+  display:flex; gap:8px; overflow-x:auto;
+  padding:4px 0;
+}
+.party-card {
+  flex:0 0 86px;
+  background:rgba(17,5,42,0.95);
+  border:2px solid var(--pink);
+  border-radius:8px;
+  padding:6px;
+  text-align:center;
+  position:relative;
+}
+.party-card.fainted { opacity:0.4; border-color:#555; }
+.party-card.empty {
+  border-style:dashed;
+  border-color:rgba(168,85,247,0.3);
+}
+.party-card .pcard-img {
+  width:64px; height:64px; object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 2px 6px rgba(168,85,247,0.4));
+}
+.party-card .pcard-name {
+  font-family:'Press Start 2P', monospace;
+  font-size:6px; color:#fff;
+  margin-top:3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.party-card .pcard-lvl {
+  font-family:'Press Start 2P', monospace;
+  font-size:6px; color:var(--pink);
+  margin-top:2px;
+}
+.party-card .pcard-hp {
+  width:100%; height:4px; background:#2a0440;
+  border-radius:2px; margin-top:4px; overflow:hidden;
+}
+.party-card .pcard-hp-fill {
+  height:100%; background:var(--hp-green);
+}
+.party-card .pcard-hp-fill.amber { background:var(--hp-amber); }
+.party-card .pcard-hp-fill.red   { background:var(--hp-red); }
+
+.zone-list {
+  flex:1; overflow-y:auto;
+  display:flex; flex-direction:column; gap:8px;
+  padding-bottom:6px;
+}
+.zone-card {
+  background:linear-gradient(135deg, rgba(17,5,42,0.95), rgba(26,11,61,0.95));
+  border:2px solid var(--purple);
+  border-radius:8px;
+  padding:14px;
+  display:flex; align-items:center; gap:14px;
+  text-align:left;
+  transition:transform 0.1s, border-color 0.15s;
+}
+.zone-card:active { transform:scale(0.98); }
+.zone-card.locked { opacity:0.5; border-color:#555; }
+.zone-card .zone-icon {
+  flex:0 0 auto;
+  width:48px; height:48px; border-radius:8px;
+  background:var(--bg-deep); border:1px solid var(--pink);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+}
+.zone-card .zone-info { flex:1; min-width:0; }
+.zone-card .zone-name {
+  font-family:'Press Start 2P', monospace;
+  font-size:10px; color:#fff; margin-bottom:4px;
+}
+.zone-card .zone-desc {
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; color:rgba(255,255,255,0.6);
+  line-height:1.3;
+}
+.zone-card .zone-meta {
+  font-family:'Press Start 2P', monospace;
+  font-size:7px; color:var(--pink);
+  margin-top:4px; letter-spacing:0.05em;
+}
+
+.hub-actions {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+}
+.hub-action-btn {
+  background:rgba(255,20,147,0.12);
+  border:2px solid var(--pink);
+  padding:12px;
+  font-family:'Press Start 2P', monospace;
+  font-size:9px; color:#fff; letter-spacing:0.05em;
+  border-radius:6px;
+  text-shadow:1px 1px 0 #000;
+}
+.hub-action-btn:active { background:rgba(255,20,147,0.25); }
+
+/* ─────── BATTLE SCREEN ─────── */
+#scene-battle { padding:0; }
+.battle-top {
+  position:relative; padding:32px 12px 0; flex:1.3;
+  display:flex; flex-direction:column;
+}
+.enemy-card {
+  align-self:flex-start;
+  background: rgba(8,0,15,0.85);
+  border:2px solid var(--purple);
+  border-radius:6px; padding:8px 12px;
+  box-shadow:0 0 14px rgba(168,85,247,0.4);
+  min-width:180px; max-width:260px;
+}
+.enemy-card .name-row, .player-card .name-row {
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:'Press Start 2P', monospace; font-size:9px;
+  color:#fff; margin-bottom:4px;
+}
+.enemy-card .lvl, .player-card .lvl { color:var(--pink); }
+.types { display:flex; gap:4px; margin-bottom:6px; }
+.type-pill {
+  font-family:'Press Start 2P', monospace; font-size:6px;
+  padding:3px 5px; border-radius:3px; letter-spacing:0.05em;
+  border:1px solid rgba(0,0,0,0.4);
+}
+.type-toxic     { background:#7c3aed; color:#fff; }
+.type-pure      { background:#06b6d4; color:#000; }
+.type-reactive  { background:#ef4444; color:#fff; }
+.type-acid      { background:#84cc16; color:#000; }
+.type-crystal   { background:#a78bfa; color:#000; }
+.type-volatile  { background:#f97316; color:#fff; }
+.type-physical  { background:#94a3b8; color:#000; }
+
+.hp-row {
+  display:flex; align-items:center; gap:6px;
+  font-family:'Press Start 2P', monospace; font-size:7px;
+  color:rgba(255,255,255,0.7);
+}
+.hp-bar {
+  flex:1; height:8px; background:#2a0440;
+  border:1px solid #000; border-radius:2px; overflow:hidden;
+  position:relative;
+  box-shadow:inset 0 0 4px rgba(0,0,0,0.6);
+}
+.hp-fill {
+  height:100%; background:var(--hp-green);
+  transition:width 0.6s ease, background 0.3s;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.2);
+}
+.hp-fill.amber { background:var(--hp-amber); }
+.hp-fill.red   { background:var(--hp-red); }
+.hp-text { font-family:'Press Start 2P', monospace; font-size:7px; white-space:nowrap; }
+
+.sprite-row { flex:1; position:relative; margin-top:8px; }
+.sprite {
+  position:absolute;
+  width:130px; height:130px; object-fit:contain;
+  filter:drop-shadow(0 4px 18px rgba(168,85,247,0.45));
+  transition:transform 0.3s, opacity 0.3s;
+  image-rendering:pixelated;
+}
+.enemy-sprite { right:8px; top:0; width:114px; height:114px; }
+.player-sprite { left:8px; bottom:8px; }
+.sprite.hit { animation:shake 0.5s; }
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  20%     { transform:translateX(-6px); }
+  40%     { transform:translateX(6px); }
+  60%     { transform:translateX(-4px); }
+  80%     { transform:translateX(4px); }
+}
+.sprite.faint { animation:faint 0.7s forwards; }
+@keyframes faint {
+  to { transform:translateY(40px); opacity:0; }
+}
+
+.battle-mid {
+  position:relative; padding:0 12px; flex:1;
+  display:flex; flex-direction:column;
+}
+.player-card {
+  align-self:flex-end;
+  background: rgba(8,0,15,0.85);
+  border:2px solid var(--pink);
+  border-radius:6px; padding:8px 12px;
+  box-shadow:0 0 14px rgba(255,20,147,0.4);
+  min-width:200px; max-width:280px;
+  margin-bottom:4px;
+}
+
+.text-box {
+  position:relative;
+  margin:0 12px 8px;
+  background: rgba(8,0,15,0.95);
+  border:3px solid var(--pink);
+  border-radius:6px;
+  padding:12px 14px;
+  min-height:64px;
+  font-family:'VT323', monospace;
+  font-size:18px; line-height:1.3;
+  color:#fff;
+  box-shadow:0 0 16px var(--pink-glow);
+  flex-shrink:0;
+}
+.text-box .ptr {
+  position:absolute; right:14px; bottom:14px;
+  width:0; height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:8px solid var(--pink);
+  animation:bounce 0.7s ease-in-out infinite;
+  display:none;
+}
+.text-box.has-ptr .ptr { display:block; }
+@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(4px);} }
+
+.menu {
+  margin:0 12px 12px;
+  display:grid; grid-template-columns:1fr 1fr; gap:6px;
+  flex-shrink:0;
+}
+.menu-btn {
+  background: rgba(17,5,42,0.95);
+  border:3px solid var(--pink);
+  border-radius:6px;
+  padding:10px 8px;
+  font-family:'Press Start 2P', monospace;
+  font-size:10px; letter-spacing:0.06em;
+  color:#fff;
+  text-shadow:1px 1px 0 #000;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,0.4);
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.menu-btn:active { background:rgba(255,20,147,0.15); transform:scale(0.98); }
+.menu-btn:disabled { opacity:0.5; }
+.menu-btn .icon { font-size:14px; }
+.menu.hidden { display:none; }
+
+.moves {
+  margin:0 12px 12px;
+  background: rgba(17,5,42,0.95);
+  border:3px solid var(--pink);
+  border-radius:6px;
+  padding:6px;
+  display:none;
+  flex-direction:column; gap:2px;
+  flex-shrink:0;
+}
+.moves.show { display:flex; }
+.move-btn {
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:9px 6px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'VT323', monospace;
+  color:#fff; font-size:17px;
+  text-align:left;
+}
+.move-btn:last-of-type { border-bottom:none; }
+.move-btn:active { background:rgba(255,20,147,0.1); }
+.move-btn .pp {
+  font-family:'Press Start 2P', monospace; font-size:7px;
+  color:rgba(255,255,255,0.55);
+}
+.move-info { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.back-btn {
+  background:rgba(168,85,247,0.2);
+  border:2px solid var(--purple);
+  color:#fff;
+  font-family:'Press Start 2P', monospace; font-size:8px;
+  padding:7px;
+  border-radius:4px;
+  margin-top:3px;
+}
+
+.damage-pop {
+  position:absolute;
+  font-family:'Press Start 2P', monospace; font-size:18px;
+  color:#fff;
+  text-shadow:2px 2px 0 var(--pink), 0 0 12px var(--pink-glow);
+  animation:dmgpop 1.1s ease-out forwards;
+  pointer-events:none; z-index:50;
+}
+.damage-pop.heal { text-shadow:2px 2px 0 var(--hp-green), 0 0 12px rgba(34,197,94,0.6); }
+@keyframes dmgpop {
+  0%   { transform:translateY(0); opacity:0; }
+  20%  { transform:translateY(-10px); opacity:1; }
+  100% { transform:translateY(-60px); opacity:0; }
+}
+
+/* ─────── TEAM / COLLECTION SCREEN ─────── */
+#scene-team { padding:14px; gap:12px; }
+.team-header {
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(8,0,15,0.6); border:2px solid var(--purple);
+  border-radius:8px; padding:10px 14px;
+}
+.team-grid {
+  flex:1; overflow-y:auto;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+  gap:8px;
+  padding-bottom:6px;
+}
+.spec-card {
+  background:rgba(17,5,42,0.9);
+  border:2px solid var(--purple);
+  border-radius:8px;
+  padding:8px;
+  text-align:center;
+  position:relative;
+}
+.spec-card.in-party { border-color:var(--pink); box-shadow:0 0 8px rgba(255,20,147,0.3); }
+.spec-card .scard-img {
+  width:80px; height:80px; object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 2px 6px rgba(168,85,247,0.4));
+}
+.spec-card .scard-name {
+  font-family:'Press Start 2P', monospace;
+  font-size:7px; color:#fff;
+  margin-top:5px;
+}
+.spec-card .scard-lvl {
+  font-family:'Press Start 2P', monospace;
+  font-size:7px; color:var(--pink);
+  margin-top:3px;
+}
+.spec-card .scard-tag {
+  position:absolute; top:4px; right:4px;
+  background:var(--pink); color:#000;
+  font-family:'Press Start 2P', monospace;
+  font-size:6px; padding:2px 4px; border-radius:2px;
+}
+
+/* Toast */
+.toast {
+  position:fixed; top:50px; left:50%; transform:translateX(-50%);
+  background:rgba(8,0,15,0.95); border:2px solid var(--pink);
+  color:#fff; padding:10px 18px;
+  font-family:'Press Start 2P', monospace; font-size:9px;
+  border-radius:6px;
+  box-shadow:0 0 14px var(--pink-glow);
+  z-index:200;
+  animation:toastIn 0.3s ease-out, toastOut 0.4s 1.6s ease-in forwards;
+}
+@keyframes toastIn { from { opacity:0; transform:translate(-50%, -10px);} to { opacity:1; transform:translate(-50%, 0);} }
+@keyframes toastOut { to { opacity:0; transform:translate(-50%, -10px);} }
+
+/* Responsive */
+@media (max-height:680px) {
+  .sprite { width:104px; height:104px; }
+  .enemy-sprite { width:90px; height:90px; }
+  .text-box { min-height:54px; font-size:16px; padding:10px; }
+  .menu-btn { padding:8px 6px; font-size:9px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="preview-banner">⚠ CHOGI LAB v0.1 · CONCEPT BUILD · ASSETS WILL CHANGE ⚠</div>
+
+  <!-- ═══════ TITLE SCREEN ═══════ -->
+  <div class="scene active" id="scene-title">
+    <div class="title-box">
+      <img src="logo.png" alt="" class="title-logo">
+      <div class="title-name">CHOGI LAB</div>
+      <div class="title-sub">CONTAINMENT PROTOCOL</div>
+      <button class="title-btn" id="btnNewGame">NEW GAME</button>
+      <button class="title-btn secondary" id="btnContinue">CONTINUE</button>
+      <div class="title-version">v0.1.0 · concept build</div>
+    </div>
+  </div>
+
+  <!-- ═══════ HUB SCREEN ═══════ -->
+  <div class="scene" id="scene-hub">
+    <div class="hub-header">
+      <div class="hub-title">▌ THE LAB</div>
+      <div class="hub-stats">
+        <span class="hub-stat"><span class="label">CR</span> <span id="hubCredits">0</span></span>
+        <span class="hub-stat"><span class="label">DEX</span> <span id="hubCaught">0</span>/10</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--purple);margin-bottom:6px;letter-spacing:0.1em;">▌ ACTIVE PARTY</div>
+      <div class="party-row" id="partyRow"></div>
+    </div>
+
+    <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--purple);margin-top:4px;margin-bottom:6px;letter-spacing:0.1em;">▌ CONTAINMENT ZONES</div>
+    <div class="zone-list" id="zoneList"></div>
+
+    <div class="hub-actions">
+      <button class="hub-action-btn" id="btnHeal">⚡ HEAL TEAM</button>
+      <button class="hub-action-btn" id="btnTeam">🧪 COLLECTION</button>
+    </div>
+  </div>
+
+  <!-- ═══════ BATTLE SCREEN ═══════ -->
+  <div class="scene" id="scene-battle">
+    <div class="battle-top">
+      <div class="enemy-card">
+        <div class="name-row">
+          <span id="enemyName">—</span>
+          <span class="lvl" id="enemyLvl">Lv —</span>
+        </div>
+        <div class="types" id="enemyTypes"></div>
+        <div class="hp-row">
+          <span>HP</span>
+          <div class="hp-bar"><div class="hp-fill" id="enemyHpFill" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="sprite-row" id="enemyArena">
+        <img class="sprite enemy-sprite" id="enemySprite" src="" alt="">
+      </div>
+    </div>
+
+    <div class="battle-mid">
+      <div class="sprite-row" id="playerArena">
+        <img class="sprite player-sprite" id="playerSprite" src="" alt="">
+      </div>
+      <div class="player-card">
+        <div class="name-row">
+          <span id="playerName">—</span>
+          <span class="lvl" id="playerLvl">Lv —</span>
+        </div>
+        <div class="types" id="playerTypes"></div>
+        <div class="hp-row">
+          <span>HP</span>
+          <div class="hp-bar"><div class="hp-fill" id="playerHpFill" style="width:100%"></div></div>
+          <span class="hp-text" id="playerHpText">—/—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-box has-ptr" id="textBox">
+      <span id="textContent">—</span>
+      <div class="ptr"></div>
+    </div>
+
+    <div class="menu" id="menu">
+      <button class="menu-btn" id="btnAttack"><span class="icon">⚡</span>ATTACK</button>
+      <button class="menu-btn" id="btnContain"><span class="icon">🧪</span>CONTAIN</button>
+      <button class="menu-btn" id="btnSwap"><span class="icon">🔄</span>SWAP</button>
+      <button class="menu-btn" id="btnFlee"><span class="icon">💨</span>FLEE</button>
+    </div>
+
+    <div class="moves" id="moves">
+      <button class="back-btn" id="btnBack">← BACK</button>
+    </div>
+  </div>
+
+  <!-- ═══════ TEAM / COLLECTION SCREEN ═══════ -->
+  <div class="scene" id="scene-team">
+    <div class="team-header">
+      <div class="hub-title">▌ COLLECTION</div>
+      <button class="back-btn" id="btnTeamBack" style="margin:0;">← BACK</button>
+    </div>
+    <div class="team-grid" id="teamGrid"></div>
+  </div>
+
+</div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════════════
+//  CHOGI LAB · v0.1 · concept build
+//  Single-file game · localStorage save · 10 specimens · 3 zones
+// ═════════════════════════════════════════════════════════════════════════
+
+// ── Specimen database ──
+// Each species: stats, types, learnable moves, evolution stage
+const SPECIES = {
+  egg_chogi:     { name:'CHOGI EGG',     img:'pet-assets/egg-chogi.png',          types:['CRYSTAL'],         hp:24, atk:10, def:14, spd:6,  moves:['tackle'], evolves:'baby_chogi', evoLvl:5 },
+  baby_chogi:    { name:'CHOGI BABY',    img:'pet-assets/baby-chogi.png',         types:['PURE'],            hp:32, atk:14, def:14, spd:14, moves:['tackle','spark'], evolves:'kid_chogi', evoLvl:14 },
+  kid_chogi:     { name:'CHOGI KID',     img:'pet-assets/kid-chogi.png',          types:['PURE','CRYSTAL'],  hp:44, atk:22, def:18, spd:18, moves:['tackle','spark','crystal_beam'], evolves:'teen_chogi', evoLvl:24 },
+  teen_chogi:    { name:'CHOGI TEEN',    img:'pet-assets/teen-chogi.png',         types:['PURE','CRYSTAL'],  hp:58, atk:30, def:24, spd:24, moves:['tackle','spark','crystal_beam','pure_beam'] },
+  prime_chogi:   { name:'PRIME CHOGI',   img:'pet-assets/adult-prime-chogi.png',  types:['PURE','CRYSTAL'],  hp:88, atk:46, def:38, spd:36, moves:['lab_slap','spark','crystal_beam','pure_beam'] },
+  loyal_chogi:   { name:'LOYAL CHOGI',   img:'pet-assets/adult-loyal-chogi.png',  types:['PURE'],            hp:96, atk:38, def:48, spd:30, moves:['lab_slap','guard','pure_beam','heal'] },
+  chaotic_chogi: { name:'CHAOTIC CHOGI', img:'pet-assets/adult-chaotic-chogi.png',types:['REACTIVE','PURE'], hp:80, atk:54, def:32, spd:38, moves:['lab_slap','spark','reactive_burst','pure_beam'] },
+  feral_chogi:   { name:'FERAL CHOGI',   img:'pet-assets/adult-feral-chogi.png',  types:['ACID','REACTIVE'], hp:84, atk:50, def:30, spd:42, moves:['lab_slap','acid_splash','reactive_burst','feral_lunge'] },
+  glutton_chogi: { name:'GLUTTON CHOGI', img:'pet-assets/adult-glutton-chogi.png',types:['ACID'],            hp:108,atk:42, def:42, spd:24, moves:['lab_slap','acid_splash','consume','heal'] },
+
+  egg_chog:      { name:'CHOG EGG',      img:'pet-assets/egg-chog.png',           types:['VOLATILE'],        hp:26, atk:12, def:12, spd:6,  moves:['tackle'], evolves:'baby_chog', evoLvl:5 },
+  baby_chog:     { name:'CHOG BABY',     img:'pet-assets/baby-chog.png',          types:['VOLATILE'],        hp:34, atk:16, def:12, spd:16, moves:['tackle','volatile_lunge'], evolves:'kid_chog', evoLvl:14 },
+  kid_chog:      { name:'CHOG KID',      img:'pet-assets/kid-chog.png',           types:['VOLATILE','TOXIC'],hp:46, atk:24, def:14, spd:20, moves:['tackle','volatile_lunge','toxic_mist'], evolves:'teen_chog', evoLvl:24 },
+  teen_chog:     { name:'CHOG TEEN',     img:'pet-assets/teen-chog.png',          types:['VOLATILE','TOXIC'],hp:60, atk:32, def:20, spd:26, moves:['tackle','volatile_lunge','toxic_mist','acid_bite'] },
+  prime_chog:    { name:'PRIME CHOG',    img:'pet-assets/adult-prime-chog.png',   types:['VOLATILE','TOXIC'],hp:92, atk:48, def:34, spd:38, moves:['acid_bite','volatile_lunge','toxic_mist','reactive_burst'] },
+  loyal_chog:    { name:'LOYAL CHOG',    img:'pet-assets/adult-loyal-chog.png',   types:['TOXIC'],           hp:100,atk:40, def:46, spd:28, moves:['acid_bite','guard','toxic_mist','heal'] },
+  chaotic_chog:  { name:'CHAOTIC CHOG',  img:'pet-assets/adult-chaotic-chog.png', types:['REACTIVE','TOXIC'],hp:82, atk:56, def:30, spd:40, moves:['acid_bite','reactive_burst','toxic_mist','volatile_lunge'] },
+  feral_chog:    { name:'FERAL CHOG',    img:'pet-assets/adult-feral-chog.png',   types:['ACID','VOLATILE'], hp:86, atk:52, def:28, spd:44, moves:['feral_lunge','acid_splash','volatile_lunge','acid_bite'] },
+  glutton_chog:  { name:'GLUTTON CHOG',  img:'pet-assets/adult-glutton-chog.png', types:['ACID','TOXIC'],    hp:112,atk:44, def:40, spd:22, moves:['acid_bite','consume','toxic_mist','heal'] }
+};
+
+// ── Move database ──
+const MOVES = {
+  tackle:          { name:'Tackle',          type:'PHYSICAL', power:30, pp:35, msg:'connects with a tackle' },
+  spark:           { name:'Spark',           type:'PURE',     power:35, pp:25, msg:'sparks the air' },
+  crystal_beam:    { name:'Crystal Beam',    type:'CRYSTAL',  power:45, pp:15, msg:'shoots a crystal beam' },
+  pure_beam:       { name:'Pure Beam',       type:'PURE',     power:60, pp:10, msg:'unleashes a Pure Beam' },
+  lab_slap:        { name:'Lab Slap',        type:'PHYSICAL', power:50, pp:25, msg:'lab-slaps the target' },
+  acid_splash:     { name:'Acid Splash',     type:'ACID',     power:40, pp:20, msg:'flings acid' },
+  acid_bite:       { name:'Acid Bite',       type:'ACID',     power:55, pp:15, msg:'bites with acid fangs' },
+  toxic_mist:      { name:'Toxic Mist',      type:'TOXIC',    power:45, pp:20, msg:'releases toxic mist' },
+  volatile_lunge:  { name:'Volatile Lunge',  type:'VOLATILE', power:50, pp:15, msg:'lunges volatile' },
+  reactive_burst:  { name:'Reactive Burst',  type:'REACTIVE', power:65, pp:10, msg:'detonates a reactive burst' },
+  feral_lunge:     { name:'Feral Lunge',     type:'PHYSICAL', power:55, pp:15, msg:'lunges feral' },
+  consume:         { name:'Consume',         type:'ACID',     power:55, pp:10, msg:'consumes the enemy' },
+  guard:           { name:'Guard',           type:'CRYSTAL',  power:0,  pp:20, msg:'raises its defense', defBoost:1.3 },
+  heal:            { name:'Heal',            type:'PURE',     power:0,  pp:10, msg:'heals itself', healPct:0.4 }
+};
+
+// ── Type effectiveness (multipliers; 1 = neutral, 2 = super, 0.5 = not very) ──
+const TYPE_CHART = {
+  ACID:     { CRYSTAL:2, PURE:0.5, REACTIVE:0.5, ACID:0.5 },
+  CRYSTAL:  { ACID:2, REACTIVE:2, VOLATILE:0.5, TOXIC:0.5 },
+  PURE:     { TOXIC:2, REACTIVE:2, ACID:0.5, CRYSTAL:0.5 },
+  REACTIVE: { TOXIC:2, ACID:0.5, PURE:0.5, REACTIVE:0.5 },
+  TOXIC:    { CRYSTAL:0.5, PURE:0.5, ACID:0.5 },
+  VOLATILE: { TOXIC:2, PURE:0.5, CRYSTAL:0.5 },
+  PHYSICAL: { } // neutral against everything
+};
+
+// ── Zones ──
+const ZONES = [
+  { id:'lab_a', name:'Lab α', icon:'🧪', desc:'Routine specimen breach. Low-tier wild Chogs.',  minLvl:2,  maxLvl:5,  pool:['egg_chog','baby_chog','egg_chogi','baby_chogi'], cleared:false, unlocked:true },
+  { id:'decay', name:'Decay Wing', icon:'☢️', desc:'Toxic spillage. Wild specimens are agitated.', minLvl:8,  maxLvl:14, pool:['kid_chog','teen_chog','kid_chogi','teen_chogi'], cleared:false, unlocked:false },
+  { id:'core',  name:'Reactor Core', icon:'⚡', desc:'High-rarity adult specimens roam unchecked.', minLvl:18, maxLvl:26, pool:['feral_chog','chaotic_chog','feral_chogi','chaotic_chogi','glutton_chog','glutton_chogi'], cleared:false, unlocked:false },
+  { id:'prime', name:'Prime Chamber', icon:'👑', desc:'The lab\'s ultimate failure. Prime specimens.', minLvl:28, maxLvl:34, pool:['prime_chog','prime_chogi','loyal_chog','loyal_chogi'], cleared:false, unlocked:false }
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Game State
+// ═══════════════════════════════════════════════════════════════════════
+const SAVE_KEY = 'chogi_lab_save_v0_1';
+
+let state = {
+  party:    [],
+  caught:   [],
+  credits:  0,
+  zones:    JSON.parse(JSON.stringify(ZONES))
+};
+let battle = null;
+
+function saveGame() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+function loadGame() {
+  try {
+    const s = localStorage.getItem(SAVE_KEY);
+    if (!s) return false;
+    const parsed = JSON.parse(s);
+    if (!parsed.party) return false;
+    state = parsed;
+    return true;
+  } catch { return false; }
+}
+function hasSave() {
+  return !!localStorage.getItem(SAVE_KEY);
+}
+
+// ── Specimen factory ──
+function newSpecimen(speciesId, level, options={}) {
+  const sp = SPECIES[speciesId];
+  if (!sp) return null;
+  const lvl = level || 5;
+  const hpMax = Math.floor(sp.hp + (sp.hp * 0.05 * (lvl-1)));
+  return {
+    id:        speciesId,
+    name:      options.nickname || sp.name,
+    level:     lvl,
+    xp:        0,
+    hp:        hpMax,
+    hpMax:     hpMax,
+    atk:       Math.floor(sp.atk + (sp.atk * 0.04 * (lvl-1))),
+    def:       Math.floor(sp.def + (sp.def * 0.04 * (lvl-1))),
+    spd:       Math.floor(sp.spd + (sp.spd * 0.04 * (lvl-1))),
+    types:     [...sp.types],
+    moves:     [...sp.moves],
+    img:       sp.img,
+    fainted:   false,
+    statusBoost: { def:1, atk:1 }
+  };
+}
+
+// XP needed for next level (simple curve)
+function xpToNext(level) {
+  return Math.floor(20 * Math.pow(level, 1.6));
+}
+function gainXP(spec, amount, onLevel) {
+  spec.xp += amount;
+  while (spec.xp >= xpToNext(spec.level)) {
+    spec.xp -= xpToNext(spec.level);
+    spec.level += 1;
+    // recompute stats slightly (don't fully recompute hpMax — give a small bump)
+    const sp = SPECIES[spec.id];
+    const newHpMax = Math.floor(sp.hp + (sp.hp * 0.05 * (spec.level-1)));
+    spec.hp += (newHpMax - spec.hpMax);
+    spec.hpMax = newHpMax;
+    spec.atk = Math.floor(sp.atk + (sp.atk * 0.04 * (spec.level-1)));
+    spec.def = Math.floor(sp.def + (sp.def * 0.04 * (spec.level-1)));
+    spec.spd = Math.floor(sp.spd + (sp.spd * 0.04 * (spec.level-1)));
+
+    // evolve check
+    if (sp.evolves && spec.level >= sp.evoLvl) {
+      const nextId = sp.evolves;
+      spec.id = nextId;
+      spec.name = SPECIES[nextId].name;
+      spec.types = [...SPECIES[nextId].types];
+      spec.moves = [...SPECIES[nextId].moves];
+      spec.img = SPECIES[nextId].img;
+      if (onLevel) onLevel(spec, true);
+    } else if (onLevel) onLevel(spec, false);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Scene management
+// ═══════════════════════════════════════════════════════════════════════
+function showScene(id) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Title screen
+// ═══════════════════════════════════════════════════════════════════════
+document.getElementById('btnNewGame').addEventListener('click', () => {
+  state = {
+    party: [
+      newSpecimen('baby_chogi', 5),
+      newSpecimen('baby_chog',  4)
+    ],
+    caught: [],
+    credits: 100,
+    zones: JSON.parse(JSON.stringify(ZONES))
+  };
+  state.caught.push(...state.party.map(p => ({ ...p })));
+  saveGame();
+  renderHub();
+  showScene('scene-hub');
+});
+
+document.getElementById('btnContinue').addEventListener('click', () => {
+  if (loadGame()) {
+    renderHub();
+    showScene('scene-hub');
+  } else {
+    toast('NO SAVE FILE FOUND');
+  }
+});
+
+if (!hasSave()) {
+  document.getElementById('btnContinue').disabled = true;
+  document.getElementById('btnContinue').style.opacity = '0.4';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Hub
+// ═══════════════════════════════════════════════════════════════════════
+function renderHub() {
+  document.getElementById('hubCredits').textContent = state.credits;
+  document.getElementById('hubCaught').textContent  = state.caught.length;
+
+  // Party
+  const partyRow = document.getElementById('partyRow');
+  partyRow.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const s = state.party[i];
+    const card = document.createElement('div');
+    card.className = 'party-card';
+    if (!s) { card.classList.add('empty'); card.innerHTML = '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:rgba(255,255,255,0.3);padding:18px 0;">EMPTY</div>'; partyRow.appendChild(card); continue; }
+    if (s.fainted || s.hp <= 0) card.classList.add('fainted');
+    const hpPct = (s.hp / s.hpMax) * 100;
+    const hpClass = hpPct < 25 ? 'red' : hpPct < 50 ? 'amber' : '';
+    card.innerHTML = `
+      <img class="pcard-img" src="${s.img}" alt="">
+      <div class="pcard-name">${s.name}</div>
+      <div class="pcard-lvl">Lv ${s.level}</div>
+      <div class="pcard-hp"><div class="pcard-hp-fill ${hpClass}" style="width:${hpPct}%"></div></div>
+    `;
+    partyRow.appendChild(card);
+  }
+
+  // Zones
+  const zoneList = document.getElementById('zoneList');
+  zoneList.innerHTML = '';
+  state.zones.forEach(z => {
+    const card = document.createElement('button');
+    card.className = 'zone-card' + (z.unlocked ? '' : ' locked');
+    card.disabled = !z.unlocked;
+    card.innerHTML = `
+      <div class="zone-icon">${z.icon}</div>
+      <div class="zone-info">
+        <div class="zone-name">${z.name}</div>
+        <div class="zone-desc">${z.desc}</div>
+        <div class="zone-meta">Lv ${z.minLvl}–${z.maxLvl} · ${z.cleared ? '✓ CLEARED' : (z.unlocked ? 'AVAILABLE' : '🔒 LOCKED')}</div>
+      </div>
+    `;
+    if (z.unlocked) card.addEventListener('click', () => startBattleInZone(z.id));
+    zoneList.appendChild(card);
+  });
+}
+
+document.getElementById('btnHeal').addEventListener('click', () => {
+  state.party.forEach(s => { if (s) { s.hp = s.hpMax; s.fainted = false; } });
+  saveGame();
+  renderHub();
+  toast('TEAM HEALED');
+});
+document.getElementById('btnTeam').addEventListener('click', () => {
+  renderTeam();
+  showScene('scene-team');
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Team / collection screen
+// ═══════════════════════════════════════════════════════════════════════
+function renderTeam() {
+  const grid = document.getElementById('teamGrid');
+  grid.innerHTML = '';
+  state.caught.forEach((s, idx) => {
+    const card = document.createElement('button');
+    const inParty = state.party.some(p => p && p.uid === s.uid);
+    card.className = 'spec-card' + (inParty ? ' in-party' : '');
+    card.innerHTML = `
+      ${inParty ? '<div class="scard-tag">PARTY</div>' : ''}
+      <img class="scard-img" src="${s.img}" alt="">
+      <div class="scard-name">${s.name}</div>
+      <div class="scard-lvl">Lv ${s.level}</div>
+    `;
+    card.addEventListener('click', () => {
+      if (inParty) {
+        if (state.party.filter(p => p).length <= 1) { toast('CAN\'T REMOVE LAST MEMBER'); return; }
+        state.party = state.party.filter(p => !p || p.uid !== s.uid);
+        toast(s.name + ' REMOVED FROM PARTY');
+      } else {
+        if (state.party.filter(p => p).length >= 3) { toast('PARTY FULL — REMOVE ONE FIRST'); return; }
+        state.party.push(s);
+        toast(s.name + ' ADDED TO PARTY');
+      }
+      saveGame();
+      renderTeam();
+    });
+    grid.appendChild(card);
+  });
+}
+document.getElementById('btnTeamBack').addEventListener('click', () => {
+  renderHub();
+  showScene('scene-hub');
+});
+
+// Add a uid to all specimens to track identity across edits
+function ensureUids() {
+  state.caught.forEach(s => { if (!s.uid) s.uid = Math.random().toString(36).slice(2,9); });
+  state.party.forEach(s => {
+    if (!s) return;
+    if (!s.uid) {
+      const match = state.caught.find(c => c.id === s.id && c.level === s.level);
+      s.uid = match ? match.uid : Math.random().toString(36).slice(2,9);
+      if (match) match.uid = s.uid;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Battle engine
+// ═══════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const textBox    = $('textBox');
+const textContent= $('textContent');
+const menu       = $('menu');
+const movesEl    = $('moves');
+const playerHpFill= $('playerHpFill');
+const playerHpText= $('playerHpText');
+const enemyHpFill = $('enemyHpFill');
+const playerSprite= $('playerSprite');
+const enemySprite = $('enemySprite');
+const playerName  = $('playerName');
+const playerLvl   = $('playerLvl');
+const playerTypes = $('playerTypes');
+const enemyName   = $('enemyName');
+const enemyLvl    = $('enemyLvl');
+const enemyTypes  = $('enemyTypes');
+
+function setText(s, withPtr=false) {
+  textContent.textContent = s;
+  textBox.classList.toggle('has-ptr', withPtr);
+}
+function typeText(s, cb) {
+  battle.busy = true;
+  textContent.textContent = '';
+  textBox.classList.remove('has-ptr');
+  let i = 0;
+  const step = () => {
+    if (i >= s.length) {
+      battle.busy = false;
+      textBox.classList.add('has-ptr');
+      if (cb) setTimeout(cb, 700);
+      return;
+    }
+    textContent.textContent += s[i++];
+    setTimeout(step, 22);
+  };
+  step();
+}
+function updateHP(who) {
+  const obj = (who === 'player') ? battle.player : battle.enemy;
+  const fill = (who === 'player') ? playerHpFill : enemyHpFill;
+  const pct = (obj.hp / obj.hpMax) * 100;
+  fill.style.width = Math.max(0, pct) + '%';
+  fill.classList.remove('amber','red');
+  if (pct < 25) fill.classList.add('red');
+  else if (pct < 50) fill.classList.add('amber');
+  if (who === 'player') playerHpText.textContent = `${Math.max(0,obj.hp)}/${obj.hpMax}`;
+}
+function popDamage(arena, value, isHeal=false) {
+  const arenaEl = $(arena);
+  const pop = document.createElement('div');
+  pop.className = 'damage-pop' + (isHeal ? ' heal' : '');
+  pop.textContent = isHeal ? `+${value}` : `-${value}`;
+  pop.style.left = (Math.random()*40 + 30) + '%';
+  pop.style.top = '20%';
+  arenaEl.appendChild(pop);
+  setTimeout(() => pop.remove(), 1200);
+}
+function shake(spriteEl) {
+  spriteEl.classList.remove('hit'); void spriteEl.offsetWidth; spriteEl.classList.add('hit');
+}
+
+function renderBattleSlot(who) {
+  const obj = (who === 'player') ? battle.player : battle.enemy;
+  const sprite = (who === 'player') ? playerSprite : enemySprite;
+  const nameEl = (who === 'player') ? playerName : enemyName;
+  const lvlEl  = (who === 'player') ? playerLvl  : enemyLvl;
+  const typeEl = (who === 'player') ? playerTypes : enemyTypes;
+  sprite.src = obj.img;
+  sprite.classList.remove('faint');
+  sprite.style.opacity = '1';
+  sprite.style.transform = '';
+  nameEl.textContent = obj.name;
+  lvlEl.textContent = 'Lv ' + obj.level;
+  typeEl.innerHTML = obj.types.map(t => `<span class="type-pill type-${t.toLowerCase()}">${t}</span>`).join('');
+  updateHP(who);
+}
+
+function showMenu() { menu.classList.remove('hidden'); movesEl.classList.remove('show'); setText('What will ' + battle.player.name + ' do?', true); }
+function hideMenu() { menu.classList.add('hidden'); movesEl.classList.remove('show'); }
+function showMoves() {
+  hideMenu();
+  movesEl.innerHTML = '';
+  battle.player.moves.forEach(mid => {
+    const m = MOVES[mid];
+    const btn = document.createElement('button');
+    btn.className = 'move-btn';
+    btn.innerHTML = `
+      <div class="move-info">
+        <span>${m.name}</span>
+        <span class="type-pill type-${m.type.toLowerCase()}">${m.type}</span>
+      </div>
+      <span class="pp">PP ${m.pp}</span>
+    `;
+    btn.addEventListener('click', () => playerAttack(mid));
+    movesEl.appendChild(btn);
+  });
+  const back = document.createElement('button');
+  back.className = 'back-btn';
+  back.textContent = '← BACK';
+  back.addEventListener('click', () => { showMenu(); });
+  movesEl.appendChild(back);
+  movesEl.classList.add('show');
+}
+
+// damage formula (Pokémon-inspired but simpler)
+function calcDamage(attacker, defender, move) {
+  if (move.power === 0) return 0;
+  const stab = attacker.types.includes(move.type) ? 1.3 : 1.0;
+  let typeMul = 1;
+  defender.types.forEach(dt => {
+    const v = TYPE_CHART[move.type] && TYPE_CHART[move.type][dt];
+    if (v != null) typeMul *= v;
+  });
+  const defMod = defender.statusBoost?.def || 1;
+  const atkMod = attacker.statusBoost?.atk || 1;
+  const base = (attacker.atk * atkMod * move.power) / (defender.def * defMod * 4);
+  const variance = 0.85 + Math.random() * 0.3;
+  return { dmg: Math.max(1, Math.floor(base * stab * typeMul * variance)), typeMul };
+}
+
+function playerAttack(moveId) {
+  if (battle.busy) return;
+  hideMenu();
+  const m = MOVES[moveId];
+  typeText(`${battle.player.name} used ${m.name}!`, () => {
+    if (m.healPct) {
+      const heal = Math.floor(battle.player.hpMax * m.healPct);
+      battle.player.hp = Math.min(battle.player.hpMax, battle.player.hp + heal);
+      popDamage('playerArena', heal, true);
+      updateHP('player');
+      typeText(`${battle.player.name} ${m.msg}.`, () => enemyTurn());
+    } else if (m.defBoost) {
+      battle.player.statusBoost.def *= m.defBoost;
+      typeText(`${battle.player.name} ${m.msg}!`, () => enemyTurn());
+    } else {
+      const r = calcDamage(battle.player, battle.enemy, m);
+      shake(enemySprite);
+      popDamage('enemyArena', r.dmg);
+      battle.enemy.hp = Math.max(0, battle.enemy.hp - r.dmg);
+      updateHP('enemy');
+      const tag = r.typeMul >= 2 ? "  IT'S SUPER EFFECTIVE!" : r.typeMul <= 0.5 ? "  Not very effective." : '';
+      typeText(`${battle.player.name} ${m.msg}!${tag}`, () => {
+        if (battle.enemy.hp <= 0) endBattle('win');
+        else enemyTurn();
+      });
+    }
+  });
+}
+function enemyTurn() {
+  if (battle.player.hp <= 0) return endBattle('lose');
+  const moveId = battle.enemy.moves[Math.floor(Math.random() * battle.enemy.moves.length)];
+  const m = MOVES[moveId];
+  typeText(`Wild ${battle.enemy.name} used ${m.name}!`, () => {
+    if (m.healPct) {
+      const heal = Math.floor(battle.enemy.hpMax * m.healPct);
+      battle.enemy.hp = Math.min(battle.enemy.hpMax, battle.enemy.hp + heal);
+      popDamage('enemyArena', heal, true);
+      updateHP('enemy');
+      typeText(`Wild ${battle.enemy.name} healed.`, () => showMenu());
+    } else if (m.defBoost) {
+      battle.enemy.statusBoost.def *= m.defBoost;
+      typeText(`Wild ${battle.enemy.name} guarded.`, () => showMenu());
+    } else {
+      const r = calcDamage(battle.enemy, battle.player, m);
+      shake(playerSprite);
+      popDamage('playerArena', r.dmg);
+      battle.player.hp = Math.max(0, battle.player.hp - r.dmg);
+      updateHP('player');
+      typeText(`${battle.player.name} took ${r.dmg} damage.`, () => {
+        if (battle.player.hp <= 0) endBattle('lose');
+        else showMenu();
+      });
+    }
+  });
+}
+
+function endBattle(result) {
+  hideMenu();
+  if (result === 'win') {
+    const xp = Math.floor(battle.enemy.level * 10 + 8);
+    const cr = Math.floor(battle.enemy.level * 6 + 5);
+    state.credits += cr;
+    let leveledUp = false;
+    let evolved = null;
+    gainXP(battle.player, xp, (s, evo) => {
+      leveledUp = true;
+      if (evo) evolved = s;
+    });
+    typeText(`Wild ${battle.enemy.name} fainted! ${battle.player.name} earned ${xp} XP. +${cr} CR.`, () => {
+      if (evolved) {
+        playerSprite.src = evolved.img;
+        toast(evolved.name + ' EVOLVED!');
+      } else if (leveledUp) {
+        toast(battle.player.name + ' LEVELED UP — Lv ' + battle.player.level);
+      }
+      checkZoneClear();
+      saveGame();
+      setTimeout(() => { renderHub(); showScene('scene-hub'); }, 1800);
+    });
+  } else if (result === 'lose') {
+    typeText(`${battle.player.name} fainted. Returning to lab...`, () => {
+      battle.player.fainted = true;
+      saveGame();
+      setTimeout(() => { renderHub(); showScene('scene-hub'); }, 1500);
+    });
+  } else if (result === 'caught') {
+    enemySprite.classList.add('faint');
+    const captured = { ...battle.enemy, uid: Math.random().toString(36).slice(2,9), fainted:false };
+    state.caught.push(captured);
+    typeText(`GOTCHA! Wild ${battle.enemy.name} was contained! Added to specimen log.`, () => {
+      checkZoneClear();
+      saveGame();
+      setTimeout(() => { renderHub(); showScene('scene-hub'); }, 1800);
+    });
+  } else if (result === 'flee') {
+    typeText('Got away safely.', () => {
+      saveGame();
+      setTimeout(() => { renderHub(); showScene('scene-hub'); }, 1000);
+    });
+  }
+}
+
+function tryContain() {
+  if (battle.busy) return;
+  hideMenu();
+  const hpPct = battle.enemy.hp / battle.enemy.hpMax;
+  // success rate inversely proportional to enemy HP%
+  const success = Math.random() > (hpPct * 0.85);
+  typeText('You threw a Containment Cell!', () => {
+    setTimeout(() => {
+      if (success) endBattle('caught');
+      else typeText(`Wild ${battle.enemy.name} broke free!`, () => enemyTurn());
+    }, 700);
+  });
+}
+function trySwap() {
+  if (battle.busy) return;
+  // find another non-fainted in party
+  const next = state.party.find(p => p && p.uid !== battle.player.uid && p.hp > 0);
+  if (!next) { toast('NO ONE TO SWAP TO'); return; }
+  hideMenu();
+  typeText(`${battle.player.name} returns. GO ${next.name}!`, () => {
+    battle.player = next;
+    renderBattleSlot('player');
+    enemyTurn();
+  });
+}
+function tryFlee() {
+  if (battle.busy) return;
+  endBattle('flee');
+}
+
+$('btnAttack').addEventListener('click', () => { if (!battle.busy) showMoves(); });
+$('btnContain').addEventListener('click', () => tryContain());
+$('btnSwap').addEventListener('click', () => trySwap());
+$('btnFlee').addEventListener('click', () => tryFlee());
+$('btnBack').addEventListener('click', () => showMenu());
+
+// ── Zone start ──
+function startBattleInZone(zoneId) {
+  const z = state.zones.find(zz => zz.id === zoneId);
+  if (!z || !z.unlocked) return;
+  ensureUids();
+  // pick a random species + level from zone pool
+  const speciesId = z.pool[Math.floor(Math.random() * z.pool.length)];
+  const lvl = z.minLvl + Math.floor(Math.random() * (z.maxLvl - z.minLvl + 1));
+  const enemy = newSpecimen(speciesId, lvl);
+  enemy.uid = 'wild-' + Math.random().toString(36).slice(2,7);
+  // first non-fainted party member
+  const player = state.party.find(p => p && p.hp > 0);
+  if (!player) { toast('YOUR PARTY HAS FAINTED. HEAL.'); return; }
+  battle = { player, enemy, busy:false, currentZone: zoneId };
+  renderBattleSlot('player');
+  renderBattleSlot('enemy');
+  showScene('scene-battle');
+  typeText(`A wild ${enemy.name} appeared!`, () => showMenu());
+}
+
+// Unlock progression
+function checkZoneClear() {
+  if (!battle || !battle.currentZone) return;
+  const z = state.zones.find(zz => zz.id === battle.currentZone);
+  if (!z) return;
+  // Mark cleared after first win
+  z.cleared = true;
+  // Unlock next zone
+  const idx = state.zones.findIndex(zz => zz.id === z.id);
+  if (idx < state.zones.length - 1 && !state.zones[idx+1].unlocked) {
+    state.zones[idx+1].unlocked = true;
+    setTimeout(() => toast('NEW ZONE UNLOCKED: ' + state.zones[idx+1].name), 2200);
+  }
+}
+
+ensureUids();
+</script>
+
+</body>
+</html>
