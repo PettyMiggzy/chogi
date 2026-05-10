@@ -333,6 +333,70 @@ a{color:inherit;}
 
 .panel.portrait .frame{max-width:680px;margin:0 auto;}
 
+/* ───────── NARRATION AUDIO ───────── */
+.narration-master{
+  position:relative;
+  margin:30px auto 0;
+  max-width:560px;
+  padding:18px 22px;
+  background:linear-gradient(180deg, rgba(255,20,147,.18), rgba(168,85,247,.08));
+  border:1px solid var(--crimson);
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.narration-master:hover{background:linear-gradient(180deg, rgba(255,20,147,.28), rgba(168,85,247,.16));transform:translateY(-2px);box-shadow:0 12px 30px rgba(255,20,147,.35);}
+.narration-master.playing{background:linear-gradient(180deg, rgba(255,20,147,.35), rgba(168,85,247,.22));border-color:var(--paper);}
+.narration-master .nm-icon{
+  display:inline-block;width:32px;height:32px;line-height:32px;
+  border:1.5px solid var(--paper);border-radius:50%;
+  font-size:13px;color:var(--paper);
+  margin-right:12px;vertical-align:middle;
+}
+.narration-master .nm-label{
+  font-family:var(--display);font-size:13px;letter-spacing:3.5px;
+  color:var(--paper);vertical-align:middle;text-transform:uppercase;
+}
+.narration-master .nm-sub{
+  display:block;margin-top:8px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:2.5px;
+  color:var(--paper-soft);text-transform:uppercase;opacity:.85;
+}
+.narration-master .nm-progress{
+  position:absolute;left:0;bottom:0;height:2px;
+  background:var(--paper);width:0%;transition:width .15s linear;
+}
+
+.narration-act{
+  margin:18px auto 30px;
+  max-width:560px;
+  padding:14px 18px;
+  background:rgba(168,85,247,.08);
+  border-left:2px solid var(--gold);
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  transition:all .2s ease;
+}
+.narration-act:hover{background:rgba(168,85,247,.16);border-left-color:var(--gold-bright);}
+.narration-act.playing{background:rgba(255,20,147,.16);border-left-color:var(--crimson);}
+.narration-act .na-btn{
+  flex:0 0 36px;height:36px;border-radius:50%;
+  background:var(--gold);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;line-height:1;
+  transition:background .2s;
+}
+.narration-act.playing .na-btn{background:var(--crimson);color:var(--paper);}
+.narration-act .na-text{flex:1;}
+.narration-act .na-label{
+  display:block;font-family:var(--display);font-size:11px;letter-spacing:2.5px;
+  color:var(--gold-bright);text-transform:uppercase;
+}
+.narration-act .na-script{
+  display:block;margin-top:4px;
+  font-family:var(--serif-body);font-style:italic;
+  font-size:13px;color:var(--paper-soft);line-height:1.4;
+}
+
 @media(max-width:540px){
   .panel{padding:30px 16px 44px;}
   .frame{padding:4px;}
@@ -365,6 +429,14 @@ a{color:inherit;}
     <span>ACT <b>III</b> · LAB</span>
   </div>
   <div class="scroll-cue">SCROLL TO BEGIN</div>
+
+  <!-- ───────── NARRATION MASTER PLAY ───────── -->
+  <div class="narration-master" id="narrationMaster" role="button" tabindex="0" aria-label="Play full narration">
+    <span class="nm-icon" id="nmIcon">▶</span>
+    <span class="nm-label">Listen · Narrated by Chogi</span>
+    <span class="nm-sub">4 clips · 40 seconds · plays through</span>
+    <div class="nm-progress" id="nmProgress"></div>
+  </div>
 </section>
 
 <!-- ───────── PREVIOUSLY ───────── -->
@@ -381,6 +453,15 @@ a{color:inherit;}
   <h2 class="ax-title">Out</h2>
   <p class="ax-line">The doors closed behind her. The world hadn't started yet — and she wasn't waiting for it.</p>
 </section>
+
+<!-- Act 1 narration -->
+<div class="narration-act" data-clip="1" role="button" tabindex="0" aria-label="Play Act One narration">
+  <span class="na-btn">▶</span>
+  <span class="na-text">
+    <span class="na-label">Act I · Narration</span>
+    <span class="na-script">"I broke out of the lab. My brother was waiting for me at the door. I didn't go back. I had work to do."</span>
+  </span>
+</div>
 
 <!-- PANEL 01 -->
 <article class="panel" data-num="01">
@@ -436,6 +517,15 @@ a{color:inherit;}
   <p class="ax-line">No manual this time. No scientists. Just a desk, a brother, a chip, and the chart.</p>
 </section>
 
+<!-- Act 2 narration -->
+<div class="narration-act" data-clip="2" role="button" tabindex="0" aria-label="Play Act Two narration">
+  <span class="na-btn">▶</span>
+  <span class="na-text">
+    <span class="na-label">Act II · Narration</span>
+    <span class="na-script">"I drew the plan in pencil. No grown-ups. No manuals. I built my own swap. Every trade burns."</span>
+  </span>
+</div>
+
 <!-- PANEL 04 -->
 <article class="panel" data-num="04">
   <div class="panel-head">
@@ -490,6 +580,15 @@ a{color:inherit;}
   <p class="ax-line">The role they tried to give her. The role she took anyway. The community that came when the lights came on.</p>
 </section>
 
+<!-- Act 3 narration -->
+<div class="narration-act" data-clip="3" role="button" tabindex="0" aria-label="Play Act Three narration">
+  <span class="na-btn">▶</span>
+  <span class="na-text">
+    <span class="na-label">Act III · Narration</span>
+    <span class="na-script">"They wanted to give me a badge. I took it. CTO. Of the lab that built me. Then everyone showed up. They stayed."</span>
+  </span>
+</div>
+
 <!-- PANEL 07 -->
 <article class="panel portrait" data-num="07">
   <div class="panel-head">
@@ -525,6 +624,15 @@ a{color:inherit;}
   <div class="ax-tag" style="color:var(--crimson);">CODA</div>
   <h2 class="ax-title" style="font-style:italic;">The Proof</h2>
 </section>
+
+<!-- Coda narration -->
+<div class="narration-act" data-clip="4" role="button" tabindex="0" aria-label="Play Coda narration">
+  <span class="na-btn">▶</span>
+  <span class="na-text">
+    <span class="na-label">Coda · Narration</span>
+    <span class="na-script">"The chart told them everything. I'm not the experiment anymore. I'm the one running them. Oh — and my brother? My turn now."</span>
+  </span>
+</div>
 
 <!-- PANEL 09 -->
 <article class="panel tall portrait" data-num="09">
@@ -609,6 +717,126 @@ a{color:inherit;}
     const past = window.scrollY > cover.offsetHeight + 200;
     hb.classList.toggle('show', past);
   },{passive:true});
+
+  // ───────── NARRATION PLAYBACK ─────────
+  const audio = new Audio();
+  audio.preload = 'metadata';
+
+  const master = document.getElementById('narrationMaster');
+  const masterIcon = document.getElementById('nmIcon');
+  const masterProgress = document.getElementById('nmProgress');
+  const actButtons = document.querySelectorAll('.narration-act');
+
+  let mode = null;  // 'master' or 'single'
+  let masterIndex = 0;
+  const masterClips = ['/audio/clip-1.mp3','/audio/clip-2.mp3','/audio/clip-3.mp3','/audio/clip-4.mp3'];
+  let totalDuration = 40;  // approx, updated as we play
+  let elapsedBefore = 0;
+
+  function resetUI(){
+    master.classList.remove('playing');
+    masterIcon.textContent = '▶';
+    masterProgress.style.width = '0%';
+    actButtons.forEach(b=>{
+      b.classList.remove('playing');
+      b.querySelector('.na-btn').textContent = '▶';
+    });
+  }
+
+  function playMaster(){
+    mode = 'master';
+    masterIndex = 0;
+    elapsedBefore = 0;
+    actButtons.forEach(b=>{ b.classList.remove('playing'); b.querySelector('.na-btn').textContent='▶';});
+    master.classList.add('playing');
+    masterIcon.textContent = '⏸';
+    audio.src = masterClips[0];
+    audio.play();
+    // highlight act 1
+    if(actButtons[0]){
+      actButtons[0].classList.add('playing');
+      actButtons[0].querySelector('.na-btn').textContent = '▶';
+    }
+  }
+
+  function pauseAll(){
+    audio.pause();
+    resetUI();
+    mode = null;
+  }
+
+  function playSingle(clipNum){
+    mode = 'single';
+    masterIndex = clipNum - 1;
+    resetUI();
+    const btn = document.querySelector(`.narration-act[data-clip="${clipNum}"]`);
+    if(btn){
+      btn.classList.add('playing');
+      btn.querySelector('.na-btn').textContent = '⏸';
+    }
+    audio.src = masterClips[clipNum - 1];
+    audio.play();
+  }
+
+  master.addEventListener('click',()=>{
+    if(mode === 'master' && !audio.paused){
+      audio.pause();
+      masterIcon.textContent = '▶';
+    } else if (mode === 'master' && audio.paused){
+      audio.play();
+      masterIcon.textContent = '⏸';
+    } else {
+      playMaster();
+    }
+  });
+
+  actButtons.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const clipNum = parseInt(btn.dataset.clip,10);
+      const isPlayingThis = mode === 'single' && masterIndex === clipNum - 1 && !audio.paused;
+      if(isPlayingThis){
+        audio.pause();
+        btn.querySelector('.na-btn').textContent = '▶';
+        btn.classList.remove('playing');
+        mode = null;
+      } else {
+        playSingle(clipNum);
+      }
+    });
+  });
+
+  audio.addEventListener('timeupdate',()=>{
+    if(mode === 'master' && audio.duration){
+      const totalEstimate = masterClips.length * 10;  // 10s each
+      const playedNow = masterIndex * 10 + audio.currentTime;
+      masterProgress.style.width = Math.min(100, (playedNow / totalEstimate) * 100) + '%';
+    }
+  });
+
+  audio.addEventListener('ended',()=>{
+    if(mode === 'master'){
+      masterIndex++;
+      // un-highlight previous act
+      if(actButtons[masterIndex-1]){
+        actButtons[masterIndex-1].classList.remove('playing');
+      }
+      if(masterIndex < masterClips.length){
+        // highlight next
+        if(actButtons[masterIndex]){
+          actButtons[masterIndex].classList.add('playing');
+          actButtons[masterIndex].querySelector('.na-btn').textContent = '▶';
+        }
+        audio.src = masterClips[masterIndex];
+        audio.play();
+      } else {
+        resetUI();
+        mode = null;
+      }
+    } else if (mode === 'single'){
+      resetUI();
+      mode = null;
+    }
+  });
 
   if('serviceWorker' in navigator){
     window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
