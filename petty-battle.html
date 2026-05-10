@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LAB BATTLE — CONCEPT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF1493">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink:        #FF1493;
+  --pink-soft:   #FF69B4;
+  --pink-glow:   rgba(255,20,147,0.5);
+  --purple:      #A855F7;
+  --purple-deep: #7C3AED;
+  --bg-deep:     #0a0118;
+  --bg-mid:      #11052a;
+  --bg-light:    #1a0b3d;
+  --ink:         #f8fafc;
+  --crt-line:    rgba(255,255,255,0.025);
+  --hp-green:    #22c55e;
+  --hp-amber:    #f59e0b;
+  --hp-red:      #ef4444;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body {
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-family: 'VT323', 'JetBrains Mono', monospace;
+  overflow:hidden;
+  height:100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font-family:inherit; cursor:pointer; user-select:none; }
+
+/* Background grid + glow */
+.scene {
+  position:relative;
+  width:100vw; height:100dvh;
+  background:
+    radial-gradient(ellipse at center, rgba(168,85,247,0.18), transparent 70%),
+    radial-gradient(ellipse at bottom, rgba(255,20,147,0.18), transparent 70%),
+    var(--bg-deep);
+  overflow:hidden;
+}
+
+/* CRT scanlines overlay (subtle retro feel) */
+.scene::after {
+  content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(
+    to bottom, transparent 0, transparent 2px, var(--crt-line) 2px, var(--crt-line) 3px
+  );
+  pointer-events:none; z-index:99;
+}
+
+/* ─── PREVIEW BANNER ─── */
+.preview-banner {
+  position:fixed; top:0; left:0; right:0;
+  background:linear-gradient(90deg, var(--pink), var(--purple));
+  color:#fff;
+  font-family:'Press Start 2P', monospace;
+  font-size:8px; letter-spacing:0.1em;
+  padding:6px 12px; text-align:center;
+  z-index:100;
+  border-bottom:2px solid #000;
+}
+
+/* ─── BATTLE TOP — wild specimen ─── */
+.top-section {
+  position:relative; padding:34px 12px 0; height:42%;
+  display:flex; flex-direction:column;
+}
+.enemy-card {
+  align-self:flex-start;
+  background: rgba(8,0,15,0.85);
+  border:2px solid var(--purple);
+  border-radius:6px;
+  padding:8px 12px;
+  box-shadow:0 0 14px rgba(168,85,247,0.4), inset 0 0 8px rgba(168,85,247,0.1);
+  min-width:180px; max-width:260px;
+}
+.enemy-card .name-row, .player-card .name-row {
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:'Press Start 2P', monospace; font-size:9px;
+  color:#fff; margin-bottom:4px;
+}
+.enemy-card .lvl, .player-card .lvl { color:var(--pink); }
+.types { display:flex; gap:4px; margin-bottom:6px; }
+.type-pill {
+  font-family:'Press Start 2P', monospace; font-size:6px;
+  padding:3px 5px; border-radius:3px;
+  letter-spacing:0.05em;
+  border:1px solid rgba(0,0,0,0.4);
+}
+.type-toxic     { background:#7c3aed; color:#fff; }
+.type-pure      { background:#06b6d4; color:#000; }
+.type-reactive  { background:#ef4444; color:#fff; }
+.type-acid      { background:#84cc16; color:#000; }
+.type-crystal   { background:#a78bfa; color:#000; }
+.type-volatile  { background:#f97316; color:#fff; }
+
+.hp-row {
+  display:flex; align-items:center; gap:6px;
+  font-family:'Press Start 2P', monospace; font-size:7px;
+  color:rgba(255,255,255,0.7);
+}
+.hp-bar {
+  flex:1; height:8px; background:#2a0440;
+  border:1px solid #000; border-radius:2px; overflow:hidden;
+  position:relative;
+  box-shadow:inset 0 0 4px rgba(0,0,0,0.6);
+}
+.hp-fill {
+  height:100%; background:var(--hp-green);
+  transition:width 0.6s ease, background 0.3s;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.2);
+}
+.hp-fill.amber { background:var(--hp-amber); }
+.hp-fill.red   { background:var(--hp-red); }
+.hp-text {
+  font-family:'Press Start 2P', monospace; font-size:7px;
+  white-space:nowrap;
+}
+
+/* Sprites */
+.sprite-row { flex:1; position:relative; margin-top:8px; }
+.sprite {
+  position:absolute; bottom:0;
+  width:140px; height:140px; object-fit:contain;
+  filter:drop-shadow(0 4px 18px rgba(168,85,247,0.45));
+  transition:transform 0.3s, opacity 0.3s;
+  image-rendering:pixelated;
+  image-rendering:-moz-crisp-edges;
+  image-rendering:crisp-edges;
+}
+.enemy-sprite {
+  right:8px; top:0;
+  width:120px; height:120px;
+}
+.enemy-sprite.hit  { animation:shake 0.5s; }
+.player-sprite { left:8px; bottom:8px; }
+.player-sprite.hit { animation:shake 0.5s; }
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  20%     { transform:translateX(-6px); }
+  40%     { transform:translateX(6px); }
+  60%     { transform:translateX(-4px); }
+  80%     { transform:translateX(4px); }
+}
+
+/* Battle ground */
+.ground {
+  position:absolute; bottom:0; left:0; right:0;
+  height:30px;
+  background:linear-gradient(180deg,
+    rgba(168,85,247,0.0) 0%,
+    rgba(168,85,247,0.15) 100%);
+  border-top:1px dashed rgba(168,85,247,0.4);
+}
+
+/* ─── PLAYER section (mid) ─── */
+.mid-section {
+  position:relative; padding:0 12px; height:32%;
+  display:flex; flex-direction:column;
+}
+.player-card {
+  align-self:flex-end;
+  background: rgba(8,0,15,0.85);
+  border:2px solid var(--pink);
+  border-radius:6px;
+  padding:8px 12px;
+  box-shadow:0 0 14px rgba(255,20,147,0.4), inset 0 0 8px rgba(255,20,147,0.1);
+  min-width:200px; max-width:280px;
+  margin-bottom:4px;
+}
+
+/* ─── BATTLE TEXT BOX ─── */
+.text-box {
+  position:relative;
+  margin:0 12px 12px;
+  background: rgba(8,0,15,0.95);
+  border:3px solid var(--pink);
+  border-radius:6px;
+  padding:14px 16px;
+  min-height:88px;
+  font-family:'VT323', monospace;
+  font-size:20px; line-height:1.3;
+  color:#fff;
+  box-shadow:0 0 16px var(--pink-glow), inset 0 0 8px rgba(255,20,147,0.08);
+}
+.text-box .ptr {
+  position:absolute; right:14px; bottom:14px;
+  width:0; height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:8px solid var(--pink);
+  animation:bounce 0.7s ease-in-out infinite;
+  display:none;
+}
+.text-box.has-ptr .ptr { display:block; }
+@keyframes bounce {
+  0%,100% { transform:translateY(0); }
+  50%     { transform:translateY(4px); }
+}
+
+/* ─── ACTION MENU ─── */
+.menu {
+  margin:0 12px 12px;
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+}
+.menu-btn {
+  background: rgba(17,5,42,0.95);
+  border:3px solid var(--pink);
+  border-radius:6px;
+  padding:14px 10px;
+  font-family:'Press Start 2P', monospace;
+  font-size:11px; letter-spacing:0.06em;
+  color:#fff;
+  text-shadow:1px 1px 0 #000, 0 0 6px rgba(255,20,147,0.6);
+  box-shadow:0 0 10px var(--pink-glow), inset 0 -4px 0 rgba(0,0,0,0.4);
+  transition:transform 0.1s, background 0.15s;
+  position:relative;
+}
+.menu-btn:hover, .menu-btn:active {
+  background: rgba(255,20,147,0.15);
+  transform:scale(0.98);
+}
+.menu-btn .icon { display:block; font-size:18px; margin-bottom:4px; }
+.menu-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.menu.hidden { display:none; }
+
+/* ─── MOVE LIST (replaces menu when ATTACK clicked) ─── */
+.moves {
+  margin:0 12px 12px;
+  background: rgba(17,5,42,0.95);
+  border:3px solid var(--pink);
+  border-radius:6px;
+  padding:6px;
+  display:none;
+  flex-direction:column; gap:4px;
+}
+.moves.show { display:flex; }
+.move-btn {
+  background:transparent;
+  border:none;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:10px 8px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'VT323', monospace;
+  color:#fff; font-size:18px;
+  text-align:left;
+}
+.move-btn:last-child { border-bottom:none; }
+.move-btn:hover, .move-btn:active { background:rgba(255,20,147,0.12); }
+.move-btn .pp {
+  font-family:'Press Start 2P', monospace; font-size:8px;
+  color:rgba(255,255,255,0.55);
+}
+
+.back-btn {
+  background:rgba(168,85,247,0.2);
+  border:2px solid var(--purple);
+  color:#fff;
+  font-family:'Press Start 2P', monospace; font-size:9px;
+  padding:8px;
+  border-radius:4px;
+  margin-top:4px;
+}
+
+/* ─── DAMAGE NUMBER POP ─── */
+.damage-pop {
+  position:absolute;
+  font-family:'Press Start 2P', monospace; font-size:18px;
+  color:#fff;
+  text-shadow:2px 2px 0 var(--pink), 0 0 12px var(--pink-glow);
+  animation:dmgpop 1.1s ease-out forwards;
+  pointer-events:none;
+  z-index:50;
+}
+@keyframes dmgpop {
+  0%   { transform:translateY(0); opacity:0; }
+  20%  { transform:translateY(-10px); opacity:1; }
+  100% { transform:translateY(-60px); opacity:0; }
+}
+
+/* ─── EFFECTIVENESS TAG ─── */
+.eff-tag {
+  display:inline-block;
+  margin-left:6px;
+  font-family:'Press Start 2P', monospace; font-size:8px;
+  padding:2px 5px; border-radius:2px;
+  background:var(--pink); color:#000;
+}
+
+/* ─── REPLAY BUTTON ─── */
+.replay {
+  position:fixed; bottom:14px; right:14px;
+  background:rgba(8,0,15,0.85);
+  border:2px solid var(--purple);
+  color:#fff;
+  font-family:'Press Start 2P', monospace; font-size:7px;
+  padding:6px 10px; border-radius:4px;
+  z-index:60;
+  letter-spacing:0.08em;
+}
+
+/* Tighten on tiny phones */
+@media (max-height:680px) {
+  .sprite { width:110px; height:110px; }
+  .enemy-sprite { width:96px; height:96px; }
+  .text-box { min-height:72px; font-size:18px; }
+  .menu-btn { padding:11px 8px; font-size:10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="preview-banner">⚠ MOCKUP · NOT THE FINAL GAME · CONCEPT ONLY ⚠</div>
+
+<div class="scene">
+
+  <!-- TOP: enemy sprite + card -->
+  <div class="top-section">
+    <div class="enemy-card">
+      <div class="name-row">
+        <span id="enemyName">WILD CHOG</span>
+        <span class="lvl" id="enemyLvl">Lv 12</span>
+      </div>
+      <div class="types">
+        <span class="type-pill type-toxic">TOXIC</span>
+        <span class="type-pill type-volatile">VOLATILE</span>
+      </div>
+      <div class="hp-row">
+        <span>HP</span>
+        <div class="hp-bar"><div class="hp-fill" id="enemyHpFill" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="sprite-row" id="enemyArena">
+      <img class="sprite enemy-sprite" id="enemySprite" src="pet-assets/adult-feral-chog.png" alt="">
+    </div>
+  </div>
+
+  <!-- MID: player sprite + card -->
+  <div class="mid-section">
+    <div class="sprite-row" id="playerArena">
+      <img class="sprite player-sprite" id="playerSprite" src="pet-assets/adult-prime-chogi.png" alt="">
+    </div>
+    <div class="player-card">
+      <div class="name-row">
+        <span id="playerName">YOUR CHOGI</span>
+        <span class="lvl" id="playerLvl">Lv 14</span>
+      </div>
+      <div class="types">
+        <span class="type-pill type-pure">PURE</span>
+        <span class="type-pill type-crystal">CRYSTAL</span>
+      </div>
+      <div class="hp-row">
+        <span>HP</span>
+        <div class="hp-bar"><div class="hp-fill" id="playerHpFill" style="width:100%"></div></div>
+        <span class="hp-text" id="playerHpText">110/110</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEXT BOX: battle log -->
+  <div class="text-box has-ptr" id="textBox">
+    <span id="textContent">A wild Chog appeared from a containment breach!</span>
+    <div class="ptr"></div>
+  </div>
+
+  <!-- ACTION MENU -->
+  <div class="menu" id="menu">
+    <button class="menu-btn" id="btnAttack">
+      <span class="icon">⚡</span>ATTACK
+    </button>
+    <button class="menu-btn" id="btnCompound">
+      <span class="icon">⚗️</span>COMPOUND
+    </button>
+    <button class="menu-btn" id="btnContain">
+      <span class="icon">🧪</span>CONTAIN
+    </button>
+    <button class="menu-btn" id="btnFlee">
+      <span class="icon">💨</span>FLEE
+    </button>
+  </div>
+
+  <!-- MOVE LIST (hidden initially) -->
+  <div class="moves" id="moves">
+    <button class="move-btn" data-move="acid">
+      <span>Acid Splash <span class="type-pill type-acid">ACID</span></span>
+      <span class="pp">PP 15/15</span>
+    </button>
+    <button class="move-btn" data-move="crystal">
+      <span>Crystal Beam <span class="type-pill type-crystal">CRYSTAL</span></span>
+      <span class="pp">PP 10/10</span>
+    </button>
+    <button class="move-btn" data-move="lab">
+      <span>Lab Slap <span class="type-pill" style="background:#94a3b8;color:#000;">PHYSICAL</span></span>
+      <span class="pp">PP 35/35</span>
+    </button>
+    <button class="move-btn" data-move="pure">
+      <span>Pure Beam <span class="type-pill type-pure">PURE</span></span>
+      <span class="pp">PP 5/5</span>
+    </button>
+    <button class="back-btn" id="btnBack">← BACK</button>
+  </div>
+
+</div>
+
+<button class="replay" id="replayBtn">⟳ RESET</button>
+
+<script>
+// ───── Game state (mockup walkthrough) ─────
+const state = {
+  player: { hp:110, maxHp:110, sprite:'pet-assets/adult-prime-chogi.png' },
+  enemy:  { hp:80,  maxHp:80,  sprite:'pet-assets/adult-feral-chog.png'  },
+  busy:   false
+};
+
+// ───── Move database (mockup) ─────
+const moves = {
+  acid:    { name:'Acid Splash',  dmg:18, type:'ACID',     eff:1.5, msg:"Acid Splash dissolves Chog's coating!" },
+  crystal: { name:'Crystal Beam', dmg:32, type:'CRYSTAL',  eff:2.0, msg:"Crystal Beam shatters through!" },
+  lab:     { name:'Lab Slap',     dmg:14, type:'PHYSICAL', eff:1.0, msg:"Lab Slap connects clean." },
+  pure:    { name:'Pure Beam',    dmg:38, type:'PURE',     eff:2.5, msg:"PURE BEAM detonates the bond!" }
+};
+
+const enemyMoves = [
+  { name:'Toxic Mist',     dmg:12, msg:"Wild Chog releases a toxic mist!" },
+  { name:'Acid Bite',      dmg:16, msg:"Wild Chog bites with acid fangs!" },
+  { name:'Volatile Lunge', dmg:20, msg:"Wild Chog lunges volatile!" }
+];
+
+// ───── DOM refs ─────
+const $ = id => document.getElementById(id);
+const textBox = $('textBox');
+const textContent = $('textContent');
+const menu = $('menu');
+const movesEl = $('moves');
+const playerHpFill = $('playerHpFill');
+const playerHpText = $('playerHpText');
+const enemyHpFill = $('enemyHpFill');
+const playerSprite = $('playerSprite');
+const enemySprite = $('enemySprite');
+
+// ───── Helpers ─────
+function setText(s, withPtr=false) {
+  textContent.textContent = s;
+  textBox.classList.toggle('has-ptr', withPtr);
+}
+function typeText(s, cb) {
+  state.busy = true;
+  textContent.textContent = '';
+  textBox.classList.remove('has-ptr');
+  let i = 0;
+  const step = () => {
+    if (i >= s.length) {
+      state.busy = false;
+      textBox.classList.add('has-ptr');
+      if (cb) setTimeout(cb, 800);
+      return;
+    }
+    textContent.textContent += s[i++];
+    setTimeout(step, 22);
+  };
+  step();
+}
+function updateHP(who) {
+  const obj = state[who];
+  const fill = who==='player' ? playerHpFill : enemyHpFill;
+  const text = who==='player' ? playerHpText : null;
+  const pct = (obj.hp / obj.maxHp) * 100;
+  fill.style.width = Math.max(0, pct) + '%';
+  fill.classList.remove('amber','red');
+  if (pct < 25) fill.classList.add('red');
+  else if (pct < 50) fill.classList.add('amber');
+  if (text) text.textContent = `${Math.max(0,obj.hp)}/${obj.maxHp}`;
+}
+function popDamage(arena, value) {
+  const arenaEl = $(arena);
+  const pop = document.createElement('div');
+  pop.className = 'damage-pop';
+  pop.textContent = `-${value}`;
+  pop.style.left = (Math.random()*40 + 30) + '%';
+  pop.style.top = '20%';
+  arenaEl.appendChild(pop);
+  setTimeout(() => pop.remove(), 1200);
+}
+function shake(spriteEl) {
+  spriteEl.classList.remove('hit');
+  void spriteEl.offsetWidth; // reflow
+  spriteEl.classList.add('hit');
+}
+function showMenu() { menu.classList.remove('hidden'); movesEl.classList.remove('show'); }
+function hideMenu() { menu.classList.add('hidden'); movesEl.classList.remove('show'); }
+function showMoves() { menu.classList.add('hidden'); movesEl.classList.add('show'); }
+
+// ───── Battle flow ─────
+function playerAttack(moveId) {
+  if (state.busy) return;
+  hideMenu();
+  const m = moves[moveId];
+  typeText(`Chogi used ${m.name}!`, () => {
+    setTimeout(() => {
+      shake(enemySprite);
+      popDamage('enemyArena', m.dmg);
+      state.enemy.hp = Math.max(0, state.enemy.hp - m.dmg);
+      updateHP('enemy');
+      const tag = m.eff >= 2 ? "  IT'S SUPER EFFECTIVE!" : '';
+      typeText(m.msg + tag, () => {
+        if (state.enemy.hp <= 0) endBattle('win');
+        else enemyTurn();
+      });
+    }, 350);
+  });
+}
+function enemyTurn() {
+  const m = enemyMoves[Math.floor(Math.random() * enemyMoves.length)];
+  typeText(m.msg, () => {
+    setTimeout(() => {
+      shake(playerSprite);
+      popDamage('playerArena', m.dmg);
+      state.player.hp = Math.max(0, state.player.hp - m.dmg);
+      updateHP('player');
+      typeText(`Chogi took ${m.dmg} damage!`, () => {
+        if (state.player.hp <= 0) endBattle('lose');
+        else { showMenu(); setText('What will Chogi do?', true); }
+      });
+    }, 350);
+  });
+}
+function endBattle(result) {
+  if (result === 'win') {
+    typeText('CONTAINMENT BREACH NEUTRALIZED. +120 XP, +50 $CHOGI', () => {
+      hideMenu();
+    });
+  } else {
+    typeText('Chogi fainted. Returning to the Lab Recovery Bay...', () => {
+      hideMenu();
+    });
+  }
+}
+function tryContain() {
+  if (state.busy) return;
+  hideMenu();
+  const pct = state.enemy.hp / state.enemy.maxHp;
+  const success = Math.random() > pct * 0.85;
+  typeText('You threw a Containment Cell!', () => {
+    setTimeout(() => {
+      if (success) {
+        enemySprite.style.transition = 'opacity 0.6s';
+        enemySprite.style.opacity = '0';
+        typeText('GOTCHA! Wild Chog was contained! Added to specimen log.', () => {});
+      } else {
+        typeText('Wild Chog broke free!', () => enemyTurn());
+      }
+    }, 600);
+  });
+}
+function tryFlee() {
+  if (state.busy) return;
+  hideMenu();
+  typeText('You escaped from the breach!', () => {});
+}
+
+// ───── Init ─────
+function reset() {
+  state.player.hp = state.player.maxHp;
+  state.enemy.hp = state.enemy.maxHp;
+  enemySprite.style.opacity = '1';
+  updateHP('player'); updateHP('enemy');
+  showMenu();
+  typeText('A wild Chog appeared from a containment breach!', () => {
+    setText('What will Chogi do?', true);
+  });
+}
+
+// ───── Wire ─────
+$('btnAttack').onclick   = () => { if (!state.busy) showMoves(); };
+$('btnCompound').onclick = () => { if (!state.busy) typeText('No compounds in inventory yet (mockup).', () => setText('What will Chogi do?', true)); };
+$('btnContain').onclick  = () => tryContain();
+$('btnFlee').onclick     = () => tryFlee();
+$('btnBack').onclick     = () => showMenu();
+document.querySelectorAll('.move-btn[data-move]').forEach(btn => {
+  btn.onclick = () => playerAttack(btn.dataset.move);
+});
+$('replayBtn').onclick = () => reset();
+
+// kick off
+reset();
+</script>
+
+</body>
+</html>
