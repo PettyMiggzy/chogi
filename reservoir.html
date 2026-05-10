@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0118">
+<title>Chogi Reservoir · Burn to Crack</title>
+<meta name="description" content="The Chogi Reservoir. Burn $CHOGI to guess. Crack the code, drain the pool. Series-running on Monad mainnet.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Chogi Reservoir · Burn to Crack">
+<meta property="og:description" content="Every wrong guess fills it. Every right guess drains it.">
+<meta property="og:image" content="https://www.chogi.xyz/memes/chogi-meme-061.jpg">
+<meta property="og:url" content="https://www.chogi.xyz/reservoir">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.chogi.xyz/memes/chogi-meme-061.jpg">
+<link rel="icon" href="/chogi.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0a0118;
+  --ink-2:#160830;
+  --paper:#FFE9F4;
+  --paper-soft:#FFF4D6;
+  --paper-dim:rgba(255,233,244,.6);
+  --gold:#A855F7;
+  --gold-bright:#FF69B4;
+  --crimson:#FF1493;
+  --pink:#FF1493;
+  --comic-yellow:#FFE45A;
+  --comic-cream:#FFF8E1;
+  --green:#22C55E;
+  --red:#ef4444;
+  --orange:#FF8C00;
+  --display:'Bangers', sans-serif;
+  --hand:'Permanent Marker', cursive;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);overflow-x:hidden;font-family:var(--display);}
+body{
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,140,0,.10), transparent 55%),
+    radial-gradient(ellipse at 30% 80%, rgba(255,20,147,.06), transparent 60%),
+    var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%;height:auto;}
+a{color:inherit;}
+
+.halftone{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.10;mix-blend-mode:overlay;
+  background-image:radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px);
+  background-size:4px 4px;
+}
+
+/* ───────── PROTOTYPE BANNER ───────── */
+.proto-banner{
+  background:repeating-linear-gradient(45deg,#000 0 12px,var(--comic-yellow) 12px 24px);
+  padding:6px 0;
+  text-align:center;
+}
+.proto-banner span{
+  background:var(--ink);color:var(--comic-yellow);
+  font-family:var(--mono);font-size:10px;letter-spacing:3px;
+  padding:4px 12px;text-transform:uppercase;font-weight:700;
+}
+
+/* ───────── ISSUE PLATE ───────── */
+.plate{
+  position:relative;padding:18px 22px 14px;
+  border-bottom:3px solid var(--paper);
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:2.2px;
+  color:var(--paper-dim);text-transform:uppercase;background:var(--ink-2);
+}
+.plate b{color:var(--comic-yellow);font-weight:700;}
+.plate-mid{flex:1;text-align:center;display:none;}
+@media(min-width:720px){.plate-mid{display:block;}}
+.plate a{color:var(--paper-dim);text-decoration:none;border:1px solid var(--paper-dim);padding:4px 8px;}
+.plate a:hover{color:var(--comic-yellow);border-color:var(--comic-yellow);}
+
+/* ───────── HERO ───────── */
+.hero{
+  position:relative;
+  border-bottom:4px solid var(--paper);
+  background:
+    repeating-linear-gradient(45deg,rgba(255,140,0,.04) 0 6px,transparent 6px 12px),
+    var(--ink);
+  padding:30px 16px 40px;
+  text-align:center;
+}
+.hero-image-wrap{
+  position:relative;
+  max-width:520px;
+  margin:0 auto 24px;
+  border:4px solid var(--ink);
+  background:var(--ink);
+  box-shadow:8px 8px 0 var(--ink), 8px 8px 0 1px var(--paper);
+  overflow:hidden;
+}
+.hero-image-wrap img{width:100%;display:block;}
+.hero-tag{
+  position:absolute;top:12px;right:12px;z-index:5;
+  background:var(--orange);color:var(--ink);
+  font-family:var(--display);font-size:14px;letter-spacing:1.5px;
+  padding:6px 12px;text-transform:uppercase;font-weight:400;
+  border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);
+  transform:rotate(4deg);
+}
+.hero-bubble{
+  position:absolute;bottom:14px;left:14px;z-index:5;
+  background:var(--comic-yellow);color:var(--ink);
+  border:2.5px solid var(--ink);
+  font-family:var(--display);font-size:clamp(15px,3.6vw,18px);
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:8px 14px;
+  box-shadow:3px 3px 0 var(--ink);
+  max-width:60%;
+}
+
+.hero-eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:6px;
+  color:var(--orange);text-transform:uppercase;margin-bottom:14px;
+}
+.hero h1{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(56px,14vw,140px);line-height:.9;letter-spacing:.01em;
+  margin:0 auto 14px;color:var(--paper);max-width:14ch;
+  transform:rotate(-2deg);
+  text-shadow:
+    -3px -3px 0 var(--ink), 3px -3px 0 var(--ink),
+    -3px 3px 0 var(--ink), 3px 3px 0 var(--ink),
+    6px 6px 0 var(--orange), 0 0 40px rgba(255,140,0,.4);
+}
+.hero h1 em{font-style:normal;color:var(--comic-yellow);display:inline-block;transform:rotate(3deg);}
+.hero .lede{
+  font-family:var(--hand);font-size:clamp(18px,4.4vw,24px);
+  color:var(--comic-cream);max-width:32ch;margin:14px auto 24px;line-height:1.35;letter-spacing:.5px;
+}
+.hero .lede b{color:var(--orange);}
+
+/* ───────── COUNTER STATBOX ───────── */
+.stats{
+  max-width:680px;
+  margin:30px auto;
+  padding:0 16px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.stat{
+  background:var(--ink-2);
+  border:3px solid var(--ink);
+  padding:18px 14px;
+  text-align:center;
+  box-shadow:5px 5px 0 var(--ink), 5px 5px 0 1px var(--paper);
+  position:relative;
+}
+.stat.featured{
+  grid-column:1/-1;
+  background:var(--orange);color:var(--ink);
+  border:3px solid var(--ink);
+  box-shadow:6px 6px 0 var(--ink), 6px 6px 0 1px var(--comic-yellow);
+}
+.stat .stat-label{
+  display:block;
+  font-family:var(--mono);font-size:10px;letter-spacing:3px;
+  color:var(--paper-dim);text-transform:uppercase;margin-bottom:8px;
+}
+.stat.featured .stat-label{color:var(--ink);}
+.stat .stat-value{
+  display:block;
+  font-family:var(--display);
+  font-size:clamp(22px,5.6vw,34px);
+  letter-spacing:1.5px;
+  color:var(--comic-yellow);
+}
+.stat.featured .stat-value{color:var(--ink);font-size:clamp(28px,7.5vw,46px);}
+.stat .stat-sub{
+  display:block;margin-top:4px;
+  font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  color:var(--paper-dim);text-transform:uppercase;
+}
+.stat.featured .stat-sub{color:var(--ink);opacity:.75;}
+.stat .stat-burned{color:var(--orange);}
+.stat .stat-attempts{color:var(--paper);}
+
+.live-pulse{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  margin-right:6px;vertical-align:middle;
+  animation:pulseGlow 1.5s ease-in-out infinite;
+}
+@keyframes pulseGlow{
+  0%,100%{opacity:.4;transform:scale(.8);}
+  50%{opacity:1;transform:scale(1.2);box-shadow:0 0 12px var(--green);}
+}
+
+/* ───────── SECTIONS ───────── */
+section.act-break{
+  padding:48px 24px 36px;text-align:center;
+  background:var(--crimson);
+  border-top:4px solid var(--ink);border-bottom:4px solid var(--ink);
+  margin:24px 0;box-shadow:0 0 0 4px var(--paper) inset;
+}
+section.act-break .ax-tag{
+  font-family:var(--mono);font-size:11px;letter-spacing:5px;
+  color:var(--ink);text-transform:uppercase;margin:0 0 8px;font-weight:700;
+}
+section.act-break .ax-title{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(40px,9vw,72px);
+  color:var(--comic-yellow);margin:0 0 12px;letter-spacing:.02em;
+  transform:rotate(-1deg);
+  text-shadow:
+    -2px -2px 0 var(--ink), 2px -2px 0 var(--ink),
+    -2px 2px 0 var(--ink), 2px 2px 0 var(--ink),
+    5px 5px 0 var(--paper);
+}
+section.act-break .ax-line{font-family:var(--hand);font-size:clamp(15px,3.8vw,18px);color:var(--paper);max-width:36ch;margin:0 auto;line-height:1.4;}
+
+/* ───────── HINT CARDS ───────── */
+.hints-row{
+  max-width:680px;
+  margin:0 auto 30px;
+  padding:0 16px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:18px;
+}
+@media(min-width:640px){.hints-row{grid-template-columns:1fr 1fr;}}
+
+.hint-card{
+  background:var(--paper);
+  color:var(--ink);
+  border:3px solid var(--ink);
+  padding:0;
+  box-shadow:6px 6px 0 var(--gold);
+  transition:all .15s ease;
+  cursor:pointer;
+  text-decoration:none;
+  display:block;
+  position:relative;
+  overflow:hidden;
+}
+.hint-card:hover{transform:translate(-3px,-3px);box-shadow:9px 9px 0 var(--gold);}
+.hint-card:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--gold);}
+.hint-card .hc-img{
+  width:100%;height:160px;object-fit:cover;
+  border-bottom:3px solid var(--ink);
+  display:block;
+}
+.hint-card .hc-body{padding:14px 16px 16px;}
+.hint-card .hc-tag{
+  display:inline-block;
+  font-family:var(--mono);font-size:9px;letter-spacing:2.5px;
+  color:var(--paper);background:var(--ink);
+  padding:3px 8px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.hint-card .hc-title{
+  display:block;
+  font-family:var(--display);font-size:clamp(20px,4.6vw,26px);
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--ink);margin-bottom:6px;
+}
+.hint-card .hc-desc{
+  font-family:var(--hand);font-size:clamp(13px,3.4vw,15px);
+  line-height:1.35;letter-spacing:.3px;
+}
+.hint-card .hc-cta{
+  display:inline-block;margin-top:10px;
+  font-family:var(--display);font-size:13px;letter-spacing:1.5px;
+  color:var(--crimson);text-transform:uppercase;
+}
+
+/* ───────── GUESS BLOCK ───────── */
+.guess-section{
+  max-width:680px;
+  margin:0 auto 40px;
+  padding:0 16px;
+}
+.guess-card{
+  background:var(--ink-2);
+  border:4px solid var(--orange);
+  padding:24px 20px 28px;
+  box-shadow:8px 8px 0 var(--orange), 8px 8px 0 1px var(--ink);
+  position:relative;
+}
+.guess-card::before{
+  content:'★ THE BURN ★';
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  background:var(--orange);color:var(--ink);
+  font-family:var(--display);font-size:14px;letter-spacing:2px;
+  padding:4px 12px;border:2.5px solid var(--ink);
+  box-shadow:2px 2px 0 var(--ink);
+}
+.guess-card h2{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(28px,6vw,38px);
+  letter-spacing:1.5px;color:var(--comic-yellow);
+  margin:14px 0 6px;text-align:center;
+}
+.guess-card .gc-sub{
+  font-family:var(--hand);
+  font-size:clamp(14px,3.6vw,17px);
+  color:var(--paper);text-align:center;
+  margin-bottom:18px;line-height:1.4;
+}
+
+.curve-display{
+  background:var(--ink);
+  border:2px solid var(--gold);
+  padding:14px;
+  margin:14px 0 18px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  text-align:center;
+}
+.curve-display .cd-cell{padding:6px;}
+.curve-display .cd-label{
+  display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  color:var(--paper-dim);text-transform:uppercase;margin-bottom:4px;
+}
+.curve-display .cd-value{
+  display:block;font-family:var(--display);
+  font-size:clamp(18px,4.6vw,22px);
+  color:var(--orange);letter-spacing:1px;
+}
+.curve-display .cd-cell.win .cd-value{color:var(--green);}
+
+.guess-input{
+  width:100%;
+  padding:14px;
+  background:var(--ink);color:var(--paper);
+  border:3px solid var(--paper);
+  font-family:var(--mono);font-size:15px;
+  letter-spacing:1px;line-height:1.4;
+  resize:none;
+  margin-bottom:14px;
+}
+.guess-input:focus{outline:none;border-color:var(--comic-yellow);box-shadow:0 0 0 2px var(--comic-yellow);}
+.guess-input::placeholder{color:var(--paper-dim);}
+
+.guess-submit{
+  display:block;width:100%;
+  background:var(--orange);color:var(--ink);
+  border:3px solid var(--ink);
+  padding:16px 18px;
+  font-family:var(--display);font-size:20px;letter-spacing:2.5px;
+  cursor:pointer;text-transform:uppercase;
+  box-shadow:5px 5px 0 var(--ink);
+  transition:all .15s;
+}
+.guess-submit:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink);background:var(--comic-yellow);}
+.guess-submit:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink);}
+
+.guess-result{
+  margin-top:14px;padding:12px;
+  font-family:var(--mono);font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;text-align:center;
+  border:2px dashed var(--paper-dim);
+  color:var(--paper-dim);
+  min-height:40px;
+}
+.guess-result.warn{border-color:var(--comic-yellow);color:var(--comic-yellow);}
+.guess-result.miss{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.06);}
+.guess-result.hit{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.06);}
+
+.gas-note{
+  margin-top:14px;
+  padding:10px;
+  background:rgba(255,140,0,.08);
+  border-left:3px solid var(--orange);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;
+  color:var(--orange);text-transform:uppercase;line-height:1.6;
+}
+
+/* ───────── ECONOMICS / CURVE TABLE ───────── */
+.curve-table{
+  max-width:680px;
+  margin:0 auto 40px;
+  padding:0 16px;
+}
+.curve-table table{
+  width:100%;
+  border-collapse:collapse;
+  background:var(--ink-2);
+  border:3px solid var(--ink);
+  box-shadow:5px 5px 0 var(--gold);
+}
+.curve-table th{
+  background:var(--gold);color:var(--paper);
+  padding:10px 8px;
+  font-family:var(--display);font-size:13px;letter-spacing:1.5px;
+  text-transform:uppercase;text-align:left;
+  border-bottom:2px solid var(--ink);
+}
+.curve-table td{
+  padding:10px 8px;
+  font-family:var(--mono);font-size:12px;
+  border-bottom:1px solid rgba(168,85,247,.2);
+  color:var(--paper);
+}
+.curve-table tr:last-child td{border-bottom:none;}
+.curve-table tr.now{background:rgba(255,140,0,.15);}
+.curve-table tr.now td{color:var(--orange);font-weight:700;}
+
+/* ───────── PAST RESERVOIRS LIST ───────── */
+.past-list{
+  max-width:680px;
+  margin:0 auto 40px;
+  padding:0 16px;
+}
+.past-row{
+  background:var(--ink-2);
+  border:2.5px solid var(--paper-dim);
+  padding:14px 16px;
+  margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:var(--mono);font-size:11px;letter-spacing:1.5px;
+  color:var(--paper-dim);text-transform:uppercase;
+}
+.past-row .pr-num{color:var(--comic-yellow);font-family:var(--display);font-size:18px;}
+.past-row .pr-status{color:var(--paper-dim);}
+
+/* ───────── COLOPHON ───────── */
+.colophon{padding:30px 22px 46px;text-align:center;background:var(--ink);font-family:var(--mono);font-size:10px;letter-spacing:2.5px;color:var(--paper-dim);text-transform:uppercase;line-height:2;border-top:2px solid var(--ink-2);}
+.colophon a{color:var(--paper-dim);text-decoration:none;border-bottom:1px dotted rgba(168,85,247,.45);}
+.colophon a:hover{color:var(--orange);}
+.colophon b{color:var(--orange);}
+
+@media(max-width:540px){
+  .stats{grid-template-columns:1fr;}
+  .hero-image-wrap{box-shadow:5px 5px 0 var(--ink), 5px 5px 0 1px var(--paper);}
+  .guess-card{box-shadow:5px 5px 0 var(--orange), 5px 5px 0 1px var(--ink);}
+}
+</style>
+</head>
+<body>
+
+<div class="halftone"></div>
+
+<div class="proto-banner">
+  <span>⚠ PROTOTYPE BUILD · DAY 1 · NO REAL BURN YET ⚠</span>
+</div>
+
+<header class="plate">
+  <div>RESERVOIR <b>01</b></div>
+  <div class="plate-mid">FIRST DAY OUT · MONAD MAINNET · MMXXVI</div>
+  <a href="/reservoir/admin" style="font-size:9.5px;">⚙ Admin</a>
+</header>
+
+<!-- ───────── HERO ───────── -->
+<section class="hero">
+  <div class="hero-image-wrap">
+    <span class="hero-tag">Reservoir 01</span>
+    <img src="/memes/chogi-meme-061.jpg" alt="Chogi holding a lighter, fire raging behind her, fire truck on scene." loading="eager">
+    <div class="hero-bubble">CRACK ME.</div>
+  </div>
+
+  <div class="hero-eyebrow">★ Chogi Reservoir · Series Live ★</div>
+  <h1>The <em>Reservoir</em></h1>
+  <p class="lede">Every wrong guess <b>fills it.</b><br>Every right guess <b>drains it.</b><br>She lit the lab. Now she lights the pool.</p>
+</section>
+
+<!-- ───────── LIVE STATS ───────── -->
+<div class="stats">
+  <div class="stat featured">
+    <span class="stat-label"><span class="live-pulse"></span> LIVE PRIZE POOL</span>
+    <span class="stat-value" id="poolDisplay">437,000 $CHOGI</span>
+    <span class="stat-sub" id="poolUsd">≈ $24.65 USD</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">🔥 Burned Forever</span>
+    <span class="stat-value stat-burned" id="burnedDisplay">187,000</span>
+    <span class="stat-sub">$CHOGI · ash</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">🎯 Attempts</span>
+    <span class="stat-value stat-attempts" id="attemptsDisplay">62</span>
+    <span class="stat-sub">0 winners · all yours</span>
+  </div>
+</div>
+
+<!-- ───────── ACT: FREE HINTS ───────── -->
+<section class="act-break">
+  <div class="ax-tag">— Step One · Free —</div>
+  <h2 class="ax-title">Find the Hints</h2>
+  <p class="ax-line">Two breadcrumbs. No burn. Read carefully — the answer was always there.</p>
+</section>
+
+<div class="hints-row">
+  <a class="hint-card" href="/comic" target="_blank" rel="noopener">
+    <img class="hc-img" src="/comic/panel-01.jpg" alt="Comic 1 panel.">
+    <div class="hc-body">
+      <span class="hc-tag">Hint · 01</span>
+      <span class="hc-title">Read Issue №01</span>
+      <p class="hc-desc">The Origin. The dome. The breach. The CTO. Eleven panels. The riddle was hidden in one of them.</p>
+      <span class="hc-cta">▸ Open Issue 01</span>
+    </div>
+  </a>
+
+  <a class="hint-card" href="/comic-2" target="_blank" rel="noopener">
+    <img class="hc-img" src="/memes/chogi-meme-001.jpg" alt="Comic 2 panel.">
+    <div class="hc-body">
+      <span class="hc-tag">Hint · 02</span>
+      <span class="hc-title">Read Issue №02</span>
+      <p class="hc-desc">First Day Out. The build. The chip. The swap. The badge. Listen to her tell it. The answer is in her voice.</p>
+      <span class="hc-cta">▸ Open Issue 02</span>
+    </div>
+  </a>
+</div>
+
+<!-- ───────── ACT: THE BURN ───────── -->
+<section class="act-break" style="background:var(--orange);">
+  <div class="ax-tag">— Step Two · Burn —</div>
+  <h2 class="ax-title" style="color:var(--paper);">Submit Your Guess</h2>
+  <p class="ax-line">Burn $CHOGI. Speak the answer. Crack the code. Drain the pool.</p>
+</section>
+
+<!-- ───────── GUESS CARD ───────── -->
+<div class="guess-section">
+  <div class="guess-card">
+    <h2>The Reservoir</h2>
+    <p class="gc-sub">Riddle answer · 30% burn / 70% pool · curve pricing</p>
+
+    <div class="curve-display">
+      <div class="cd-cell">
+        <span class="cd-label">Your guess costs</span>
+        <span class="cd-value" id="costDisplay">30,590 $CHOGI</span>
+      </div>
+      <div class="cd-cell win">
+        <span class="cd-label">Pool you'd drain</span>
+        <span class="cd-value" id="winDisplay">437,000 $CHOGI</span>
+      </div>
+    </div>
+
+    <textarea class="guess-input" id="guessInput" placeholder="Speak the answer..." rows="2"></textarea>
+
+    <button class="guess-submit" id="submitBtn" onclick="submitGuess()">▸ Burn & Crack</button>
+
+    <div class="guess-result" id="guessResult">Awaiting input · prototype mode</div>
+
+    <div class="gas-note">
+      ⚠ PROTOTYPE: no actual burn yet. Real wallet connect, $CHOGI approval, and on-chain submission go live with the smart contract (Day 2-4).
+    </div>
+  </div>
+</div>
+
+<!-- ───────── CURVE TABLE ───────── -->
+<section class="act-break" style="background:var(--gold);">
+  <div class="ax-tag">— The Curve —</div>
+  <h2 class="ax-title" style="color:var(--paper);">How the Burn Scales</h2>
+  <p class="ax-line">Floor 10K $CHOGI. Above that, every guess costs 7% of the pool. Bigger pool, bigger burn.</p>
+</section>
+
+<div class="curve-table">
+  <table>
+    <thead><tr><th>Pool size</th><th>Guess price</th><th>Burned</th></tr></thead>
+    <tbody id="curveBody">
+      <tr><td>0 — 142K</td><td>10,000 (floor)</td><td>3,000</td></tr>
+      <tr><td>200,000</td><td>14,000</td><td>4,200</td></tr>
+      <tr class="now" id="curveNow"><td id="curveNowPool">437,000 ← now</td><td id="curveNowPrice">30,590</td><td id="curveNowBurn">9,177</td></tr>
+      <tr><td>1,000,000</td><td>70,000</td><td>21,000</td></tr>
+      <tr><td>10,000,000</td><td>700,000</td><td>210,000</td></tr>
+      <tr><td>100,000,000</td><td>7,000,000</td><td>2,100,000</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ───────── PAST RESERVOIRS ───────── -->
+<section class="act-break" style="background:var(--ink-2);box-shadow:0 0 0 4px var(--gold) inset;">
+  <div class="ax-tag" style="color:var(--gold-bright);">— Series Archive —</div>
+  <h2 class="ax-title" style="color:var(--paper);">Past Reservoirs</h2>
+  <p class="ax-line">Cracked or still holding. The lab keeps logs.</p>
+</section>
+
+<div class="past-list">
+  <div class="past-row">
+    <span class="pr-num">№ 01</span>
+    <span>First Day Out · UNCLAIMED</span>
+    <span class="pr-status" style="color:var(--green);">▸ ACTIVE</span>
+  </div>
+  <div class="past-row" style="opacity:.5;">
+    <span class="pr-num">№ 02</span>
+    <span>To be unsealed</span>
+    <span class="pr-status">— PENDING —</span>
+  </div>
+  <div class="past-row" style="opacity:.4;">
+    <span class="pr-num">№ 03</span>
+    <span>To be unsealed</span>
+    <span class="pr-status">— PENDING —</span>
+  </div>
+</div>
+
+<footer class="colophon">
+  <div>$CHOGI · <b>CHOGI RESERVOIR</b> · BURN TO CRACK · MMXXVI</div>
+  <div>30% BURN · 70% POOL · 7% CURVE · 10K FLOOR</div>
+  <div><a href="/comic">◂ Issue 01</a> · <a href="/comic-2">◂ Issue 02</a> · <a href="/">▲ Home</a></div>
+  <div><a href="https://x.com/chogicto" target="_blank" rel="noopener">X</a> · <a href="https://t.me/chogicto" target="_blank" rel="noopener">TG</a></div>
+</footer>
+
+<script>
+  // ─── PROTOTYPE STATE (mocked for Day 1) ───
+  const CHOGI_USD = 0.00005638;
+  const FLOOR = 10_000;       // floor guess cost
+  const RATE = 0.07;          // 7% of pool
+  const BURN_PCT = 0.30;      // 30% burned
+
+  let poolSize = 437_000;
+  let totalBurned = 187_000;
+  let attempts = 62;
+  let guessAttempted = false;
+
+  function curvePrice(pool){
+    const calc = pool * RATE;
+    return Math.max(FLOOR, Math.round(calc));
+  }
+
+  function fmtChogi(n){
+    return Math.round(n).toLocaleString('en-US');
+  }
+  function fmtUsd(n){
+    const usd = n * CHOGI_USD;
+    if(usd < 1) return '≈ $' + usd.toFixed(2);
+    if(usd < 1000) return '≈ $' + usd.toFixed(2);
+    return '≈ $' + Math.round(usd).toLocaleString('en-US');
+  }
+
+  function render(){
+    document.getElementById('poolDisplay').textContent = fmtChogi(poolSize) + ' $CHOGI';
+    document.getElementById('poolUsd').textContent = fmtUsd(poolSize) + ' USD';
+    document.getElementById('burnedDisplay').textContent = fmtChogi(totalBurned);
+    document.getElementById('attemptsDisplay').textContent = attempts;
+
+    const cost = curvePrice(poolSize);
+    const burn = Math.round(cost * BURN_PCT);
+    document.getElementById('costDisplay').textContent = fmtChogi(cost) + ' $CHOGI';
+    document.getElementById('winDisplay').textContent = fmtChogi(poolSize) + ' $CHOGI';
+
+    document.getElementById('curveNowPool').textContent = fmtChogi(poolSize) + ' ← now';
+    document.getElementById('curveNowPrice').textContent = fmtChogi(cost);
+    document.getElementById('curveNowBurn').textContent = fmtChogi(burn);
+  }
+
+  function submitGuess(){
+    const v = document.getElementById('guessInput').value.trim();
+    const result = document.getElementById('guessResult');
+    if(!v){
+      result.className = 'guess-result warn';
+      result.textContent = '↻ Speak the answer first.';
+      return;
+    }
+
+    // simulate the burn locally so the curve moves
+    const cost = curvePrice(poolSize);
+    const burn = Math.round(cost * BURN_PCT);
+    const toPool = cost - burn;
+    poolSize += toPool;
+    totalBurned += burn;
+    attempts += 1;
+
+    result.className = 'guess-result miss';
+    result.textContent = `✗ MISS · prototype · ${fmtChogi(cost)} $CHOGI would have burned (${fmtChogi(burn)} ash, ${fmtChogi(toPool)} → pool)`;
+
+    document.getElementById('guessInput').value = '';
+    render();
+
+    // gentle scroll to stats so they see the pool grew
+    if(!guessAttempted){
+      document.querySelector('.stats').scrollIntoView({behavior:'smooth',block:'center'});
+      guessAttempted = true;
+    }
+  }
+
+  // initial paint
+  render();
+</script>
+
+</body>
+</html>
