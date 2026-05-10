@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0118">
+<title>The Pack · Chogi Fan Art Gallery</title>
+<meta name="description" content="Built by the community. Fan-made $CHOGI art from the pack.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Pack · Built by the community">
+<meta property="og:description" content="$CHOGI fan art gallery. Featuring @Prey3441 — Issue 01 · The Golden Pack.">
+<meta property="og:image" content="https://www.chogi.xyz/community/by-prey3441/01-casino.jpg">
+<meta property="og:url" content="https://www.chogi.xyz/pack">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.chogi.xyz/community/by-prey3441/01-casino.jpg">
+<link rel="icon" href="/chogi.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0a0118;
+  --ink-2:#160830;
+  --paper:#FFE9F4;
+  --paper-soft:#FFF4D6;
+  --paper-dim:rgba(255,233,244,.6);
+  --gold:#A855F7;
+  --gold-bright:#FF69B4;
+  --crimson:#FF1493;
+  --pink:#FF1493;
+  --comic-yellow:#FFE45A;
+  --comic-cream:#FFF8E1;
+  --orange:#FF8C00;
+  --green:#22C55E;
+  --display:'Bangers', sans-serif;
+  --hand:'Permanent Marker', cursive;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);overflow-x:hidden;font-family:var(--display);}
+body{
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,140,0,.10), transparent 55%),
+    radial-gradient(ellipse at 30% 80%, rgba(168,85,247,.08), transparent 60%),
+    var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+img,video{display:block;max-width:100%;height:auto;}
+a{color:inherit;}
+
+.halftone{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.10;mix-blend-mode:overlay;
+  background-image:radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px);
+  background-size:4px 4px;
+}
+
+/* ───────── PLATE ───────── */
+.plate{
+  position:relative;padding:18px 22px 14px;
+  border-bottom:3px solid var(--paper);
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:2.2px;
+  color:var(--paper-dim);text-transform:uppercase;background:var(--ink-2);
+}
+.plate b{color:var(--comic-yellow);font-weight:700;}
+.plate-mid{flex:1;text-align:center;display:none;}
+@media(min-width:720px){.plate-mid{display:block;}}
+
+/* ───────── COVER ───────── */
+.cover{
+  position:relative;padding:50px 16px 30px;text-align:center;
+  border-bottom:4px solid var(--paper);
+  background:repeating-linear-gradient(45deg,rgba(255,140,0,.04) 0 6px,transparent 6px 12px),var(--ink);
+}
+.cover .eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:6px;
+  color:var(--orange);text-transform:uppercase;margin-bottom:14px;
+}
+.cover h1{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(64px,16vw,160px);line-height:.9;letter-spacing:.01em;
+  margin:0 auto 18px;color:var(--paper);max-width:14ch;
+  transform:rotate(-2deg);
+  text-shadow:
+    -3px -3px 0 var(--ink), 3px -3px 0 var(--ink),
+    -3px 3px 0 var(--ink), 3px 3px 0 var(--ink),
+    6px 6px 0 var(--orange);
+}
+.cover h1 em{font-style:normal;color:var(--comic-yellow);display:inline-block;transform:rotate(3deg);}
+.cover .sub{
+  font-family:var(--hand);font-size:clamp(17px,4.2vw,22px);
+  color:var(--comic-cream);max-width:34ch;margin:14px auto 14px;line-height:1.4;
+}
+.cover .sub b{color:var(--orange);}
+
+/* ───────── ARTIST CREDIT BADGE ───────── */
+.artist-badge{
+  display:inline-flex;align-items:center;gap:12px;
+  margin:18px auto 0;padding:14px 20px;
+  background:var(--comic-yellow);
+  color:var(--ink);
+  border:3px solid var(--ink);
+  box-shadow:5px 5px 0 var(--crimson), 5px 5px 0 1px var(--ink);
+  text-decoration:none;
+  transition:all .15s ease;
+}
+.artist-badge:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--crimson), 7px 7px 0 1px var(--ink);}
+.artist-badge:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--crimson), 3px 3px 0 1px var(--ink);}
+.artist-badge .ab-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:2.5px;
+  text-transform:uppercase;display:block;margin-bottom:2px;
+}
+.artist-badge .ab-handle{
+  font-family:var(--display);font-size:clamp(20px,5vw,26px);
+  letter-spacing:1.5px;text-transform:uppercase;
+}
+
+/* ───────── ISSUE HEADER ───────── */
+.issue-header{
+  text-align:center;padding:40px 22px 24px;
+  background:var(--orange);color:var(--ink);
+  border-top:4px solid var(--ink);border-bottom:4px solid var(--ink);
+  box-shadow:0 0 0 4px var(--paper) inset;
+}
+.issue-header .eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:5px;
+  font-weight:700;text-transform:uppercase;margin-bottom:6px;
+}
+.issue-header h2{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(40px,9vw,72px);
+  color:var(--paper);margin:0 0 10px;letter-spacing:.02em;
+  transform:rotate(-1deg);
+  text-shadow:
+    -2px -2px 0 var(--ink), 2px -2px 0 var(--ink),
+    -2px 2px 0 var(--ink), 2px 2px 0 var(--ink),
+    5px 5px 0 var(--comic-yellow);
+}
+.issue-header .by{
+  font-family:var(--hand);font-size:clamp(15px,3.8vw,18px);
+  margin-top:4px;
+}
+.issue-header .by a{
+  color:var(--ink);text-decoration:none;
+  border-bottom:2px solid var(--ink);
+  font-family:var(--display);
+  letter-spacing:1.5px;font-size:1.1em;
+}
+
+/* ───────── VIDEO HERO ───────── */
+.video-wrap{
+  position:relative;
+  max-width:540px;
+  margin:30px auto;
+  border:4px solid var(--ink);
+  background:var(--ink);
+  box-shadow:8px 8px 0 var(--ink), 8px 8px 0 1px var(--paper);
+  overflow:hidden;
+}
+.video-wrap video{
+  width:100%;display:block;
+}
+.video-tag{
+  position:absolute;top:12px;right:12px;z-index:5;
+  background:var(--crimson);color:var(--paper);
+  font-family:var(--display);font-size:14px;letter-spacing:1.5px;
+  padding:6px 12px;text-transform:uppercase;
+  border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);
+  transform:rotate(4deg);pointer-events:none;
+}
+
+/* ───────── GALLERY GRID ───────── */
+.gallery-section{
+  padding:24px 16px 40px;
+  max-width:1200px;
+  margin:0 auto;
+}
+.gallery-section h3{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(24px,6vw,36px);
+  color:var(--comic-yellow);
+  text-align:center;margin:0 0 8px;letter-spacing:1.5px;
+  text-shadow:
+    -2px -2px 0 var(--ink), 2px -2px 0 var(--ink),
+    -2px 2px 0 var(--ink), 2px 2px 0 var(--ink),
+    4px 4px 0 var(--gold);
+}
+.gallery-section .gs-sub{
+  text-align:center;margin:0 auto 24px;
+  font-family:var(--hand);font-size:clamp(13px,3.4vw,16px);
+  color:var(--paper-soft);max-width:36ch;line-height:1.4;
+}
+
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+}
+.tile{
+  position:relative;
+  background:var(--ink-2);
+  border:3px solid var(--ink);
+  box-shadow:5px 5px 0 var(--gold);
+  transition:all .15s ease;
+  cursor:pointer;
+  overflow:hidden;
+}
+.tile:hover{transform:translate(-2px,-2px) rotate(-.5deg);box-shadow:7px 7px 0 var(--gold);}
+.tile:active{transform:translate(1px,1px);box-shadow:3px 3px 0 var(--gold);}
+.tile img{
+  width:100%;display:block;
+  aspect-ratio:3/4;object-fit:cover;
+  border-bottom:3px solid var(--ink);
+}
+.tile .tile-num{
+  position:absolute;top:8px;left:8px;z-index:3;
+  width:34px;height:34px;border-radius:50%;
+  background:var(--comic-yellow);color:var(--ink);
+  border:2.5px solid var(--ink);
+  font-family:var(--display);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--ink);
+}
+.tile .tile-cap{
+  padding:10px 12px 12px;
+  background:var(--paper);
+  color:var(--ink);
+}
+.tile .tile-cap strong{
+  display:block;
+  font-family:var(--display);font-size:15px;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:2px;
+}
+.tile .tile-cap em{
+  display:block;font-style:normal;
+  font-family:var(--hand);font-size:12px;line-height:1.3;
+}
+
+/* ───────── LIGHTBOX ───────── */
+.lightbox{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(10,1,24,.96);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;cursor:pointer;
+}
+.lightbox.open{display:flex;}
+.lightbox img{
+  max-width:100%;max-height:92vh;
+  border:4px solid var(--paper);
+  box-shadow:0 0 60px rgba(255,140,0,.4);
+}
+.lightbox-close{
+  position:absolute;top:14px;right:14px;
+  background:var(--crimson);color:var(--paper);
+  border:3px solid var(--paper);
+  font-family:var(--display);font-size:18px;letter-spacing:1.5px;
+  padding:8px 16px;text-transform:uppercase;cursor:pointer;
+}
+
+/* ───────── TIP / SHARE BLOCK ───────── */
+.tip-section{
+  padding:50px 24px 30px;text-align:center;
+  background:var(--gold);color:var(--paper);
+  border-top:4px solid var(--ink);border-bottom:4px solid var(--ink);
+  box-shadow:0 0 0 4px var(--paper) inset;
+}
+.tip-section .eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:5px;
+  color:var(--ink);text-transform:uppercase;margin-bottom:6px;font-weight:700;
+}
+.tip-section h3{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(32px,7vw,52px);
+  color:var(--comic-yellow);margin:0 0 10px;letter-spacing:.02em;
+  transform:rotate(-1deg);
+  text-shadow:
+    -2px -2px 0 var(--ink), 2px -2px 0 var(--ink),
+    -2px 2px 0 var(--ink), 2px 2px 0 var(--ink),
+    5px 5px 0 var(--paper);
+}
+.tip-section p{
+  font-family:var(--hand);font-size:clamp(15px,3.8vw,18px);
+  color:var(--paper);max-width:36ch;margin:14px auto 22px;line-height:1.4;
+}
+.tip-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.tip-btn{
+  padding:13px 18px;
+  font-family:var(--display);font-size:14px;letter-spacing:1.5px;
+  text-decoration:none;
+  border:2.5px solid var(--ink);
+  color:var(--ink);background:var(--paper);
+  box-shadow:4px 4px 0 var(--ink);transition:all .15s ease;text-transform:uppercase;
+}
+.tip-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);}
+.tip-btn:active{transform:translate(1px,1px);box-shadow:2px 2px 0 var(--ink);}
+.tip-btn.crimson{background:var(--crimson);color:var(--paper);}
+.tip-btn.yellow{background:var(--comic-yellow);}
+
+/* ───────── CTA TO SUBMIT ───────── */
+.submit-section{
+  padding:40px 24px 50px;text-align:center;
+}
+.submit-section h3{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(28px,6vw,40px);
+  color:var(--comic-yellow);margin:0 0 10px;letter-spacing:1.5px;
+  transform:rotate(-1deg);
+  text-shadow:
+    -2px -2px 0 var(--ink), 2px -2px 0 var(--ink),
+    -2px 2px 0 var(--ink), 2px 2px 0 var(--ink),
+    4px 4px 0 var(--gold);
+}
+.submit-section p{
+  font-family:var(--hand);font-size:clamp(14px,3.5vw,17px);
+  color:var(--paper-soft);max-width:38ch;margin:0 auto 18px;line-height:1.4;
+}
+
+/* ───────── COLOPHON ───────── */
+.colophon{padding:30px 22px 46px;text-align:center;background:var(--ink);font-family:var(--mono);font-size:10px;letter-spacing:2.5px;color:var(--paper-dim);text-transform:uppercase;line-height:2;border-top:2px solid var(--ink-2);}
+.colophon a{color:var(--paper-dim);text-decoration:none;border-bottom:1px dotted rgba(168,85,247,.45);}
+.colophon a:hover{color:var(--orange);}
+.colophon b{color:var(--orange);}
+
+@media(max-width:540px){
+  .gallery{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .video-wrap{box-shadow:5px 5px 0 var(--ink), 5px 5px 0 1px var(--paper);}
+  .tile .tile-cap strong{font-size:13px;}
+  .tile .tile-cap em{font-size:11px;}
+  .tile .tile-num{width:28px;height:28px;font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<div class="halftone"></div>
+
+<header class="plate">
+  <div>THE <b>PACK</b></div>
+  <div class="plate-mid">$CHOGI · BUILT BY THE COMMUNITY · MMXXVI</div>
+  <div>FAN ART · <b>LIVE</b></div>
+</header>
+
+<section class="cover">
+  <div class="eyebrow">★ Community Gallery ★</div>
+  <h1>The <em>Pack</em></h1>
+  <p class="sub">Built by holders. Made for the lab.<br><b>This is what the pack does unprompted.</b></p>
+</section>
+
+<!-- ───────── ISSUE 01 ───────── -->
+<section class="issue-header">
+  <div class="eyebrow">— Pack Drop № 01 —</div>
+  <h2>The Golden Pack</h2>
+  <p class="by">By <a href="https://t.me/Prey3441" target="_blank" rel="noopener">@Prey3441</a> · TG</p>
+</section>
+
+<!-- ───────── VIDEO HERO ───────── -->
+<div class="video-wrap">
+  <span class="video-tag">80 sec · 10 scenes</span>
+  <video
+    controls
+    playsinline
+    poster="/community/by-prey3441/golden-pack-poster.jpg"
+    preload="metadata">
+    <source src="/community/by-prey3441/golden-pack-mobile.mp4" type="video/mp4" media="(max-width: 720px)">
+    <source src="/community/by-prey3441/golden-pack-web.mp4" type="video/mp4">
+    Your browser doesn't support inline video.
+  </video>
+</div>
+
+<!-- ───────── GALLERY ───────── -->
+<section class="gallery-section">
+  <h3>★ Stills from the Pack ★</h3>
+  <p class="gs-sub">Tap any tile to view full-size. Every frame here is from @Prey3441's video above.</p>
+
+  <div class="gallery">
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/01-casino.jpg')">
+      <span class="tile-num">1</span>
+      <img src="/community/by-prey3441/01-casino.jpg" alt="Chogi at a craps table with crypto mascots in suits.">
+      <div class="tile-cap"><strong>The Casino</strong><em>"Fortune favors the bold."</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/02-bathtub-gold.jpg')">
+      <span class="tile-num">2</span>
+      <img src="/community/by-prey3441/02-bathtub-gold.jpg" alt="Chogi in a bathtub of gold and jewels with a pipe.">
+      <div class="tile-cap"><strong>The Bathtub</strong><em>"I don't chase wealth. I attract it."</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/03-chemistry-lab.jpg')">
+      <span class="tile-num">3</span>
+      <img src="/community/by-prey3441/03-chemistry-lab.jpg" alt="Chogi as a chemist pouring potions in a lab.">
+      <div class="tile-cap"><strong>The Lab</strong><em>Chogi runs the chemistry.</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/04-skateboard-moon.jpg')">
+      <span class="tile-num">4</span>
+      <img src="/community/by-prey3441/04-skateboard-moon.jpg" alt="Chogi skateboarding on a green chart to the moon.">
+      <div class="tile-cap"><strong>To the Moon</strong><em>$0.069420 · MC $420,690,000</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/05-elite-summit.jpg')">
+      <span class="tile-num">5</span>
+      <img src="/community/by-prey3441/05-elite-summit.jpg" alt="Chogi giving a pitch at Crypto Elite Summit.">
+      <div class="tile-cap"><strong>The Summit</strong><em>"This isn't just a meme. It's a movement."</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/06-jeets-chase.jpg')">
+      <span class="tile-num">6</span>
+      <img src="/community/by-prey3441/06-jeets-chase.jpg" alt="Giant Chogi chasing a JEETS bear down a city street.">
+      <div class="tile-cap"><strong>JEETS Patrol</strong><em>+36.87% · Bears get sent.</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/07-private-jet.jpg')">
+      <span class="tile-num">7</span>
+      <img src="/community/by-prey3441/07-private-jet.jpg" alt="Chogi in a private jet with a briefcase of cash.">
+      <div class="tile-cap"><strong>The Jet</strong><em>Briefcase says it all.</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/08-lowrider.jpg')">
+      <span class="tile-num">8</span>
+      <img src="/community/by-prey3441/08-lowrider.jpg" alt="Chogi in a purple lowrider Impala convertible at sunset.">
+      <div class="tile-cap"><strong>The Lowrider</strong><em>Sunset cruise. Gold rims. Purple paint.</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/09-boxing-ko.jpg')">
+      <span class="tile-num">9</span>
+      <img src="/community/by-prey3441/09-boxing-ko.jpg" alt="Chogi in a boxing ring after KO win round 7.">
+      <div class="tile-cap"><strong>The KO</strong><em>"Winner by KO — Round 7."</em></div>
+    </div>
+
+    <div class="tile" onclick="openLightbox('/community/by-prey3441/10-throne-realm.jpg')">
+      <span class="tile-num">10</span>
+      <img src="/community/by-prey3441/10-throne-realm.jpg" alt="Chogi on a throne with crypto coins kneeling at her feet.">
+      <div class="tile-cap"><strong>Ruler of the Realm</strong><em>BTC, ETH, DOGE, SOL, PEPE — all bowing.</em></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── TIP / HYPE THE ARTIST ───────── -->
+<section class="tip-section">
+  <div class="eyebrow">— Tip the Artist —</div>
+  <h3>Hype @Prey3441</h3>
+  <p>This was made unprompted, for the pack. If you fuck with it — say it, share it, send some $CHOGI their way.</p>
+
+  <div class="tip-row">
+    <a class="tip-btn yellow" href="https://t.me/Prey3441" target="_blank" rel="noopener">💬 DM on Telegram</a>
+    <a class="tip-btn crimson" href="https://x.com/intent/tweet?text=The%20pack%20made%20this.%20Built%20by%20the%20community.%20%24CHOGI%20chogi.xyz%2Fpack%20by%20%40Prey3441%20on%20TG%20%F0%9F%94%A5" target="_blank" rel="noopener">🐦 Share on X</a>
+    <a class="tip-btn" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener">🛒 Buy $CHOGI</a>
+  </div>
+</section>
+
+<!-- ───────── SUBMIT YOUR OWN ───────── -->
+<section class="submit-section">
+  <h3>★ Made something for the pack? ★</h3>
+  <p>Post it in the Telegram. The pack always sees. Best pack drops get featured here.</p>
+  <a class="tip-btn" href="https://t.me/chogicto" target="_blank" rel="noopener" style="background:var(--orange);color:var(--ink);">▸ Drop it in TG</a>
+</section>
+
+<footer class="colophon">
+  <div>$CHOGI · <b>THE PACK</b> · BUILT BY THE COMMUNITY · MMXXVI</div>
+  <div>FAN ART BY <a href="https://t.me/Prey3441" target="_blank" rel="noopener">@PREY3441</a> · MORE COMING SOON</div>
+  <div><a href="/comic">◂ Issue 01</a> · <a href="/comic-2">◂ Issue 02</a> · <a href="/reservoir">◂ Reservoir</a> · <a href="/">▲ Home</a></div>
+</footer>
+
+<!-- ───────── LIGHTBOX ───────── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="event.stopPropagation();closeLightbox()">✕ Close</button>
+  <img id="lightboxImg" src="" alt="Full-size view">
+</div>
+
+<script>
+  function openLightbox(src){
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape') closeLightbox();
+  });
+</script>
+
+</body>
+</html>
