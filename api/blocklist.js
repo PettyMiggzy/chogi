@@ -35,6 +35,12 @@ const BLOCKED_LIST = [
     label:     'KILLA-4',
     reason:    'Associated wallet',
     flaggedAt: '2026-04-28'
+  },
+  {
+    addr:      '0x63fc704d559023a2ddb04717f6997cc98445626a',
+    label:     'FLAGGED',
+    reason:    'Flagged by admin',
+    flaggedAt: '2026-05-10'
   }
 ];
 
