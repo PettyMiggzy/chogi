@@ -1091,28 +1091,67 @@ let CROSS = loadCross(); // array of {address, scanned_at, balances:[{addr,bal,u
 
 async function scanWallet(addr){
   if (!isAddr(addr)) throw new Error('bad address');
-  // make sure market is fresh
-  if (Object.keys(MARKET).length === 0) await refreshBreach();
-  const balances = await getBalances(TOKENS, addr);
-  const result = balances.map(b => {
-    const m = MARKET[lc(b.token.address)] || {};
-    const balFloat = bigToFloat(b.balance, b.token.decimals);
-    const usdVal = (m.price && balFloat) ? balFloat * m.price : 0;
+  // Monorail returns the wallet's FULL portfolio in one call — every token they hold
+  // with live USD prices, not limited to a seed list. Fall back to on-chain if it fails.
+  try{
+    const r = await fetch(`https://api.monorail.xyz/v2/wallet/${addr}/balances`);
+    if (!r.ok) throw new Error('monorail '+r.status);
+    const items = await r.json();
+    if (!Array.isArray(items)) throw new Error('monorail bad shape');
+
+    const result = items.map(t => {
+      const bal   = parseFloat(t.balance || '0') || 0;
+      const price = parseFloat(t.usd_per_token || '0') || 0;
+      const monPx = parseFloat(t.mon_per_token || '0') || 0;
+      return {
+        addr: t.address,
+        sym:  t.symbol || '?',
+        name: t.name || '',
+        bal,
+        usd:  bal * price,
+        price,
+        mon_price: monPx,
+        cats: t.categories || [],
+        img:  t.image_uri || '',
+      };
+    })
+    .filter(r => r.bal > 0)               // only show actual holdings
+    .sort((a,b) => b.usd - a.usd);        // biggest USD first
+
     return {
-      addr: b.token.address,
-      sym:  b.token.symbol,
-      bal:  balFloat,
-      usd:  usdVal,
-      price: m.price || 0,
+      address: addr,
+      scanned_at: Date.now(),
+      balances: result,
+      diversity: result.length,
+      total_usd: result.reduce((s,r)=>s+r.usd, 0),
+      source: 'monorail',
     };
-  });
-  return {
-    address: addr,
-    scanned_at: Date.now(),
-    balances: result,
-    diversity: result.filter(r => r.bal > 0).length,
-    total_usd: result.reduce((s,r)=>s+r.usd,0)
-  };
+  }catch(e){
+    console.warn('[scanWallet] monorail failed, falling back to on-chain seed scan:', e.message);
+    // legacy on-chain fallback (seed list only) — kept so the tab still works if Monorail is down
+    if (Object.keys(MARKET).length === 0) await refreshBreach();
+    const balances = await getBalances(TOKENS, addr);
+    const result = balances.map(b => {
+      const m = MARKET[lc(b.token.address)] || {};
+      const balFloat = bigToFloat(b.balance, b.token.decimals);
+      const usdVal = (m.price && balFloat) ? balFloat * m.price : 0;
+      return {
+        addr: b.token.address,
+        sym:  b.token.symbol,
+        bal:  balFloat,
+        usd:  usdVal,
+        price: m.price || 0,
+      };
+    });
+    return {
+      address: addr,
+      scanned_at: Date.now(),
+      balances: result,
+      diversity: result.filter(r => r.bal > 0).length,
+      total_usd: result.reduce((s,r)=>s+r.usd,0),
+      source: 'on-chain (fallback)',
+    };
+  }
 }
 
 function renderCross(){
@@ -1236,14 +1275,20 @@ function renderPack(){
 
 /* ── SHARED WALLET CARD ──────────────────────────────────── */
 function walletCardHtml(w, ns){
-  const empty = !w.balances || !w.balances.length;
-  const totalUsd = w.balances ? w.balances.reduce((s,b)=>s+(b.usd||0),0) : 0;
-  const diversity = w.balances ? w.balances.filter(b=>b.bal>0).length : 0;
-  const div10 = TOKENS.length ? Math.min(10, Math.round(10*diversity/TOKENS.length)) : 0;
+  const balances = w.balances || [];
+  const hasArr   = !!w.balances;
+  const scanned  = !!w.scanned_at;
+  const totalUsd = balances.reduce((s,b)=>s+(b.usd||0),0);
+  const diversity = balances.filter(b=>b.bal>0).length;
+  // Holding 30+ memes = full diversity 10/10 (used to be seed-list ratio)
+  const div10 = Math.min(10, Math.round(10*diversity/30));
   const explorer = `${CFG.EXPLORER||'https://monadexplorer.com'}/address/${w.address}`;
-  const holds = empty
+  const sourceTag = w.source ? ` · ${w.source}` : '';
+  const holds = !hasArr
     ? `<div class="empty" style="padding:18px;">…scanning balances…</div>`
-    : `<div class="holdings">${w.balances.map(b=>{
+    : balances.length === 0
+    ? `<div class="empty" style="padding:18px;">no Monad token holdings</div>`
+    : `<div class="holdings">${balances.map(b=>{
         const hasBal = b.bal > 0;
         return `<div class="hold ${hasBal?'':'empty-h'}">
           <div class="tkr">$${b.sym}</div>
@@ -1255,7 +1300,7 @@ function walletCardHtml(w, ns){
     <div class="wallet-head">
       <div>
         <div class="wallet-addr"><span class="short">${short(w.address)}</span></div>
-        <div class="wallet-meta">${w.scanned_at ? 'scanned '+timeAgo(w.scanned_at) : 'pending…'} · total ≈ $${num(totalUsd,2)}</div>
+        <div class="wallet-meta">${scanned ? 'scanned '+timeAgo(w.scanned_at) : 'pending…'} · total ≈ $${num(totalUsd,2)}${sourceTag}</div>
       </div>
       <div class="diversity">DIVERSITY <span class="num">${div10}/10</span></div>
     </div>
