@@ -346,7 +346,14 @@ let recheckTimer = null;
 async function connectAndVerify(){
   showErr('');
   if (!window.ethereum){
-    showErr('No wallet detected. Open this page inside MetaMask, Rabby, Phantom, or Trust Wallet.');
+    // On mobile (Safari/Chrome), there's no window.ethereum. Open the
+    // wallet-helper modal which deep-links into MetaMask/Rabby/Phantom/Trust
+    // in-app browsers where window.ethereum DOES exist.
+    if (window.ChogiWallet && typeof window.ChogiWallet.requireWallet === 'function'){
+      window.ChogiWallet.requireWallet();
+    } else {
+      showErr('No wallet detected. Open this page inside MetaMask, Rabby, Phantom, or Trust Wallet.');
+    }
     return;
   }
   const btn = document.getElementById('cg-connect');

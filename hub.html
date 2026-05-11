@@ -581,6 +581,19 @@ body::after{
   letter-spacing:.4px;line-height:1.3;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.trend-sentinel{
+  grid-column:1/-1;
+  padding:24px 12px;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:var(--mute);
+  background:rgba(8,0,18,.4);border:1px dashed rgba(255,20,147,.18);
+  border-radius:12px;
+  animation:sentinelPulse 1.4s ease-in-out infinite;
+}
+@keyframes sentinelPulse{
+  0%,100%{opacity:.5;}
+  50%{opacity:1;color:#fff;}
+}
 .lnch-card{
   background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
   padding:12px;display:flex;flex-direction:column;gap:10px;
@@ -1009,6 +1022,7 @@ body::after{
   </div>
 </div>
 
+<script src="/js/wallet-helper.js"></script>
 <script src="/js/config.js"></script>
 <script src="/js/hub-gate.js"></script>
 <script>
@@ -1854,7 +1868,7 @@ function bindTabs(){
 }
 
 /* ── TRENDING (Monorail memes catalog) ────────────────────── */
-const TREND = { rows: [], sort: 'price', search: '', enriched: new Map() };
+const TREND = { rows: [], sort: 'price', search: '', enriched: new Map(), visible: 30, observer: null };
 
 async function fetchTrending(){
   try{
@@ -1885,9 +1899,9 @@ async function fetchTrending(){
   }
 }
 
-// Fetch /v2/token/{addr} for top 30 in parallel, fill holders/mcap/image
+// Fetch /v2/token/{addr} for currently visible cards in parallel
 async function enrichTopTrending(){
-  const rows = sortedTrending().slice(0, 30);
+  const rows = sortedTrending().slice(0, TREND.visible);
   const fetches = rows.map(async r => {
     if (TREND.enriched.has(r.address)) return;
     try{
@@ -1901,7 +1915,7 @@ async function enrichTopTrending(){
     }catch(e){}
   });
   await Promise.allSettled(fetches);
-  renderTrending();  // re-render with enriched data
+  renderTrending();
 }
 
 function sortedTrending(){
@@ -1938,9 +1952,9 @@ function renderTrending(){
   const grid = $('#trendingGrid');
   if (!grid) return;
   const rows = sortedTrending();
-  const visible = rows.slice(0, 60);
+  const visible = rows.slice(0, TREND.visible);
 
-  $('#trendingCount').textContent = rows.length + ' / ' + TREND.rows.length + ' memes';
+  $('#trendingCount').textContent = visible.length + ' / ' + rows.length + ' memes';
 
   if (!visible.length){
     grid.innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;">no memes matched.</div>`;
@@ -1975,6 +1989,28 @@ function renderTrending(){
         </div>
       </a>`;
   }).join('');
+
+  // Sentinel for infinite scroll — appears at bottom while there are still
+  // more rows to reveal. IntersectionObserver fires when it scrolls into view.
+  if (visible.length < rows.length){
+    grid.insertAdjacentHTML('beforeend', `<div id="trendingSentinel" class="trend-sentinel">⟳ loading more memes…</div>`);
+    setupTrendSentinel();
+  }
+}
+
+function setupTrendSentinel(){
+  const s = document.getElementById('trendingSentinel');
+  if (!s || !('IntersectionObserver' in window)) return;
+  if (TREND.observer) TREND.observer.disconnect();
+  TREND.observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting){
+      TREND.observer.disconnect();
+      TREND.visible = Math.min(TREND.visible + 30, sortedTrending().length);
+      renderTrending();
+      enrichTopTrending();  // fetch detail for the newly-revealed batch
+    }
+  }, { rootMargin: '300px' });
+  TREND.observer.observe(s);
 }
 
 function bindTrending(){
@@ -1983,8 +2019,9 @@ function bindTrending(){
     btn.onclick = ()=>{
       $$('.trending-sort').forEach(b=>b.classList.toggle('active', b===btn));
       TREND.sort = btn.dataset.sort;
+      TREND.visible = 30;  // reset pagination when sort changes
       renderTrending();
-      enrichTopTrending();  // fetch details for the new top-30 visible
+      enrichTopTrending();
     };
   });
   // search
@@ -1993,7 +2030,11 @@ function bindTrending(){
     let t = null;
     sb.addEventListener('input', ()=>{
       clearTimeout(t);
-      t = setTimeout(()=>{ TREND.search = sb.value || ''; renderTrending(); }, 150);
+      t = setTimeout(()=>{
+        TREND.search = sb.value || '';
+        TREND.visible = 30;  // reset pagination when search changes
+        renderTrending();
+      }, 150);
     });
   }
 }
