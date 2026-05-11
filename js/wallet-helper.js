@@ -41,7 +41,7 @@
     var s = document.createElement('style');
     s.id = 'chogi-wallet-style';
     s.textContent =
-      '#chogi-wallet-modal{position:fixed;inset:0;z-index:99999;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:0;}'+
+      '#chogi-wallet-modal{position:fixed;inset:0;z-index:2147483647;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:0;}'+
       '#chogi-wallet-modal.show{display:flex;}'+
       '#chogi-wallet-sheet{width:100%;max-width:560px;background:linear-gradient(180deg,#1a0436,#0a0118);border:1.5px solid rgba(255,20,147,.5);border-bottom:0;border-radius:22px 22px 0 0;padding:22px 20px max(28px,env(safe-area-inset-bottom)) 20px;box-shadow:0 -16px 60px rgba(0,0,0,.6),0 0 36px rgba(255,20,147,.18);font-family:system-ui,sans-serif;color:#FFE9F4;animation:chogiSheetUp .28s cubic-bezier(.2,.9,.2,1);}'+
       '@keyframes chogiSheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}'+
