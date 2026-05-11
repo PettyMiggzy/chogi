@@ -64,6 +64,33 @@ async function rpcCall(method, params){
 }
 async function ethCall(to, data){ return rpcCall('eth_call', [{to, data}, 'latest']); }
 
+// ────── nad.fun LENS fallback (for pre-grad bonding-curve tokens) ──────
+const NADFUN_LENS = '0x7e78A8DE94f21804F7a17F4E8BF9EC2c872187ea';
+const lensIface = new ethers.Interface([
+  'function getAmountOut(address _token, uint256 _amountIn, bool _isBuy) view returns (address router, uint256 amountOut)',
+  'function isGraduated(address _token) view returns (bool)',
+]);
+const nadRouterIface = new ethers.Interface([
+  'function buy((uint256 amountOutMin,address token,address to,uint256 deadline) params) payable returns (uint256)',
+  'function sell((uint256 amountIn,uint256 amountOutMin,address token,address to,uint256 deadline) params) returns (uint256)',
+]);
+
+function parseUnitsBig(numStr, decimals){
+  const s = String(numStr).trim();
+  const [w='0', f=''] = s.split('.');
+  const fPad = (f + '0'.repeat(decimals)).slice(0, decimals);
+  return BigInt(w) * (10n**BigInt(decimals)) + BigInt(fPad || 0);
+}
+
+async function nadfunQuote(token, amountWei, isBuy){
+  const data = lensIface.encodeFunctionData('getAmountOut', [token, amountWei, isBuy]);
+  const res = await ethCall(NADFUN_LENS, data);
+  if (!res || res === '0x') throw new Error('nad.fun: token not indexed');
+  const [router, amount] = lensIface.decodeFunctionResult('getAmountOut', res);
+  if (!amount || amount === 0n) throw new Error('nad.fun: zero output');
+  return { router, amount };
+}
+
 // ────── Monorail quote ──────
 async function monorailQuote({from, to, amount, sender, slippageBps, deadlineSec}){
   // amount = HUMAN-READABLE decimal string (e.g. "1.5") — Monorail handles wei conversion
@@ -87,6 +114,56 @@ async function monorailQuote({from, to, amount, sender, slippageBps, deadlineSec
     throw new Error(j.message);  // e.g. "no valid routes found"
   }
   return j;
+}
+
+// ────── ROUTE PICKER — Monorail primary, nad.fun LENS fallback ──────
+// nad.fun LENS handles pre-grad bonding-curve tokens that Monorail can't see yet.
+// Monorail handles everything else (universal: Capricorn, Kuru, Crystal, etc).
+async function quoteRoute({from, to, amount, sender, slippageBps}){
+  // First: Monorail (covers graduated tokens + cross-DEX aggregation)
+  try{
+    const q = await monorailQuote({from, to, amount, sender, slippageBps});
+    q._source = 'monorail';
+    return q;
+  }catch(monoErr){
+    // Fallback: nad.fun LENS for pre-grad curve tokens
+    const isBuy = (from === NATIVE_ZERO || !from);
+    const tokenAddr = isBuy ? to : from;
+    const amountWei = parseUnitsBig(amount, 18);
+    let lensQ;
+    try{
+      lensQ = await nadfunQuote(tokenAddr, amountWei, isBuy);
+    }catch(nadErr){
+      throw monoErr;  // surface Monorail's error (usually more informative)
+    }
+    // Synthesize a Monorail-shaped response so callers don't need to branch
+    const minOut = lensQ.amount - (lensQ.amount * BigInt(slippageBps || 100)) / 10000n;
+    const deadline = BigInt(Math.floor(Date.now()/1000) + 1200);
+    const data = isBuy
+      ? nadRouterIface.encodeFunctionData('buy',  [{amountOutMin: minOut, token: tokenAddr, to: sender, deadline}])
+      : nadRouterIface.encodeFunctionData('sell', [{amountIn: amountWei, amountOutMin: minOut, token: tokenAddr, to: sender, deadline}]);
+    return {
+      _source: 'nadfun',
+      input: amountWei.toString(),
+      input_formatted: String(amount),
+      output: lensQ.amount.toString(),
+      output_formatted: ethers.formatUnits(lensQ.amount, 18),
+      min_output: minOut.toString(),
+      min_output_formatted: ethers.formatUnits(minOut, 18),
+      compound_impact: '0',  // LENS doesn't surface impact data
+      gas_estimate: 250000,
+      routes: [[{
+        from_symbol: isBuy ? 'MON' : 'TOKEN',
+        to_symbol:   isBuy ? 'TOKEN' : 'MON',
+        splits: [{ protocol: 'nad.fun', fee: '1.000', percentage: '100', price_impact: '0' }]
+      }]],
+      transaction: {
+        to: lensQ.router,
+        data: data,
+        value: isBuy ? '0x' + amountWei.toString(16) : '0x0',
+      },
+    };
+  }
 }
 
 // ────── Token reads ──────
@@ -215,16 +292,16 @@ function explainRevert(err){
   return m || 'Unknown error';
 }
 
-// ────── BUY via Monorail (native MON → token) ──────
+// ────── BUY (native MON → token) ──────
 async function executeBuy({token, amountHuman, slippageBps, account}){
-  const q = await monorailQuote({
+  const q = await quoteRoute({
     from: NATIVE_ZERO,
     to: token,
     amount: amountHuman,
     sender: account,
     slippageBps,
   });
-  if (!q.transaction) throw new Error('No transaction returned from Monorail');
+  if (!q.transaction) throw new Error('No transaction returned');
   const sim = await simulateCall(q.transaction.to, q.transaction.data, account, q.transaction.value);
   if (!sim.ok) throw new Error(explainRevert(sim.error));
   const txHash = await sendTx({
@@ -236,16 +313,16 @@ async function executeBuy({token, amountHuman, slippageBps, account}){
   return { txHash, quote: q };
 }
 
-// ────── SELL via Monorail (token → native MON) ──────
+// ────── SELL (token → native MON) ──────
 async function executeSell({token, amountHuman, slippageBps, account, onApproveStarted, onApproveConfirmed}){
-  const q = await monorailQuote({
+  const q = await quoteRoute({
     from: token,
     to: NATIVE_ZERO,
     amount: amountHuman,
     sender: account,
     slippageBps,
   });
-  if (!q.transaction) throw new Error('No transaction returned from Monorail');
+  if (!q.transaction) throw new Error('No transaction returned');
 
   // Sells require token approval to Monorail's router
   const spender = q.transaction.to;
@@ -287,7 +364,7 @@ async function searchTokens(query){
 
 window.ChogiTrade = {
   CHAIN_ID, CHAIN_HEX, EXPLORER, NATIVE_ZERO, MONORAIL,
-  monorailQuote, searchTokens,
+  monorailQuote, quoteRoute, nadfunQuote, searchTokens,
   connect, isConnected, ensureMonadChain,
   tokenBalance, tokenAllowance, nativeBalance, tokenInfo,
   executeBuy, executeSell, waitReceipt,

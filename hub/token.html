@@ -255,7 +255,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
 
           <div class="tx-status" id="txStatus"></div>
 
-          <div class="disclaim">Universal Monad swap — powered by <a href="https://monorail.xyz" target="_blank" rel="noopener" style="color:#FF1493;text-decoration:none;">Monorail</a> aggregator. Routes across Capricorn, Kuru, Crystal, Clober, Octoswap, Atlantis, Uniswap V3 and more for best price. Pre-flight simulation prevents wasted gas.</div>
+          <div class="disclaim">Hybrid routing — <a href="https://monorail.xyz" target="_blank" rel="noopener" style="color:#FF1493;text-decoration:none;">Monorail</a> aggregator (Capricorn / Kuru / Crystal / Octoswap / Atlantis / Uniswap V3) with <a href="https://nad.fun" target="_blank" rel="noopener" style="color:#FF1493;text-decoration:none;">nad.fun</a> bonding-curve fallback for pre-grad tokens. Pre-flight sim prevents wasted gas.</div>
         </div>
       </div>
 
@@ -563,7 +563,7 @@ async function doQuote(){
   try{
     const isBuy = STATE.side === 'buy';
     const slpBps = Math.round(STATE.slippage * 100);
-    const q = await ChogiTrade.monorailQuote({
+    const q = await ChogiTrade.quoteRoute({
       from: isBuy ? ChogiTrade.NATIVE_ZERO : ADDR,
       to:   isBuy ? ADDR : ChogiTrade.NATIVE_ZERO,
       amount: String(num),
@@ -574,12 +574,13 @@ async function doQuote(){
     const out = parseFloat(q.output_formatted) || 0;
     const sym = isBuy ? '$'+STATE.symbol : 'MON';
     $('#quoteOut').textContent = fmt(out, 6) + ' ' + sym;
-    // route info
+    // route info — show which path was used (Monorail or nad.fun fallback)
     const r0 = (q.routes && q.routes[0] && q.routes[0][0]) || null;
     const proto = r0 && r0.splits && r0.splits[0] && r0.splits[0].protocol;
+    const sourceTag = q._source === 'nadfun' ? '🚀 nad.fun curve' : (proto ? `via ${proto}` : '');
     const impact = parseFloat(q.compound_impact || 0) * 100;
     let extra = '';
-    if (proto) extra += ` · via ${proto}`;
+    if (sourceTag) extra += ` · ${sourceTag}`;
     if (impact >= 3) extra += ` · ⚠ ${impact.toFixed(2)}% impact`;
     // USD estimate
     const mi = STATE.token.market_info || {};
