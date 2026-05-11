@@ -96,7 +96,7 @@ body::after{
 }
 .ticker-strip{
   display:flex;gap:32px;white-space:nowrap;
-  animation:tickerScroll 40s linear infinite;
+  animation:tickerScroll 20s linear infinite;
   font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.5px;
   will-change:transform;
 }
@@ -333,6 +333,111 @@ body::after{
 .overlap td.self{background:rgba(168,85,247,.1);color:var(--mute);}
 .overlap td.match{font-weight:700;}
 
+/* ─── LAUNCHES ─── */
+.lnch-toolbar{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;
+  margin-bottom:14px;
+}
+.lnch-pillrow{display:flex;gap:6px;flex-wrap:wrap;}
+.lnch-pill{
+  padding:8px 12px;cursor:pointer;
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;font-weight:700;
+  color:var(--mute);transition:all .15s;
+}
+.lnch-pill:hover{color:#fff;border-color:var(--pink);}
+.lnch-pill.active{
+  background:linear-gradient(135deg,rgba(255,20,147,.22),rgba(168,85,247,.16));
+  color:#fff;border-color:var(--pink);
+  box-shadow:0 0 14px rgba(255,20,147,.22);
+}
+.lnch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.lnch-card{
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
+  padding:14px;display:flex;flex-direction:column;gap:10px;
+  transition:all .18s;position:relative;overflow:hidden;
+}
+.lnch-card:hover{border-color:var(--pink);transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(255,20,147,.18);}
+.lnch-card.cto-flag::before{
+  content:'CTO';position:absolute;top:8px;right:8px;
+  background:linear-gradient(135deg,#FFD55A,#FF1493);
+  color:#000;font-family:'Bungee',sans-serif;font-size:8px;letter-spacing:1.5px;
+  padding:2px 7px;border-radius:5px;z-index:2;
+}
+.lnch-head{display:flex;gap:10px;align-items:center;}
+.lnch-logo{
+  width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#FF1493,#A855F7);
+  object-fit:cover;border:1.5px solid rgba(255,20,147,.4);
+}
+.lnch-meta{flex:1;min-width:0;}
+.lnch-symbol{
+  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:1.5px;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lnch-name{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);
+  letter-spacing:.3px;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lnch-status{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:5px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;font-weight:700;
+}
+.lnch-status.curve{background:rgba(255,170,51,.14);color:var(--amber);border:1px solid rgba(255,170,51,.4);}
+.lnch-status.dex{background:rgba(34,211,111,.14);color:var(--green);border:1px solid rgba(34,211,111,.4);}
+.lnch-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+}
+.lnch-stat{
+  background:rgba(8,0,18,.55);border:1px solid rgba(255,20,147,.1);
+  border-radius:6px;padding:7px 9px;
+}
+.lnch-stat .lbl{font-size:8px;color:var(--mute);letter-spacing:1px;}
+.lnch-stat .val{color:#fff;font-weight:700;margin-top:2px;font-size:12px;}
+.lnch-desc{
+  font-size:10px;color:var(--mute);line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.lnch-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.lnch-actions .buy{
+  flex:1;text-align:center;text-decoration:none;
+  padding:9px;border-radius:7px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;font-family:'Bungee',sans-serif;font-size:10px;letter-spacing:1.5px;
+  box-shadow:0 0 14px rgba(255,20,147,.3);
+}
+.lnch-actions .buy:hover{transform:translateY(-1px);}
+.lnch-actions .chart{
+  padding:9px 11px;border-radius:7px;text-decoration:none;
+  background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);
+  color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+}
+.lnch-actions .chart:hover{background:rgba(34,211,238,.25);color:#fff;}
+.lnch-actions .soc{
+  width:28px;height:28px;border-radius:6px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(8,0,18,.6);border:1px solid rgba(255,255,255,.08);
+  text-decoration:none;font-size:12px;
+}
+.lnch-actions .soc:hover{border-color:var(--pink);}
+.lnch-foot{
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);
+  letter-spacing:.5px;
+}
+.lnch-loadwrap{
+  display:flex;gap:10px;justify-content:center;margin-top:18px;
+}
+@media (max-width:720px){
+  .lnch-grid{grid-template-columns:1fr;}
+  .lnch-toolbar{flex-direction:column;}
+}
+
 /* ─── FOOTER ─── */
 .footer{
   max-width:1180px;margin:30px auto;padding:18px;
@@ -412,6 +517,7 @@ body::after{
 <!-- TAB BAR -->
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="breach"><span class="ic">📡</span>BREACH MONITOR</button>
+  <button class="tab-btn" data-tab="launches"><span class="ic">🚀</span>LAUNCHES</button>
   <button class="tab-btn" data-tab="cross"><span class="ic">🗺️</span>CROSS-MAP</button>
   <button class="tab-btn" data-tab="pack"><span class="ic">👁</span>SUBJECT WATCH</button>
 </div>
@@ -488,6 +594,37 @@ body::after{
   </div>
 
   <div id="packList"></div>
+</section>
+
+<!-- TAB: LAUNCHES (nad.fun) -->
+<section class="tab-panel" id="tab-launches">
+  <div class="tab-head">
+    <div>
+      <div class="tab-title">🚀 LAUNCHES</div>
+      <div class="tab-sub">live token feed from nad.fun · pre-grad bonding curves + graduated DEX pairs</div>
+    </div>
+  </div>
+
+  <div class="lnch-toolbar">
+    <div class="lnch-pillrow" data-group="sort">
+      <button class="lnch-pill active" data-sort="creation_time">🆕 NEW</button>
+      <button class="lnch-pill" data-sort="market_cap">📈 MCAP</button>
+      <button class="lnch-pill" data-sort="latest_trade">🔥 ACTIVITY</button>
+    </div>
+    <div class="lnch-pillrow" data-group="filter">
+      <button class="lnch-pill active" data-filter="all">ALL</button>
+      <button class="lnch-pill" data-filter="curve">⏳ PRE-GRAD</button>
+      <button class="lnch-pill" data-filter="dex">✅ GRADUATED</button>
+    </div>
+  </div>
+
+  <div id="launchesGrid" class="lnch-grid">
+    <div class="empty">⏳ pulling live launches from nad.fun…</div>
+  </div>
+  <div class="lnch-loadwrap">
+    <button class="btn btn-cyan" id="launchesMoreBtn" style="display:none;">↓ LOAD MORE</button>
+    <button class="btn btn-ghost" id="launchesRefreshBtn">↺ REFRESH</button>
+  </div>
 </section>
 
 <!-- FOOTER -->
@@ -1031,6 +1168,146 @@ function timeAgo(ts){
   return Math.floor(d/3600000)+'h ago';
 }
 
+/* ── LAUNCHES (nad.fun feed) ─────────────────────────────── */
+const NADFUN_API = 'https://api.nad.fun';
+const LNCH = {
+  sort:   localStorage.getItem('chogi.hub.lnch.sort')   || 'creation_time',
+  filter: localStorage.getItem('chogi.hub.lnch.filter') || 'all',
+  page:   1,
+  rows:   [],
+  total:  0,
+  loading:false
+};
+
+function ageShort(unixSec){
+  const d = Date.now()/1000 - unixSec;
+  if (d < 60)    return Math.floor(d)+'s';
+  if (d < 3600)  return Math.floor(d/60)+'m';
+  if (d < 86400) return Math.floor(d/3600)+'h';
+  return Math.floor(d/86400)+'d';
+}
+function computeMcap(t){
+  const supRaw = t.market_info && t.market_info.total_supply;
+  const px     = t.market_info && (+t.market_info.price_usd || 0);
+  if (!supRaw || !px) return null;
+  // total_supply is in raw 18-decimal units; divide
+  const sup = Number(BigInt(supRaw) / 10n**12n) / 1e6;
+  return sup * px;
+}
+function isPreGrad(t){
+  const mt = (t.market_info && t.market_info.market_type) || '';
+  return mt.includes('CURVE') || t.token_info && t.token_info.is_graduated === false;
+}
+
+async function fetchLaunches(append){
+  if (LNCH.loading) return;
+  LNCH.loading = true;
+  const grid = $('#launchesGrid');
+  if (!append) grid.innerHTML = `<div class="empty">⏳ pulling live launches from nad.fun…</div>`;
+  try{
+    const url = `${NADFUN_API}/order/${LNCH.sort}?page=${LNCH.page}&limit=18`;
+    const r = await fetch(url, {cache:'no-cache'});
+    if (!r.ok) throw new Error('http '+r.status);
+    const j = await r.json();
+    const incoming = j.tokens || j.order_token || [];
+    LNCH.total = j.total_count || 0;
+    LNCH.rows = append ? LNCH.rows.concat(incoming) : incoming;
+    renderLaunches();
+  }catch(e){
+    console.warn('launches fetch failed', e);
+    if (!append) grid.innerHTML = `<div class="empty">⚠ Couldn't reach nad.fun API. Retry in a sec.</div>`;
+  }
+  LNCH.loading = false;
+}
+
+function renderLaunches(){
+  const grid = $('#launchesGrid');
+  const rows = LNCH.rows.filter(t=>{
+    if (LNCH.filter === 'all')   return true;
+    if (LNCH.filter === 'curve') return isPreGrad(t);
+    if (LNCH.filter === 'dex')   return !isPreGrad(t);
+    return true;
+  });
+  if (!rows.length){
+    grid.innerHTML = `<div class="empty">No tokens match the current filter.</div>`;
+    $('#launchesMoreBtn').style.display = 'none';
+    return;
+  }
+  grid.innerHTML = rows.map(t=>{
+    const ti  = t.token_info  || {};
+    const mi  = t.market_info || {};
+    const addr= ti.token_id || ti.token_address;
+    const sym = (ti.symbol || '?').slice(0,10);
+    const name= (ti.name   || '?').slice(0,28);
+    const desc= (ti.description || '').slice(0,140);
+    const px  = +mi.price_usd || 0;
+    const mcap= computeMcap(t);
+    const pre = isPreGrad(t);
+    const ctoFlag = ti.is_cto ? ' cto-flag' : '';
+    const logo= ti.image_uri ? `<img class="lnch-logo" src="${ti.image_uri}" alt="" onerror="this.style.display='none'">`
+                             : `<div class="lnch-logo"></div>`;
+    const age = ti.created_at ? ageShort(ti.created_at) : '—';
+    const buyUrl = `https://nad.fun/tokens/${addr}`;
+    const chartUrl = `https://dexscreener.com/monad/${addr}`;
+    const socials = [
+      ti.twitter  ? `<a class="soc" href="${ti.twitter}"  target="_blank" rel="noopener" title="X">𝕏</a>`  : '',
+      ti.telegram ? `<a class="soc" href="${ti.telegram}" target="_blank" rel="noopener" title="TG">✈</a>` : '',
+      ti.website  ? `<a class="soc" href="${ti.website}"  target="_blank" rel="noopener" title="Web">🌐</a>`: ''
+    ].join('');
+    return `<div class="lnch-card${ctoFlag}">
+      <div class="lnch-head">
+        ${logo}
+        <div class="lnch-meta">
+          <div class="lnch-symbol">$${sym}</div>
+          <div class="lnch-name">${name}</div>
+        </div>
+        <span class="lnch-status ${pre?'curve':'dex'}">${pre?'⏳ CURVE':'✅ DEX'}</span>
+      </div>
+      ${desc ? `<div class="lnch-desc">${desc}</div>` : ''}
+      <div class="lnch-stats">
+        <div class="lnch-stat"><div class="lbl">PRICE USD</div><div class="val">${px ? '$'+num(px, px>=1?2:8) : '—'}</div></div>
+        <div class="lnch-stat"><div class="lbl">MARKET CAP</div><div class="val">${mcap ? '$'+num(mcap,2) : '—'}</div></div>
+      </div>
+      <div class="lnch-actions">
+        <a class="buy" href="${buyUrl}" target="_blank" rel="noopener">⚡ BUY ON NAD.FUN</a>
+        <a class="chart" href="${chartUrl}" target="_blank" rel="noopener">📊</a>
+        ${socials}
+      </div>
+      <div class="lnch-foot">
+        <span>age ${age}</span>
+        <span>${ti.version || ''} ${pre ? '· bonding curve' : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+  $('#launchesMoreBtn').style.display = (LNCH.rows.length < LNCH.total) ? '' : 'none';
+}
+
+function bindLaunches(){
+  $$('.lnch-pill[data-sort]').forEach(b=>{
+    b.onclick = ()=>{
+      LNCH.sort = b.dataset.sort;
+      localStorage.setItem('chogi.hub.lnch.sort', LNCH.sort);
+      $$('.lnch-pill[data-sort]').forEach(x=>x.classList.toggle('active', x===b));
+      LNCH.page = 1; LNCH.rows = [];
+      fetchLaunches(false);
+    };
+  });
+  $$('.lnch-pill[data-filter]').forEach(b=>{
+    b.onclick = ()=>{
+      LNCH.filter = b.dataset.filter;
+      localStorage.setItem('chogi.hub.lnch.filter', LNCH.filter);
+      $$('.lnch-pill[data-filter]').forEach(x=>x.classList.toggle('active', x===b));
+      renderLaunches();
+    };
+  });
+  // restore prefs from storage
+  $$('.lnch-pill[data-sort]').forEach(x=>x.classList.toggle('active', x.dataset.sort===LNCH.sort));
+  $$('.lnch-pill[data-filter]').forEach(x=>x.classList.toggle('active', x.dataset.filter===LNCH.filter));
+
+  $('#launchesMoreBtn').onclick = ()=>{ LNCH.page++; fetchLaunches(true); };
+  $('#launchesRefreshBtn').onclick = ()=>{ LNCH.page=1; LNCH.rows=[]; fetchLaunches(false); };
+}
+
 /* ── TABS ─────────────────────────────────────────────────── */
 function bindTabs(){
   $$('.tab-btn').forEach(btn=>{
@@ -1038,7 +1315,7 @@ function bindTabs(){
       const tab = btn.dataset.tab;
       $$('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
       $$('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
-      if (tab==='pack' && !PACK.length){ /* no-op */ }
+      if (tab==='launches' && !LNCH.rows.length) fetchLaunches(false);
     };
   });
 }
@@ -1059,6 +1336,7 @@ function bindSort(){
 async function init(){
   bindTabs();
   bindSort();
+  bindLaunches();
 
   // BREACH controls
   $('#addTokenBtn').onclick = ()=>{
@@ -1126,6 +1404,11 @@ async function init(){
 
   // poll loops
   setInterval(refreshBreach, 30_000);  // 30s market refresh
+  setInterval(()=>{
+    // refresh launches every 60s if tab visible
+    const tabActive = document.getElementById('tab-launches').classList.contains('active');
+    if (tabActive && !LNCH.loading){ LNCH.page = 1; LNCH.rows = []; fetchLaunches(false); }
+  }, 60_000);
   PACK_TIMER = setInterval(()=>{
     PACK.forEach(p => rescanOne(p.address));
   }, 90_000);  // 90s pack refresh
