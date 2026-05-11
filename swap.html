@@ -538,33 +538,25 @@ footer a{color:var(--pink);text-decoration:none;}
     $('dBurn').textContent   = fmtBig(burnAmt) + ' CHOGI';
     var impactPct = (q.impact != null ? q.impact : 0);
     $('dImpact').textContent = impactPct.toFixed(3) + '%';
-    // Color-code impact: green <1%, amber 1-5%, red ≥5%
+    // Show impact as info only — Monorail's compound_impact includes gas
+    // and is unreliable as a slippage warning. Slippage tolerance is the
+    // real safety: tx auto-reverts if execution is worse than minOut.
     var dImpEl = $('dImpact');
-    dImpEl.style.color = impactPct < 1 ? '#22d36f' : impactPct < 5 ? '#ffaa33' : '#ff4d6d';
+    dImpEl.style.color = impactPct < 3 ? '#22d36f' : impactPct < 10 ? '#ffaa33' : '#ff4d6d';
 
-    // Suppress the impact warning for small trades — Monorail's compound_impact
-    // metric is gas-dominated for trades under ~$20 and reports bogus huge
-    // percentages. For substantial trades the metric is reliable.
-    // The user's slippage tolerance is the real safety net: if actual fill
-    // is worse than minOut, the tx reverts automatically.
+    // Warning banner only fires on TRULY massive trades w/ extreme impact.
+    // For everything else the slippage tolerance is the safety net.
     var amtIn = parseFloat(raw || '0');
     var isBuy = (mode === 'buy');
-    // Substantial = ≥ ~$3 worth at current prices (MON≈$0.04, CHOGI≈$0.0001)
-    var isSubstantial = isBuy ? (amtIn >= 0.5) : (amtIn >= 5000);
+    var isMassive = isBuy ? (amtIn >= 100) : (amtIn >= 1000000);  // ~$4 / $90 — only real liquidity stress
     var warnEl = $('impactWarn');
     if(warnEl){
-      if(isSubstantial && impactPct >= 15){
+      if(isMassive && impactPct >= 30){
         warnEl.style.display = 'block';
         warnEl.style.background = 'rgba(255,77,109,.16)';
         warnEl.style.borderColor = 'rgba(255,77,109,.5)';
         warnEl.style.color = '#ff4d6d';
-        warnEl.innerHTML = '🚨 HIGH PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b><br>This trade size is large relative to pool liquidity. Consider splitting into smaller swaps, or raise slippage tolerance if you want it to fill anyway.';
-      } else if(isSubstantial && impactPct >= 7){
-        warnEl.style.display = 'block';
-        warnEl.style.background = 'rgba(255,170,51,.14)';
-        warnEl.style.borderColor = 'rgba(255,170,51,.5)';
-        warnEl.style.color = '#ffaa33';
-        warnEl.innerHTML = '⚠ MODERATE PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b> — trade will move the pool noticeably. Your slippage tolerance ('+(slipBps/100).toFixed(1)+'%) determines whether it fills.';
+        warnEl.innerHTML = '⚠ MASSIVE TRADE: <b>'+impactPct.toFixed(1)+'%</b> impact at this size. Split into smaller swaps or raise slippage if you want to force it through.';
       } else {
         warnEl.style.display = 'none';
       }
