@@ -23,7 +23,20 @@
     // Deployed 2026-05-08 on Monad mainnet:
     PAYROLL_ADDRESS:     '0x062E18beceF54077E6325B415aB74522d64D3af7',
     SWAP_BURNER_ADDRESS: '0x9Db6552ab771d57E108c77371c128FCc466291e9',
-    NFT_ADDRESS:         '0xe753780772c1EAA676accA32e6030B346faF1C0F'
+    NFT_ADDRESS:         '0xe753780772c1EAA676accA32e6030B346faF1C0F',
+
+    // ─── Chogi Trader HUB ──────────────────────────────────────
+    // Treasury wallet receives swap fees → King uses for CHOGI buyback + burn
+    HUB_TREASURY:        '0x4601a7f665ca13c40d2236b8b9ff1e4b87226351',
+    HUB_FEE_BPS:         100,   // 1% (100/10000) — adjust before router deploy
+    HUB_ROUTER_ADDRESS:  '',    // populated after ChogiHubRouter.sol deploy
+
+    // nad.fun mainnet (for native on-page swap)
+    NADFUN_LENS:                 '0x7e78A8DE94f21804F7a17F4E8BF9EC2c872187ea',
+    NADFUN_BONDING_CURVE_ROUTER: '0x6F6B8F1a20703309951a5127c45B49b1CD981A22',
+    NADFUN_DEX_ROUTER:           '0x0B79d71AE99528D1dB24A4148b5f4F865cc2b137',
+    NADFUN_WMON:                 '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A',
+    NADFUN_REF:                  ''  // referral code if/when you have one
   };
 
   // auto-init pet store if helper is loaded

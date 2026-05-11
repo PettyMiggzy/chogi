@@ -1412,12 +1412,11 @@ function renderLaunches(){
     const age = ti.created_at ? ageShort(ti.created_at) : '—';
     const watched = isWatched(addr);
 
-    const baseBuy = NADFUN_REF
-      ? `https://nad.fun/tokens/${addr}?ref=${encodeURIComponent(NADFUN_REF)}`
-      : `https://nad.fun/tokens/${addr}`;
-    const chartUrl = `https://dexscreener.com/monad/${addr}`;
-    const sep = NADFUN_REF ? '&' : '?';
-    const qb = amt => `${baseBuy}${sep}buy=${amt}`;
+    // route trades through internal /hub/token detail page (native swap module)
+    const detailUrl = `/hub/token?addr=${addr}`;
+    const baseBuy   = detailUrl;
+    const chartUrl  = `https://dexscreener.com/monad/${addr}`;
+    const qb = amt => `${detailUrl}&amount=${amt}&side=buy`;
 
     const pctCls = isNaN(pct) ? 'flat' : (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat');
     const pctText = isNaN(pct) ? '—' : (pct>0?'+':'')+pct.toFixed(2)+'%';

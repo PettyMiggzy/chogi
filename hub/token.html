@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a0118">
+<title>Token · Chogi Trader HUB</title>
+<meta name="description" content="Live token detail · chart · native buy/sell on Monad. Powered by Chogi Trader HUB.">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;--pink-soft:#FF69B4;--pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;--purple-deep:#7C3AED;
+  --cyan:#22d3ee;--green:#22d36f;--red:#ff4d6d;--amber:#ffaa33;
+  --bg:#0a0118;--ink:#FFE9F4;--mute:#9a8bb3;
+  --panel:rgba(20,8,40,.55);--panel-line:rgba(255,20,147,.18);
+}
+html,body{overflow-x:hidden;}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;line-height:1.5;}
+body::before{content:'';position:fixed;inset:0;z-index:-3;background:radial-gradient(ellipse at 50% 0%,rgba(255,20,147,.2),transparent 60%),radial-gradient(ellipse at 100% 80%,rgba(168,85,247,.18),transparent 55%),radial-gradient(ellipse at 0% 60%,rgba(255,105,180,.12),transparent 50%);}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;background-image:repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);}
+
+.nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:14px 22px;gap:14px;background:rgba(10,1,24,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--panel-line);}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{width:36px;height:36px;border-radius:50%;border:2px solid var(--pink);box-shadow:0 0 16px var(--pink-glow);overflow:hidden;flex-shrink:0;background:#000;}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);margin-top:-2px;}
+.nav-back{padding:8px 14px;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;color:var(--pink);border:1px solid var(--pink);border-radius:6px;background:rgba(255,20,147,.06);}
+.nav-back:hover{background:rgba(255,20,147,.14);}
+.wallet-pill{padding:8px 13px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.4);cursor:pointer;}
+.wallet-pill.on{background:rgba(34,211,111,.12);color:var(--green);border-color:rgba(34,211,111,.4);}
+.wallet-pill:hover{filter:brightness(1.15);}
+
+.wrap{max-width:1180px;margin:0 auto;padding:18px;}
+.split{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;}
+@media (max-width:880px){.split{grid-template-columns:1fr;}}
+
+.empty{padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+.hero{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
+.hero-logo{width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg,#FF1493,#A855F7);border:2px solid rgba(255,20,147,.5);object-fit:cover;flex-shrink:0;}
+.hero-meta{flex:1;min-width:0;}
+.hero-symbol{font-family:'Bungee',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hero-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mute);letter-spacing:.5px;margin-top:2px;}
+.hero-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.hero-status{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;}
+.hero-status.curve{background:rgba(255,170,51,.14);color:var(--amber);border:1px solid rgba(255,170,51,.4);}
+.hero-status.dex{background:rgba(34,211,111,.14);color:var(--green);border:1px solid rgba(34,211,111,.4);}
+.hero-cto{background:linear-gradient(135deg,#FFD55A,#FF1493);color:#000;font-family:'Bungee',sans-serif;font-size:9px;letter-spacing:1.5px;padding:3px 8px;border-radius:5px;}
+.hero-pct{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:1px;padding:8px 14px;border-radius:8px;flex-shrink:0;}
+.hero-pct.up{background:rgba(34,211,111,.16);color:var(--green);border:1px solid rgba(34,211,111,.45);}
+.hero-pct.down{background:rgba(255,77,109,.16);color:var(--red);border:1px solid rgba(255,77,109,.45);}
+.hero-pct.flat{background:rgba(255,255,255,.04);color:var(--mute);border:1px solid rgba(255,255,255,.1);}
+
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+@media (max-width:520px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:11px 12px;font-family:'JetBrains Mono',monospace;}
+.stat-card .lbl{font-size:9px;color:var(--mute);letter-spacing:1.2px;}
+.stat-card .val{color:#fff;font-weight:700;margin-top:3px;font-size:15px;}
+.stat-card .val.up{color:var(--green);}
+.stat-card .val.down{color:var(--red);}
+
+.bc-box{background:var(--panel);border:1px solid rgba(255,170,51,.4);border-radius:12px;padding:14px;margin-bottom:14px;}
+.bc-box h3{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.8px;color:var(--amber);margin-bottom:10px;font-weight:400;}
+.bc-bar{background:rgba(8,0,18,.6);border-radius:8px;overflow:hidden;height:30px;position:relative;border:1px solid rgba(255,170,51,.3);}
+.bc-fill{height:100%;background:linear-gradient(90deg,#FFAA33,#FF1493);box-shadow:0 0 14px rgba(255,170,51,.5);transition:width .6s;}
+.bc-fill.about-to-grad{background:linear-gradient(90deg,#FFD55A,#22d36f);animation:gradPulse 1.2s infinite;}
+@keyframes gradPulse{0%,100%{box-shadow:0 0 14px rgba(255,213,90,.5);}50%{box-shadow:0 0 30px rgba(34,211,111,.8);}}
+.bc-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.85);}
+
+.chart-box{background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:0;margin-bottom:14px;overflow:hidden;position:relative;}
+.chart-box iframe{width:100%;height:540px;border:none;display:block;background:#0a0118;}
+.chart-fallback{padding:36px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;}
+.chart-fallback a{color:var(--cyan);text-decoration:none;}
+
+.ca-row{background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);margin-bottom:14px;flex-wrap:wrap;gap:6px;}
+.ca-row .ca{cursor:pointer;background:rgba(8,0,18,.55);border:1px solid rgba(255,20,147,.1);padding:6px 10px;border-radius:6px;color:#fff;transition:all .12s;font-family:inherit;font-size:inherit;}
+.ca-row .ca:hover{border-color:var(--pink);}
+.ca-row .ca.copied{background:rgba(34,211,111,.16);color:var(--green);border-color:rgba(34,211,111,.4);}
+.ca-row .links{display:flex;gap:6px;align-items:center;}
+.ca-row .links a{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:rgba(8,0,18,.55);border:1px solid rgba(255,255,255,.08);text-decoration:none;color:var(--mute);font-size:13px;}
+.ca-row .links a:hover{border-color:var(--pink);color:#fff;}
+
+.swap{background:var(--panel);border:1px solid var(--pink);border-radius:14px;padding:18px;position:sticky;top:84px;box-shadow:0 0 30px rgba(255,20,147,.2);}
+.swap h2{font-family:'Bungee',sans-serif;font-size:16px;letter-spacing:2px;color:#fff;margin-bottom:14px;font-weight:400;}
+.swap-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.swap-tabs button{flex:1;padding:11px;background:var(--panel);border:1px solid var(--panel-line);border-radius:8px;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.6px;color:var(--mute);cursor:pointer;transition:all .12s;}
+.swap-tabs button.active.buy{background:linear-gradient(135deg,rgba(34,211,111,.2),rgba(34,211,238,.16));color:var(--green);border-color:var(--green);}
+.swap-tabs button.active.sell{background:linear-gradient(135deg,rgba(255,77,109,.2),rgba(255,20,147,.16));color:var(--red);border-color:var(--red);}
+
+.swap-row{background:rgba(8,0,18,.55);border:1px solid var(--panel-line);border-radius:10px;padding:12px;margin-bottom:8px;}
+.swap-row .top{display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:1px;margin-bottom:6px;}
+.swap-row .bal{cursor:pointer;color:var(--cyan);}
+.swap-row .bal:hover{color:#fff;}
+.swap-row .row{display:flex;align-items:center;gap:8px;}
+.swap-row input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;min-width:0;}
+.swap-row input::placeholder{color:#42305a;}
+.swap-row .tk{font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;flex-shrink:0;}
+
+.swap-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px;}
+.swap-presets button{padding:7px 0;background:rgba(255,20,147,.08);border:1px solid rgba(255,20,147,.25);color:var(--pink);border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:700;}
+.swap-presets button:hover{background:rgba(255,20,147,.22);color:#fff;}
+
+.swap-quote{background:rgba(8,0,18,.55);border:1px solid var(--panel-line);border-radius:10px;padding:11px 13px;margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);display:flex;justify-content:space-between;align-items:center;}
+.swap-quote .out{color:#fff;font-weight:700;}
+.swap-quote .usd{color:var(--mute);font-size:10px;margin-left:6px;}
+
+.swap-settings{background:rgba(8,0,18,.55);border:1px solid var(--panel-line);border-radius:10px;padding:11px 13px;margin-bottom:10px;}
+.swap-settings summary{cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.8px;color:var(--mute);list-style:none;display:flex;justify-content:space-between;align-items:center;}
+.swap-settings summary::-webkit-details-marker{display:none;}
+.swap-settings summary .slp{color:var(--cyan);font-weight:700;}
+.swap-settings .body{margin-top:10px;}
+.swap-settings input[type=range]{width:100%;}
+.swap-settings .preset-chips{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+.swap-settings .preset-chips button{padding:4px 8px;font-size:9px;background:rgba(255,20,147,.08);border:1px solid rgba(255,20,147,.25);color:var(--pink);border-radius:5px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.swap-settings .preset-chips button.active{background:var(--pink);color:#fff;}
+
+.swap-execute{width:100%;padding:15px;border:none;border-radius:10px;cursor:pointer;font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:2px;background:linear-gradient(135deg,#22d36f,#22d3ee);color:#0a0118;font-weight:700;transition:all .15s;}
+.swap-execute.sell-mode{background:linear-gradient(135deg,#ff4d6d,#FF1493);color:#fff;}
+.swap-execute.connect-mode{background:linear-gradient(135deg,#FF1493,#A855F7);color:#fff;}
+.swap-execute:disabled{opacity:.5;cursor:not-allowed;}
+.swap-execute:not(:disabled):hover{transform:translateY(-1px);filter:brightness(1.1);}
+
+.tx-status{margin-top:12px;padding:10px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;display:none;}
+.tx-status.show{display:block;}
+.tx-status.pending{background:rgba(255,170,51,.12);color:var(--amber);border:1px solid rgba(255,170,51,.4);}
+.tx-status.success{background:rgba(34,211,111,.12);color:var(--green);border:1px solid rgba(34,211,111,.4);}
+.tx-status.error{background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.4);}
+.tx-status a{color:inherit;text-decoration:underline;}
+
+.disclaim{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);text-align:center;letter-spacing:.6px;line-height:1.5;}
+
+.foot{max-width:1180px;margin:24px auto;padding:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid var(--panel-line);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:var(--mute);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/hub">
+    <span class="brand-img"><img src="/chogi.png" alt="" onerror="this.src='/chogi.jpg'"></span>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">TOKEN VIEW</div>
+    </div>
+  </a>
+  <button class="wallet-pill" id="walletPill">⚡ CONNECT</button>
+</nav>
+
+<div class="wrap">
+  <a class="nav-back" href="/hub" style="margin-bottom:14px;display:inline-block;">◄ BACK TO HUB</a>
+
+  <div id="loadState" class="empty">⏳ loading token data…</div>
+
+  <div id="tokenContent" style="display:none;">
+
+    <div class="hero">
+      <img class="hero-logo" id="heroLogo" alt="" onerror="this.style.background='linear-gradient(135deg,#FF1493,#A855F7)';this.removeAttribute('src');">
+      <div class="hero-meta">
+        <div class="hero-symbol" id="heroSymbol">$—</div>
+        <div class="hero-name" id="heroName">—</div>
+        <div class="hero-row">
+          <span class="hero-status" id="heroStatus">—</span>
+          <span class="hero-cto" id="heroCto" style="display:none;">CTO</span>
+          <span class="hero-status" id="heroAge" style="background:rgba(255,255,255,.04);color:var(--mute);border:1px solid rgba(255,255,255,.1);">—</span>
+        </div>
+      </div>
+      <div class="hero-pct flat" id="heroPct">—</div>
+    </div>
+
+    <div class="split">
+
+      <div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="lbl">PRICE USD</div><div class="val" id="sPrice">—</div></div>
+          <div class="stat-card"><div class="lbl">MARKET CAP</div><div class="val" id="sMcap">—</div></div>
+          <div class="stat-card"><div class="lbl">HOLDERS</div><div class="val" id="sHolders">—</div></div>
+          <div class="stat-card"><div class="lbl">OFF ATH</div><div class="val" id="sAth">—</div></div>
+          <div class="stat-card"><div class="lbl">TOTAL VOL</div><div class="val" id="sVol">—</div></div>
+          <div class="stat-card"><div class="lbl">ATH USD</div><div class="val" id="sAthPx">—</div></div>
+        </div>
+
+        <div class="bc-box" id="bcBox" style="display:none;">
+          <h3>⏳ BONDING CURVE PROGRESS</h3>
+          <div class="bc-bar">
+            <div class="bc-fill" id="bcFill" style="width:0%;"></div>
+            <div class="bc-text" id="bcText">0% TO GRADUATION</div>
+          </div>
+        </div>
+
+        <div class="chart-box" id="chartBox">
+          <div class="chart-fallback" id="chartFallback">⏳ loading chart…</div>
+        </div>
+
+        <div class="ca-row">
+          <button class="ca" id="caCopy">📋 —</button>
+          <div class="links">
+            <a id="lExplorer" target="_blank" rel="noopener" title="Monad explorer">🔎</a>
+            <a id="lChart" target="_blank" rel="noopener" title="DexScreener">📊</a>
+            <a id="lNad" target="_blank" rel="noopener" title="nad.fun">🚀</a>
+            <a id="lTwitter" target="_blank" rel="noopener" title="X" style="display:none;">𝕏</a>
+            <a id="lTelegram" target="_blank" rel="noopener" title="TG" style="display:none;">✈</a>
+            <a id="lWebsite" target="_blank" rel="noopener" title="Web" style="display:none;">🌐</a>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="swap">
+          <h2>⚡ SWAP</h2>
+          <div class="swap-tabs">
+            <button class="active buy" data-side="buy">⚡ BUY</button>
+            <button class="sell" data-side="sell">💰 SELL</button>
+          </div>
+
+          <div class="swap-row">
+            <div class="top">
+              <span id="amtLabel">YOU SPEND</span>
+              <span class="bal" id="amtBalance">balance: —</span>
+            </div>
+            <div class="row">
+              <input id="amtInput" type="number" step="any" placeholder="0.0" inputmode="decimal">
+              <span class="tk" id="amtToken">MON</span>
+            </div>
+          </div>
+
+          <div class="swap-presets" id="presets"></div>
+
+          <div class="swap-quote">
+            <span>YOU GET</span>
+            <span><span class="out" id="quoteOut">—</span><span class="usd" id="quoteUsd"></span></span>
+          </div>
+
+          <details class="swap-settings">
+            <summary>
+              <span>⚙ slippage tolerance</span>
+              <span class="slp" id="slpDisplay">1.0%</span>
+            </summary>
+            <div class="body">
+              <input type="range" id="slpSlider" min="0.1" max="10" step="0.1" value="1.0">
+              <div class="preset-chips">
+                <button data-slp="0.5">0.5%</button>
+                <button data-slp="1.0" class="active">1.0%</button>
+                <button data-slp="2.0">2.0%</button>
+                <button data-slp="5.0">5.0%</button>
+              </div>
+            </div>
+          </details>
+
+          <button class="swap-execute connect-mode" id="executeBtn">⚡ CONNECT WALLET</button>
+
+          <div class="tx-status" id="txStatus"></div>
+
+          <div class="disclaim">Routes via nad.fun bonding-curve router (pre-grad) or Uniswap V3 fork (graduated). LENS oracle picks the right path. ~1% protocol fee + gas. Trade at your own risk.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <div>◆ chogi.xyz · trader hub v1.0 · token view</div>
+  <a href="https://t.me/kingpetty317" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:linear-gradient(135deg,rgba(255,20,147,.14),rgba(34,211,238,.14));border:1px solid rgba(255,20,147,.45);border-radius:20px;text-decoration:none;color:#fff;font-family:'Bungee',sans-serif;font-size:9px;letter-spacing:1.5px;">
+    <span style="font-size:11px;">👑</span>
+    <span>KING PETTY BUILD</span>
+    <span style="color:#9FE9FF;font-size:8px;letter-spacing:1px;">· @kingpetty317</span>
+  </a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/hub-trade.js"></script>
+<script>
+'use strict';
+
+const $ = s => document.querySelector(s);
+const PARAMS = new URLSearchParams(location.search);
+const ADDR = (PARAMS.get('addr') || '').toLowerCase();
+const PRE_AMOUNT = PARAMS.get('amount') || '';
+const PRE_SIDE = (PARAMS.get('side') || 'buy').toLowerCase();
+const NADFUN_API = 'https://api.nadapp.net';
+
+if (!ADDR || !/^0x[0-9a-f]{40}$/.test(ADDR)) location.href = '/hub';
+
+const STATE = {
+  side: PRE_SIDE === 'sell' ? 'sell' : 'buy',
+  account: null,
+  token: null,
+  decimals: 18,
+  symbol: '?',
+  isPreGrad: true,
+  slippage: 1.0,
+  amount: PRE_AMOUNT,
+  quote: null,
+  balance: { native: 0n, token: 0n },
+  busy: false,
+  quoteTimer: null,
+};
+
+function fmt(n, d=2){
+  if (n==null || isNaN(n)) return '—';
+  const x = +n;
+  if (x === 0) return '0';
+  if (Math.abs(x) >= 1e9) return (x/1e9).toFixed(d)+'B';
+  if (Math.abs(x) >= 1e6) return (x/1e6).toFixed(d)+'M';
+  if (Math.abs(x) >= 1e3) return (x/1e3).toFixed(d)+'K';
+  if (Math.abs(x) >= 1) return x.toFixed(d);
+  if (Math.abs(x) >= .01) return x.toFixed(4);
+  return x.toExponential(2);
+}
+function ageOf(unixSec){
+  const d = Date.now()/1000 - unixSec;
+  if (d < 60) return Math.floor(d)+'s old';
+  if (d < 3600) return Math.floor(d/60)+'m old';
+  if (d < 86400) return Math.floor(d/3600)+'h old';
+  return Math.floor(d/86400)+'d old';
+}
+function isPreGradMarket(t){
+  const mt = (t.market_info && t.market_info.market_type) || '';
+  return mt.includes('CURVE') || (t.token_info && t.token_info.is_graduated === false);
+}
+function bcProgress(t){
+  if (!isPreGradMarket(t)) return 1;
+  if (!t.market_info) return 0;
+  const sup = t.market_info.total_supply ? BigInt(t.market_info.total_supply) : 0n;
+  const rem = t.market_info.reserve_token ? BigInt(t.market_info.reserve_token) : 0n;
+  if (sup === 0n) return 0;
+  const sold = sup > rem ? sup - rem : 0n;
+  const num = Number(sold * 1000000n / sup) / 1000000;
+  return Math.max(0, Math.min(1, num / 0.8));
+}
+function tokAmt(rawWithDec, decimals=18){
+  if (!rawWithDec) return 0;
+  try{
+    const big = BigInt(rawWithDec);
+    const scale = 10n ** BigInt(decimals);
+    const whole = Number(big / scale);
+    const frac = Number(big % scale) / Number(scale);
+    return whole + frac;
+  }catch(e){ return 0; }
+}
+function parseUnits(str, decimals=18){
+  // safe BigInt parser for "1.23" → 1230000000000000000n
+  if (!str || isNaN(+str)) return 0n;
+  const s = String(str).trim();
+  const neg = s.startsWith('-');
+  const a = neg ? s.slice(1) : s;
+  const [w='0', f=''] = a.split('.');
+  const fPad = (f + '0'.repeat(decimals)).slice(0, decimals);
+  const v = BigInt(w) * (10n**BigInt(decimals)) + BigInt(fPad || 0);
+  return neg ? -v : v;
+}
+
+// ── LOAD ────────────────────────────────────
+async function loadToken(){
+  let data = null;
+  try{
+    const r = await fetch(`${NADFUN_API}/token/${ADDR}`);
+    if (r.ok) data = await r.json();
+  }catch(e){}
+  // augment with market info from order endpoint if needed (token/{} returns only token_info)
+  if (data && !data.market_info){
+    try{
+      const r2 = await fetch(`${NADFUN_API}/order/market_cap?page=1&limit=50`);
+      const j = await r2.json();
+      const hit = (j.tokens||[]).find(t=>(t.token_info.token_id||'').toLowerCase()===ADDR);
+      if (hit) data = hit;
+    }catch(e){}
+  }
+  if (!data){
+    data = {token_info:{token_id:ADDR, symbol:ADDR.slice(0,6), name:'Unknown', is_graduated:false}, market_info:{}};
+  }
+  return data;
+}
+
+function renderToken(t){
+  const ti = t.token_info || {};
+  const mi = t.market_info || {};
+  STATE.token = t;
+  STATE.symbol = (ti.symbol || '?').slice(0,12);
+  STATE.isPreGrad = isPreGradMarket(t);
+
+  document.title = `$${STATE.symbol} · Chogi HUB`;
+
+  // hero
+  if (ti.image_uri) $('#heroLogo').src = ti.image_uri;
+  $('#heroSymbol').textContent = '$' + STATE.symbol;
+  $('#heroName').textContent = (ti.name || '—').slice(0,40);
+  const status = $('#heroStatus');
+  if (STATE.isPreGrad){
+    status.textContent = '⏳ CURVE';
+    status.className = 'hero-status curve';
+  } else {
+    status.textContent = '✅ DEX';
+    status.className = 'hero-status dex';
+  }
+  if (ti.is_cto) $('#heroCto').style.display = 'inline-flex';
+  if (ti.created_at) $('#heroAge').textContent = ageOf(ti.created_at);
+  const pct = +t.percent;
+  const pctEl = $('#heroPct');
+  if (!isNaN(pct)){
+    pctEl.textContent = (pct>0?'+':'')+pct.toFixed(2)+'%';
+    pctEl.className = 'hero-pct ' + (pct>0?'up':pct<0?'down':'flat');
+  }
+
+  // stats
+  const px = +mi.price_usd || 0;
+  const sup = tokAmt(mi.total_supply, 18);
+  const mcap = (px && sup) ? px * sup : null;
+  const ath = +mi.ath_price_usd || 0;
+  const offAth = (px && ath) ? ((px - ath) / ath) * 100 : null;
+  const vol = tokAmt(mi.volume, 18);
+
+  $('#sPrice').textContent  = px ? '$'+fmt(px, px>=1?4:8) : '—';
+  $('#sMcap').textContent   = mcap ? '$'+fmt(mcap,2) : '—';
+  $('#sHolders').textContent = mi.holder_count ? fmt(mi.holder_count,0) : '—';
+  $('#sAthPx').textContent  = ath ? '$'+fmt(ath, ath>=1?4:8) : '—';
+  $('#sVol').textContent    = vol ? '$'+fmt(vol*px,2) : '—';
+  const athEl = $('#sAth');
+  if (offAth != null){
+    athEl.textContent = (offAth>0?'+':'')+offAth.toFixed(1)+'%';
+    athEl.classList.add(offAth > -5 ? 'up' : 'down');
+  }
+
+  // bonding curve box
+  if (STATE.isPreGrad){
+    const p = bcProgress(t);
+    const pct100 = Math.round(p*100);
+    $('#bcBox').style.display = '';
+    $('#bcFill').style.width = pct100 + '%';
+    $('#bcText').textContent = pct100 + '% TO GRADUATION';
+    if (p >= 0.6) $('#bcFill').classList.add('about-to-grad');
+  }
+
+  // chart
+  const chartBox = $('#chartBox');
+  if (STATE.isPreGrad){
+    chartBox.innerHTML = `<div class="chart-fallback">📈 Chart unlocks at graduation.<br>Bonding curve is still active — trade above to push toward DEX listing at 80%.<br><br><a href="https://nad.fun/tokens/${ADDR}" target="_blank" rel="noopener">View on nad.fun ↗</a></div>`;
+  } else {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://dexscreener.com/monad/${ADDR}?embed=1&theme=dark&trades=1&info=0`;
+    iframe.title = 'price chart';
+    iframe.loading = 'lazy';
+    chartBox.innerHTML = '';
+    chartBox.appendChild(iframe);
+  }
+
+  // contract row
+  $('#caCopy').textContent = '📋 ' + ADDR.slice(0,8) + '…' + ADDR.slice(-6);
+  const explorer = (window.ChogiConfig||{}).EXPLORER || 'https://monadexplorer.com';
+  $('#lExplorer').href = `${explorer}/address/${ADDR}`;
+  $('#lChart').href    = `https://dexscreener.com/monad/${ADDR}`;
+  $('#lNad').href      = `https://nad.fun/tokens/${ADDR}`;
+  if (ti.twitter) { const a = $('#lTwitter');  a.style.display='inline-flex'; a.href = ti.twitter;  }
+  if (ti.telegram){ const a = $('#lTelegram'); a.style.display='inline-flex'; a.href = ti.telegram; }
+  if (ti.website) { const a = $('#lWebsite');  a.style.display='inline-flex'; a.href = ti.website;  }
+
+  // swap initial state
+  refreshSwapUI();
+  renderPresets();
+  if (PRE_AMOUNT){ $('#amtInput').value = PRE_AMOUNT; scheduleQuote(); }
+
+  $('#loadState').style.display = 'none';
+  $('#tokenContent').style.display = '';
+}
+
+// ── SWAP UI ─────────────────────────────────
+function refreshSwapUI(){
+  const isBuy = STATE.side === 'buy';
+  // tab actives
+  document.querySelectorAll('.swap-tabs button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.side === STATE.side);
+  });
+  // label + token symbol
+  $('#amtLabel').textContent = isBuy ? 'YOU SPEND' : 'YOU SELL';
+  $('#amtToken').textContent = isBuy ? 'MON' : ('$'+STATE.symbol);
+  // execute button color/text
+  const btn = $('#executeBtn');
+  btn.classList.remove('sell-mode','connect-mode');
+  if (!STATE.account){
+    btn.textContent = '⚡ CONNECT WALLET';
+    btn.classList.add('connect-mode');
+  } else if (isBuy){
+    btn.textContent = '⚡ BUY $' + STATE.symbol;
+  } else {
+    btn.textContent = '💰 SELL $' + STATE.symbol;
+    btn.classList.add('sell-mode');
+  }
+  // balance display
+  if (STATE.account){
+    const b = isBuy
+      ? tokAmt(STATE.balance.native.toString(), 18)
+      : tokAmt(STATE.balance.token.toString(),  STATE.decimals);
+    const sym = isBuy ? 'MON' : '$'+STATE.symbol;
+    $('#amtBalance').textContent = 'balance: ' + fmt(b, 4) + ' ' + sym;
+  } else {
+    $('#amtBalance').textContent = 'connect wallet';
+  }
+}
+
+function renderPresets(){
+  const isBuy = STATE.side === 'buy';
+  const wrap = $('#presets');
+  const opts = isBuy ? ['0.1','0.5','1','5','MAX'] : ['25%','50%','75%','100%','MAX'];
+  wrap.innerHTML = opts.map(o => `<button data-preset="${o}">${o}${isBuy && o !== 'MAX' ? ' MON' : ''}</button>`).join('');
+  wrap.querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      const v = b.dataset.preset;
+      const isBuy = STATE.side === 'buy';
+      let amt;
+      if (v === 'MAX'){
+        if (!STATE.account){ alert('Connect wallet first.'); return; }
+        if (isBuy){
+          // leave 0.005 MON for gas
+          const bal = STATE.balance.native;
+          const gasRes = 5000000000000000n;
+          amt = bal > gasRes ? bal - gasRes : 0n;
+          $('#amtInput').value = fmt(tokAmt(amt.toString(),18), 6);
+        } else {
+          amt = STATE.balance.token;
+          $('#amtInput').value = fmt(tokAmt(amt.toString(), STATE.decimals), 6);
+        }
+      } else if (v.endsWith('%')){
+        if (!STATE.account){ alert('Connect wallet first.'); return; }
+        const pct = parseFloat(v) / 100;
+        const bal = isBuy ? STATE.balance.native : STATE.balance.token;
+        const dec = isBuy ? 18 : STATE.decimals;
+        const amtBig = (bal * BigInt(Math.round(pct * 10000))) / 10000n;
+        $('#amtInput').value = fmt(tokAmt(amtBig.toString(), dec), 6);
+      } else {
+        $('#amtInput').value = v;
+      }
+      scheduleQuote();
+    };
+  });
+}
+
+function scheduleQuote(){
+  clearTimeout(STATE.quoteTimer);
+  STATE.quoteTimer = setTimeout(doQuote, 250);
+}
+
+async function doQuote(){
+  const raw = $('#amtInput').value;
+  const num = +raw;
+  if (!raw || isNaN(num) || num <= 0){
+    $('#quoteOut').textContent = '—';
+    $('#quoteUsd').textContent = '';
+    STATE.quote = null;
+    return;
+  }
+  try{
+    const isBuy = STATE.side === 'buy';
+    const decIn = isBuy ? 18 : STATE.decimals;
+    const decOut = isBuy ? STATE.decimals : 18;
+    const amountIn = parseUnits(String(num), decIn);
+    const q = await ChogiTrade.getAmountOut(ADDR, amountIn, isBuy);
+    STATE.quote = { ...q, amountIn };
+    const out = tokAmt(q.amount.toString(), decOut);
+    const sym = isBuy ? '$'+STATE.symbol : 'MON';
+    $('#quoteOut').textContent = fmt(out, 6) + ' ' + sym;
+    // usd estimate (only have token price; approximate MON via dexscreener WMON)
+    const mi = STATE.token.market_info || {};
+    const px = +mi.price_usd || 0;
+    if (isBuy && px){
+      $('#quoteUsd').textContent = ' ≈ $' + fmt(out * px, 2);
+    } else if (!isBuy && px){
+      // we're selling tokens → out is MON; we need MON USD price (~$0.03 hardcoded fallback if no quote)
+      // pull native_price from market_info
+      const monUsd = +mi.native_price || 0;
+      if (monUsd) $('#quoteUsd').textContent = ' ≈ $' + fmt(out * monUsd, 2);
+      else $('#quoteUsd').textContent = '';
+    } else $('#quoteUsd').textContent = '';
+  }catch(e){
+    console.warn('quote failed', e);
+    $('#quoteOut').textContent = '— (quote unavailable)';
+    $('#quoteUsd').textContent = '';
+    STATE.quote = null;
+  }
+}
+
+// ── SLIPPAGE ─────────────────────────────────
+function bindSlippage(){
+  const slider = $('#slpSlider');
+  const display = $('#slpDisplay');
+  slider.addEventListener('input', ()=>{
+    STATE.slippage = parseFloat(slider.value);
+    display.textContent = STATE.slippage.toFixed(1) + '%';
+    document.querySelectorAll('.swap-settings .preset-chips button').forEach(b=>{
+      b.classList.toggle('active', parseFloat(b.dataset.slp) === STATE.slippage);
+    });
+  });
+  document.querySelectorAll('.swap-settings .preset-chips button').forEach(b=>{
+    b.onclick = ()=>{
+      STATE.slippage = parseFloat(b.dataset.slp);
+      slider.value = STATE.slippage;
+      display.textContent = STATE.slippage.toFixed(1) + '%';
+      document.querySelectorAll('.swap-settings .preset-chips button').forEach(x=>x.classList.toggle('active', x===b));
+    };
+  });
+}
+
+// ── TX STATUS UI ─────────────────────────────
+function setStatus(state, html){
+  const el = $('#txStatus');
+  el.className = 'tx-status show ' + state;
+  el.innerHTML = html;
+}
+function clearStatus(){ $('#txStatus').className = 'tx-status'; }
+
+// ── WALLET ───────────────────────────────────
+async function refreshBalances(){
+  if (!STATE.account) return;
+  try{
+    STATE.balance.native = await ChogiTrade.nativeBalance(STATE.account);
+    STATE.balance.token  = await ChogiTrade.tokenBalance(ADDR, STATE.account);
+    refreshSwapUI();
+  }catch(e){ console.warn('balance fetch failed', e); }
+}
+
+async function connectClicked(){
+  try{
+    const acc = await ChogiTrade.connect();
+    STATE.account = acc;
+    const pill = $('#walletPill');
+    pill.classList.add('on');
+    pill.textContent = acc.slice(0,6) + '…' + acc.slice(-4);
+    refreshSwapUI();
+    refreshBalances();
+  }catch(e){
+    setStatus('error', `❌ ${e.message || 'Connect failed'}`);
+  }
+}
+
+// ── EXECUTE ──────────────────────────────────
+async function execute(){
+  if (!STATE.account){ return connectClicked(); }
+  const raw = $('#amtInput').value;
+  const num = +raw;
+  if (!raw || isNaN(num) || num <= 0){ alert('Enter an amount.'); return; }
+  if (STATE.busy) return;
+  STATE.busy = true;
+  const btn = $('#executeBtn');
+  const origText = btn.textContent;
+  btn.disabled = true;
+
+  try{
+    const isBuy = STATE.side === 'buy';
+    const decIn = isBuy ? 18 : STATE.decimals;
+    const amountIn = parseUnits(String(num), decIn);
+    const slpBps = Math.round(STATE.slippage * 100);  // 1.0% → 100 bps
+
+    if (isBuy){
+      // balance check
+      const need = amountIn + 5000000000000000n;  // + ~0.005 MON gas buffer
+      if (STATE.balance.native < need){
+        throw new Error('Not enough MON for this trade + gas');
+      }
+      btn.textContent = 'GETTING QUOTE…';
+      setStatus('pending', '⌛ requesting wallet signature…');
+      const r = await ChogiTrade.executeBuy({token:ADDR, amountInWei:amountIn, slippageBps:slpBps, account:STATE.account});
+      setStatus('pending', `🔄 submitted: <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">${r.txHash.slice(0,10)}…</a><br>waiting for confirmation…`);
+      btn.textContent = 'WAITING FOR CONFIRMATION…';
+      const rec = await ChogiTrade.waitReceipt(r.txHash, 120000);
+      if (!rec){ setStatus('error', `⏰ Tx not confirmed in 2min. Check <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">explorer</a>.`); }
+      else if (rec.status === '0x1'){
+        setStatus('success', `✅ Bought $${STATE.symbol}! <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
+        $('#amtInput').value = '';
+        scheduleQuote();
+        refreshBalances();
+      } else {
+        setStatus('error', `❌ Tx reverted. <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
+      }
+    } else {
+      if (STATE.balance.token < amountIn){ throw new Error('Not enough $'+STATE.symbol+' to sell'); }
+      btn.textContent = 'CHECKING ALLOWANCE…';
+      setStatus('pending', '⌛ checking approval…');
+      const r = await ChogiTrade.executeSell({
+        token: ADDR,
+        amountInWei: amountIn,
+        slippageBps: slpBps,
+        account: STATE.account,
+        onApproveStarted: ()=> setStatus('pending', '✍ approving $'+STATE.symbol+' for router… sign in wallet'),
+        onApproveConfirmed: tx => setStatus('pending', `✅ approval confirmed. now selling… sign sell tx`),
+      });
+      setStatus('pending', `🔄 sell submitted: <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">${r.txHash.slice(0,10)}…</a><br>waiting for confirmation…`);
+      btn.textContent = 'WAITING FOR CONFIRMATION…';
+      const rec = await ChogiTrade.waitReceipt(r.txHash, 120000);
+      if (!rec){ setStatus('error', `⏰ Tx not confirmed in 2min. Check <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">explorer</a>.`); }
+      else if (rec.status === '0x1'){
+        setStatus('success', `✅ Sold $${STATE.symbol}! <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
+        $('#amtInput').value = '';
+        scheduleQuote();
+        refreshBalances();
+      } else {
+        setStatus('error', `❌ Tx reverted. <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
+      }
+    }
+  }catch(e){
+    const msg = (e && (e.shortMessage || e.message)) || String(e);
+    setStatus('error', `❌ ${msg}`);
+  } finally {
+    STATE.busy = false;
+    btn.disabled = false;
+    btn.textContent = origText;
+    refreshSwapUI();
+  }
+}
+
+// ── WIRING ───────────────────────────────────
+function bindUI(){
+  // tabs
+  document.querySelectorAll('.swap-tabs button').forEach(b=>{
+    b.onclick = ()=>{
+      STATE.side = b.dataset.side;
+      $('#amtInput').value = '';
+      refreshSwapUI();
+      renderPresets();
+      scheduleQuote();
+    };
+  });
+  // amount input
+  $('#amtInput').addEventListener('input', scheduleQuote);
+  // CA copy
+  $('#caCopy').onclick = async (e)=>{
+    e.stopPropagation();
+    try{
+      await navigator.clipboard.writeText(ADDR);
+      const b = $('#caCopy');
+      const orig = b.textContent;
+      b.classList.add('copied');
+      b.textContent = '✓ COPIED';
+      setTimeout(()=>{ b.classList.remove('copied'); b.textContent = orig; }, 1200);
+    }catch(err){ prompt('Address:', ADDR); }
+  };
+  // balance shortcut
+  $('#amtBalance').onclick = ()=>{
+    if (!STATE.account){ connectClicked(); return; }
+    const isBuy = STATE.side === 'buy';
+    const dec = isBuy ? 18 : STATE.decimals;
+    const bal = isBuy ? STATE.balance.native : STATE.balance.token;
+    const num = tokAmt(bal.toString(), dec);
+    // leave gas buffer if buy
+    const v = isBuy ? Math.max(0, num - 0.005) : num;
+    $('#amtInput').value = fmt(v, 6);
+    scheduleQuote();
+  };
+  // wallet pill
+  $('#walletPill').onclick = connectClicked;
+  // execute
+  $('#executeBtn').onclick = execute;
+  // slippage
+  bindSlippage();
+}
+
+// ── BOOT ─────────────────────────────────────
+(async function init(){
+  bindUI();
+  const t = await loadToken();
+  renderToken(t);
+  // try to read token decimals/symbol from chain if needed
+  try{
+    const info = await ChogiTrade.tokenInfo(ADDR);
+    if (info && info.decimals){
+      STATE.decimals = info.decimals;
+      if (!STATE.token.token_info.symbol || STATE.token.token_info.symbol === '?'){
+        STATE.symbol = info.symbol;
+        $('#heroSymbol').textContent = '$' + info.symbol;
+      }
+    }
+  }catch(e){ console.warn('on-chain token info read failed', e); }
+
+  // auto-connect if previously authorized
+  if (window.ethereum){
+    try{
+      const accs = await window.ethereum.request({method:'eth_accounts'});
+      if (accs && accs[0]){
+        STATE.account = accs[0];
+        const pill = $('#walletPill');
+        pill.classList.add('on');
+        pill.textContent = accs[0].slice(0,6)+'…'+accs[0].slice(-4);
+        refreshSwapUI();
+        refreshBalances();
+      }
+    }catch(e){}
+    window.ethereum.on && window.ethereum.on('accountsChanged', accs=>{
+      STATE.account = accs && accs[0] || null;
+      const pill = $('#walletPill');
+      if (STATE.account){
+        pill.classList.add('on');
+        pill.textContent = STATE.account.slice(0,6)+'…'+STATE.account.slice(-4);
+        refreshBalances();
+      } else {
+        pill.classList.remove('on');
+        pill.textContent = '⚡ CONNECT';
+      }
+      refreshSwapUI();
+    });
+  }
+
+  // refresh balances periodically when connected
+  setInterval(()=>{ if (STATE.account) refreshBalances(); }, 20000);
+})();
+</script>
+</body>
+</html>
