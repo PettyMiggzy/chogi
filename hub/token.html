@@ -255,7 +255,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
 
           <div class="tx-status" id="txStatus"></div>
 
-          <div class="disclaim">Routes via nad.fun bonding-curve router (pre-grad) or Uniswap V3 fork (graduated). LENS oracle picks the right path. ~1% protocol fee + gas. Trade at your own risk.</div>
+          <div class="disclaim">Universal Monad swap — powered by <a href="https://monorail.xyz" target="_blank" rel="noopener" style="color:#FF1493;text-decoration:none;">Monorail</a> aggregator. Routes across Capricorn, Kuru, Crystal, Clober, Octoswap, Atlantis, Uniswap V3 and more for best price. Pre-flight simulation prevents wasted gas.</div>
         </div>
       </div>
 
@@ -555,37 +555,47 @@ async function doQuote(){
     STATE.quote = null;
     return;
   }
+  if (!STATE.account){
+    $('#quoteOut').textContent = 'connect to quote';
+    $('#quoteUsd').textContent = '';
+    return;
+  }
   try{
     const isBuy = STATE.side === 'buy';
-    const decIn = isBuy ? 18 : STATE.decimals;
-    const decOut = isBuy ? STATE.decimals : 18;
-    const amountIn = parseUnits(String(num), decIn);
-    const q = await ChogiTrade.getAmountOut(ADDR, amountIn, isBuy);
-    STATE.quote = { ...q, amountIn };
-    const out = tokAmt(q.amount.toString(), decOut);
+    const slpBps = Math.round(STATE.slippage * 100);
+    const q = await ChogiTrade.monorailQuote({
+      from: isBuy ? ChogiTrade.NATIVE_ZERO : ADDR,
+      to:   isBuy ? ADDR : ChogiTrade.NATIVE_ZERO,
+      amount: String(num),
+      sender: STATE.account,
+      slippageBps: slpBps,
+    });
+    STATE.quote = q;
+    const out = parseFloat(q.output_formatted) || 0;
     const sym = isBuy ? '$'+STATE.symbol : 'MON';
     $('#quoteOut').textContent = fmt(out, 6) + ' ' + sym;
-    // usd estimate
+    // route info
+    const r0 = (q.routes && q.routes[0] && q.routes[0][0]) || null;
+    const proto = r0 && r0.splits && r0.splits[0] && r0.splits[0].protocol;
+    const impact = parseFloat(q.compound_impact || 0) * 100;
+    let extra = '';
+    if (proto) extra += ` · via ${proto}`;
+    if (impact >= 3) extra += ` · ⚠ ${impact.toFixed(2)}% impact`;
+    // USD estimate
     const mi = STATE.token.market_info || {};
     const px = +mi.price_usd || 0;
-    if (isBuy && px){
-      $('#quoteUsd').textContent = ' ≈ $' + fmt(out * px, 2);
-    } else if (!isBuy && px){
-      const monUsd = +mi.native_price || 0;
-      if (monUsd) $('#quoteUsd').textContent = ' ≈ $' + fmt(out * monUsd, 2);
-      else $('#quoteUsd').textContent = '';
-    } else $('#quoteUsd').textContent = '';
-    // clear "not on nad.fun" status if it had been set
+    if (isBuy && px) extra = ' ≈ $' + fmt(out * px, 2) + extra;
+    else if (!isBuy && (mi.native_price || 0)) extra = ' ≈ $' + fmt(out * mi.native_price, 2) + extra;
+    $('#quoteUsd').textContent = extra;
     STATE.notOnNadfun = false;
-    setStatus('', '');
     clearStatus();
   }catch(e){
     console.warn('quote failed', e);
     STATE.quote = null;
-    STATE.notOnNadfun = true;
     $('#quoteOut').textContent = 'unavailable';
     $('#quoteUsd').textContent = '';
-    setStatus('error', `⚠ Quote unavailable — this token isn't on nad.fun. <a href="https://monorail.xyz/?to=${ADDR}" target="_blank">Try Monorail ↗</a>`);
+    const msg = ChogiTrade.explainRevert(e);
+    setStatus('error', `⚠ ${msg}`);
   }
 }
 
@@ -656,25 +666,38 @@ async function execute(){
 
   try{
     const isBuy = STATE.side === 'buy';
-    const decIn = isBuy ? 18 : STATE.decimals;
-    const amountIn = parseUnits(String(num), decIn);
-    const slpBps = Math.round(STATE.slippage * 100);  // 1.0% → 100 bps
+    const slpBps = Math.round(STATE.slippage * 100);
+    const amountHuman = String(num);
 
     if (isBuy){
       // balance check
-      const need = amountIn + 5000000000000000n;  // + ~0.005 MON gas buffer
+      const dec = 18;
+      const amountInWei = (function(){
+        const [w='0', f=''] = amountHuman.split('.');
+        const fPad = (f + '0'.repeat(dec)).slice(0, dec);
+        return BigInt(w) * (10n**BigInt(dec)) + BigInt(fPad || 0);
+      })();
+      const need = amountInWei + 5000000000000000n;  // + 0.005 MON gas buffer
       if (STATE.balance.native < need){
         throw new Error('Not enough MON for this trade + gas');
       }
-      btn.textContent = 'GETTING QUOTE…';
-      setStatus('pending', '⌛ requesting wallet signature…');
-      const r = await ChogiTrade.executeBuy({token:ADDR, amountInWei:amountIn, slippageBps:slpBps, account:STATE.account});
-      setStatus('pending', `🔄 submitted: <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">${r.txHash.slice(0,10)}…</a><br>waiting for confirmation…`);
-      btn.textContent = 'WAITING FOR CONFIRMATION…';
+      btn.textContent = 'QUOTING…';
+      setStatus('pending', '⌛ getting best route from Monorail aggregator…');
+      const r = await ChogiTrade.executeBuy({
+        token: ADDR,
+        amountHuman,
+        slippageBps: slpBps,
+        account: STATE.account,
+      });
+      const route = (r.quote.routes && r.quote.routes[0] && r.quote.routes[0][0] && r.quote.routes[0][0].splits[0]) || null;
+      const via = route ? ` via ${route.protocol}` : '';
+      setStatus('pending', `🔄 buy${via}: <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">${r.txHash.slice(0,10)}…</a><br>waiting for confirmation…`);
+      btn.textContent = 'CONFIRMING…';
       const rec = await ChogiTrade.waitReceipt(r.txHash, 120000);
-      if (!rec){ setStatus('error', `⏰ Tx not confirmed in 2min. Check <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">explorer</a>.`); }
-      else if (rec.status === '0x1'){
-        setStatus('success', `✅ Bought $${STATE.symbol}! <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
+      if (!rec){
+        setStatus('error', `⏰ Tx not confirmed in 2min. Check <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">explorer</a>.`);
+      } else if (rec.status === '0x1'){
+        setStatus('success', `✅ Bought $${STATE.symbol}${via}! <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
         $('#amtInput').value = '';
         scheduleQuote();
         refreshBalances();
@@ -682,23 +705,33 @@ async function execute(){
         setStatus('error', `❌ Tx reverted. <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
       }
     } else {
-      if (STATE.balance.token < amountIn){ throw new Error('Not enough $'+STATE.symbol+' to sell'); }
-      btn.textContent = 'CHECKING ALLOWANCE…';
-      setStatus('pending', '⌛ checking approval…');
+      // sell — token amount check
+      const dec = STATE.decimals;
+      const amountInWei = (function(){
+        const [w='0', f=''] = amountHuman.split('.');
+        const fPad = (f + '0'.repeat(dec)).slice(0, dec);
+        return BigInt(w) * (10n**BigInt(dec)) + BigInt(fPad || 0);
+      })();
+      if (STATE.balance.token < amountInWei){ throw new Error('Not enough $'+STATE.symbol+' to sell'); }
+      btn.textContent = 'QUOTING…';
+      setStatus('pending', '⌛ getting best route from Monorail aggregator…');
       const r = await ChogiTrade.executeSell({
         token: ADDR,
-        amountInWei: amountIn,
+        amountHuman,
         slippageBps: slpBps,
         account: STATE.account,
         onApproveStarted: ()=> setStatus('pending', '✍ approving $'+STATE.symbol+' for router… sign in wallet'),
         onApproveConfirmed: tx => setStatus('pending', `✅ approval confirmed. now selling… sign sell tx`),
       });
-      setStatus('pending', `🔄 sell submitted: <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">${r.txHash.slice(0,10)}…</a><br>waiting for confirmation…`);
-      btn.textContent = 'WAITING FOR CONFIRMATION…';
+      const route = (r.quote.routes && r.quote.routes[0] && r.quote.routes[0][0] && r.quote.routes[0][0].splits[0]) || null;
+      const via = route ? ` via ${route.protocol}` : '';
+      setStatus('pending', `🔄 sell${via}: <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">${r.txHash.slice(0,10)}…</a><br>waiting for confirmation…`);
+      btn.textContent = 'CONFIRMING…';
       const rec = await ChogiTrade.waitReceipt(r.txHash, 120000);
-      if (!rec){ setStatus('error', `⏰ Tx not confirmed in 2min. Check <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">explorer</a>.`); }
-      else if (rec.status === '0x1'){
-        setStatus('success', `✅ Sold $${STATE.symbol}! <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
+      if (!rec){
+        setStatus('error', `⏰ Tx not confirmed in 2min. Check <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">explorer</a>.`);
+      } else if (rec.status === '0x1'){
+        setStatus('success', `✅ Sold $${STATE.symbol}${via}! <a href="${ChogiTrade.EXPLORER}/tx/${r.txHash}" target="_blank">view tx ↗</a>`);
         $('#amtInput').value = '';
         scheduleQuote();
         refreshBalances();
@@ -707,7 +740,7 @@ async function execute(){
       }
     }
   }catch(e){
-    const msg = (e && (e.shortMessage || e.message)) || String(e);
+    const msg = ChogiTrade.explainRevert(e);
     setStatus('error', `❌ ${msg}`);
   } finally {
     STATE.busy = false;
