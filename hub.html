@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a0118">
+<title>Chogi Trader HUB — Monad meme command center</title>
+<meta name="description" content="One-stop terminal for Monad meme trading. Live prices, wallet pack tracker, cross-contamination holder map.">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<meta property="og:title" content="Chogi Trader HUB">
+<meta property="og:description" content="One-stop terminal for Monad meme trading. Built by Chogi Labs.">
+<meta property="og:image" content="/hub-banner-poster.jpg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chogi.xyz/hub">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chogi Trader HUB">
+<meta name="twitter:description" content="Monad meme command center.">
+<meta name="twitter:image" content="/hub-banner-poster.jpg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-soft:#FF69B4;
+  --pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;
+  --purple-deep:#7C3AED;
+  --cyan:#22d3ee;
+  --green:#22d36f;
+  --red:#ff4d6d;
+  --amber:#ffaa33;
+  --cream:#FFF4D6;
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+  --mute:#9a8bb3;
+  --panel:rgba(20,8,40,.55);
+  --panel-line:rgba(255,20,147,.18);
+}
+html,body{overflow-x:hidden;}
+body{
+  min-height:100vh;background:var(--bg);
+  font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);
+  line-height:1.5;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,20,147,.20),transparent 60%),
+    radial-gradient(ellipse at 100% 80%,rgba(168,85,247,.18),transparent 55%),
+    radial-gradient(ellipse at 0% 60%,rgba(255,105,180,.12),transparent 50%);
+  z-index:-3;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);
+  pointer-events:none;z-index:-2;
+}
+
+/* ─── NAV (matches site chrome) ─── */
+.nav{
+  position:sticky;top:0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;gap:14px;
+  background:rgba(10,1,24,.78);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--panel-line);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+.brand-img{
+  width:36px;height:36px;border-radius:50%;
+  border:2px solid var(--pink);
+  box-shadow:0 0 16px var(--pink-glow);
+  overflow:hidden;flex-shrink:0;background:#000;
+}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2.5px;color:#fff;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);margin-top:-2px;}
+.nav-back{
+  padding:8px 14px;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;
+  color:var(--pink);border:1px solid var(--pink);border-radius:6px;
+  background:rgba(255,20,147,.06);
+}
+.nav-back:hover{background:rgba(255,20,147,.14);}
+
+/* ─── LIVE TICKER ─── */
+.ticker-wrap{
+  position:sticky;top:64px;z-index:55;
+  background:rgba(8,0,18,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,20,147,.22);
+  overflow:hidden;
+  padding:9px 0;
+}
+.ticker-strip{
+  display:flex;gap:32px;white-space:nowrap;
+  animation:tickerScroll 80s linear infinite;
+  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.5px;
+  will-change:transform;
+}
+.ticker-strip:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:10px;}
+.ticker-tkr{color:#fff;font-weight:700;}
+.ticker-px{color:var(--mute);}
+.ticker-chg{font-weight:700;}
+.ticker-chg.up{color:var(--green);}
+.ticker-chg.down{color:var(--red);}
+.ticker-chg.flat{color:var(--mute);}
+.ticker-sep{color:rgba(255,20,147,.35);}
+@keyframes tickerScroll{
+  0%{transform:translateX(0);}
+  100%{transform:translateX(-50%);}
+}
+
+/* ─── BANNER ─── */
+.banner{
+  position:relative;width:100%;max-width:1180px;margin:18px auto 0;
+  padding:0 18px;
+}
+.banner-inner{
+  position:relative;border-radius:18px;overflow:hidden;
+  border:2px solid var(--pink);
+  box-shadow:0 0 60px rgba(255,20,147,.32),0 0 140px rgba(168,85,247,.22);
+  aspect-ratio:1200/720;background:#000;
+}
+.banner-inner video{width:100%;height:100%;object-fit:cover;display:block;}
+.banner-overlay{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:14px 20px;
+  background:linear-gradient(180deg,transparent,rgba(10,1,24,.85));
+  display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;
+}
+.banner-tag{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+  color:var(--pink);text-transform:uppercase;
+}
+.banner-sub{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);
+  letter-spacing:1px;
+}
+
+/* ─── TAB BAR ─── */
+.tab-bar{
+  max-width:1180px;margin:24px auto 0;padding:0 18px;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.tab-btn{
+  flex:1;min-width:140px;
+  padding:14px 16px;cursor:pointer;
+  background:var(--panel);
+  border:1px solid var(--panel-line);border-radius:12px;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2px;
+  color:var(--mute);text-align:center;
+  transition:all .18s;
+}
+.tab-btn:hover{color:#fff;border-color:var(--pink);}
+.tab-btn.active{
+  background:linear-gradient(135deg,rgba(255,20,147,.22),rgba(168,85,247,.18));
+  color:#fff;border-color:var(--pink);
+  box-shadow:0 0 24px rgba(255,20,147,.22);
+}
+.tab-btn .ic{font-size:16px;margin-right:6px;}
+
+/* ─── PANELS ─── */
+.tab-panel{
+  display:none;
+  max-width:1180px;margin:18px auto;padding:0 18px;
+}
+.tab-panel.active{display:block;}
+.tab-head{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  margin-bottom:16px;
+}
+.tab-title{
+  font-family:'Bungee',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;
+}
+.tab-sub{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);
+  letter-spacing:1px;
+}
+.tab-tools{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{
+  padding:9px 14px;border:1px solid var(--pink);background:rgba(255,20,147,.08);
+  color:var(--pink);border-radius:8px;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.2px;
+  transition:all .15s;
+}
+.btn:hover{background:rgba(255,20,147,.18);color:#fff;}
+.btn-cyan{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.08);}
+.btn-cyan:hover{background:rgba(34,211,238,.18);color:#fff;}
+.btn-ghost{border-color:rgba(255,255,255,.12);color:var(--mute);background:transparent;}
+.input{
+  padding:10px 14px;
+  background:rgba(8,0,18,.6);border:1px solid var(--panel-line);
+  color:#fff;border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  min-width:280px;
+}
+.input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,20,147,.12);}
+
+/* ─── BREACH MONITOR GRID ─── */
+.grid-wrap{
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;
+  overflow:hidden;
+}
+.grid-table{width:100%;border-collapse:collapse;font-size:13px;}
+.grid-table thead th{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:1.5px;color:var(--mute);text-transform:uppercase;
+  padding:13px 12px;text-align:right;
+  background:rgba(255,20,147,.04);
+  border-bottom:1px solid var(--panel-line);
+  cursor:pointer;user-select:none;
+}
+.grid-table thead th:first-child{text-align:left;}
+.grid-table thead th:hover{color:var(--pink);}
+.grid-table tbody tr{
+  border-bottom:1px solid rgba(255,20,147,.06);
+  transition:background .15s;
+}
+.grid-table tbody tr:hover{background:rgba(255,20,147,.04);}
+.grid-table tbody tr.flash-up{animation:flashUp .8s;}
+.grid-table tbody tr.flash-down{animation:flashDn .8s;}
+@keyframes flashUp{0%{background:rgba(34,211,111,.22);}100%{background:transparent;}}
+@keyframes flashDn{0%{background:rgba(255,77,109,.22);}100%{background:transparent;}}
+.grid-table tbody td{
+  padding:14px 12px;text-align:right;
+  font-family:'JetBrains Mono',monospace;
+  color:#fff;
+}
+.grid-table tbody td:first-child{text-align:left;}
+.token-cell{display:flex;align-items:center;gap:10px;}
+.token-cell img{
+  width:30px;height:30px;border-radius:50%;
+  border:1.5px solid rgba(255,20,147,.4);background:#000;flex-shrink:0;
+  object-fit:cover;
+}
+.token-cell .tkr{font-weight:700;color:#fff;}
+.token-cell .name{font-size:10px;color:var(--mute);letter-spacing:.5px;}
+.chg-up{color:var(--green);}
+.chg-down{color:var(--red);}
+.chg-flat{color:var(--mute);}
+.tier-pill{
+  display:inline-block;padding:3px 9px;border-radius:6px;
+  font-size:9px;letter-spacing:1.5px;font-weight:700;
+}
+.tier-stable{background:rgba(34,211,111,.14);color:var(--green);border:1px solid rgba(34,211,111,.35);}
+.tier-elev{background:rgba(255,170,51,.14);color:var(--amber);border:1px solid rgba(255,170,51,.35);}
+.tier-breach{background:rgba(255,77,109,.14);color:var(--red);border:1px solid rgba(255,77,109,.45);animation:pulseBreach 1.6s infinite;}
+@keyframes pulseBreach{0%,100%{box-shadow:0 0 0 rgba(255,77,109,0);}50%{box-shadow:0 0 14px rgba(255,77,109,.5);}}
+.row-act{display:flex;gap:6px;justify-content:flex-end;}
+.row-act a, .row-act button{
+  padding:5px 9px;font-size:11px;border-radius:5px;text-decoration:none;
+  background:rgba(255,20,147,.12);color:var(--pink);border:1px solid rgba(255,20,147,.3);
+  font-family:'JetBrains Mono',monospace;letter-spacing:.5px;cursor:pointer;
+}
+.row-act a:hover, .row-act button:hover{background:rgba(255,20,147,.25);color:#fff;}
+.row-act .rm{border-color:rgba(255,77,109,.35);color:var(--red);background:rgba(255,77,109,.06);}
+.empty{padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+/* ─── CROSS MAP + PACK TRACKER ─── */
+.scan-form{
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;
+  padding:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;
+}
+.scan-form label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);letter-spacing:1.5px;
+}
+.scan-form .input{flex:1;}
+.wallet-card{
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;
+  padding:16px;margin-bottom:14px;
+}
+.wallet-head{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.wallet-addr{
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;font-weight:700;
+}
+.wallet-addr .short{color:var(--pink);}
+.wallet-meta{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);
+  letter-spacing:1px;margin-top:3px;
+}
+.diversity{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;
+  background:linear-gradient(135deg,rgba(168,85,247,.18),rgba(255,20,147,.12));
+  border:1px solid rgba(168,85,247,.45);
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;color:#fff;
+}
+.diversity .num{color:var(--cyan);}
+.holdings{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.hold{
+  background:rgba(8,0,18,.55);border:1px solid rgba(255,20,147,.12);
+  border-radius:8px;padding:10px;
+}
+.hold.empty-h{opacity:.35;}
+.hold .tkr{font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;color:#fff;}
+.hold .bal{font-family:'JetBrains Mono',monospace;font-size:13px;color:#fff;margin-top:3px;}
+.hold .usd{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);margin-top:2px;}
+.wallet-actions{
+  display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;
+}
+.scan-loading{
+  display:flex;align-items:center;gap:10px;
+  padding:18px;background:var(--panel);border:1px solid var(--panel-line);
+  border-radius:12px;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;
+}
+.scan-loading .sp{
+  width:14px;height:14px;border:2px solid rgba(255,20,147,.2);border-top-color:var(--pink);
+  border-radius:50%;animation:sp 1s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* ─── OVERLAP MATRIX (Cross Map) ─── */
+.overlap{
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;
+  padding:16px;margin-top:16px;overflow-x:auto;
+}
+.overlap h3{
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.8px;color:#fff;margin-bottom:12px;
+}
+.overlap table{border-collapse:collapse;font-size:11px;}
+.overlap th, .overlap td{
+  padding:8px 10px;text-align:center;font-family:'JetBrains Mono',monospace;
+  border:1px solid rgba(255,20,147,.08);
+}
+.overlap th{color:var(--mute);background:rgba(255,20,147,.04);font-size:10px;letter-spacing:1px;}
+.overlap td.self{background:rgba(168,85,247,.1);color:var(--mute);}
+.overlap td.match{font-weight:700;}
+
+/* ─── FOOTER ─── */
+.footer{
+  max-width:1180px;margin:30px auto;padding:18px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  border-top:1px solid var(--panel-line);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--mute);
+}
+.rpc-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:6px;font-size:10px;letter-spacing:1.5px;
+}
+.rpc-pill.ok{background:rgba(34,211,111,.1);color:var(--green);border:1px solid rgba(34,211,111,.4);}
+.rpc-pill.fb{background:rgba(255,170,51,.1);color:var(--amber);border:1px solid rgba(255,170,51,.4);}
+.rpc-pill.err{background:rgba(255,77,109,.1);color:var(--red);border:1px solid rgba(255,77,109,.4);}
+.rpc-dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
+
+/* ─── MOBILE ─── */
+@media (max-width:720px){
+  .nav{padding:12px 14px;}
+  .brand-name{font-size:14px;}
+  .brand-sub{font-size:8px;}
+  .nav-back{padding:6px 10px;font-size:10px;}
+  .banner{padding:0 12px;margin-top:12px;}
+  .tab-bar{padding:0 12px;}
+  .tab-btn{font-size:11px;padding:11px 10px;letter-spacing:1.2px;min-width:0;}
+  .tab-btn .ic{font-size:14px;margin-right:4px;}
+  .tab-panel{padding:0 12px;}
+  .grid-wrap{border-radius:10px;}
+  .grid-table thead th{font-size:8.5px;padding:9px 6px;letter-spacing:1px;}
+  .grid-table tbody td{padding:11px 6px;font-size:11.5px;}
+  .grid-table .hide-sm{display:none;}
+  .token-cell img{width:24px;height:24px;}
+  .token-cell .tkr{font-size:11px;}
+  .token-cell .name{font-size:9px;}
+  .tier-pill{font-size:8px;padding:2px 6px;letter-spacing:1px;}
+  .input{min-width:0;width:100%;font-size:11px;}
+  .scan-form{flex-direction:column;align-items:stretch;}
+  .holdings{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="brand-img"><img src="/chogi.png" alt="Chogi" onerror="this.src='/chogi.jpg'"></span>
+    <div>
+      <div class="brand-name">CHOGI</div>
+      <div class="brand-sub">TRADER HUB</div>
+    </div>
+  </a>
+  <a class="nav-back" href="/">◄ HOME</a>
+</nav>
+
+<!-- LIVE TICKER -->
+<div class="ticker-wrap" id="tickerWrap">
+  <div class="ticker-strip" id="tickerStrip">
+    <span class="ticker-item"><span class="ticker-tkr">— loading live market feed —</span></span>
+  </div>
+</div>
+
+<!-- BANNER -->
+<div class="banner">
+  <div class="banner-inner">
+    <video src="/hub-banner.mp4" poster="/hub-banner-poster.jpg" autoplay muted loop playsinline preload="auto">
+      <source src="/hub-banner.webm" type="video/webm">
+      <source src="/hub-banner.mp4" type="video/mp4">
+    </video>
+    <div class="banner-overlay">
+      <div class="banner-tag">◆ Monad Meme Command Center</div>
+      <div class="banner-sub">live prices · pack tracker · cross-holder map</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="breach"><span class="ic">📡</span>BREACH MONITOR</button>
+  <button class="tab-btn" data-tab="cross"><span class="ic">🗺️</span>CROSS-MAP</button>
+  <button class="tab-btn" data-tab="pack"><span class="ic">🐺</span>PACK TRACKER</button>
+</div>
+
+<!-- TAB: BREACH MONITOR -->
+<section class="tab-panel active" id="tab-breach">
+  <div class="tab-head">
+    <div>
+      <div class="tab-title">📡 BREACH MONITOR</div>
+      <div class="tab-sub">live price + risk surveillance · auto-refresh 30s · DexScreener feed</div>
+    </div>
+    <div class="tab-tools">
+      <input class="input" id="addTokenInput" placeholder="paste token CA to add · 0x…" maxlength="42">
+      <button class="btn" id="addTokenBtn">+ ADD TOKEN</button>
+      <button class="btn btn-ghost" id="resetTokensBtn">↺ RESET</button>
+    </div>
+  </div>
+  <div class="grid-wrap">
+    <table class="grid-table" id="breachTable">
+      <thead>
+        <tr>
+          <th data-sort="symbol">TOKEN</th>
+          <th data-sort="price">PRICE</th>
+          <th data-sort="change24">24H</th>
+          <th data-sort="mcap" class="hide-sm">MCAP</th>
+          <th data-sort="volume" class="hide-sm">VOL 24H</th>
+          <th data-sort="liquidity" class="hide-sm">LIQ</th>
+          <th data-sort="tier">TIER</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody id="breachBody">
+        <tr><td colspan="8" class="empty">⏳ pulling live market data…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- TAB: CROSS MAP -->
+<section class="tab-panel" id="tab-cross">
+  <div class="tab-head">
+    <div>
+      <div class="tab-title">🗺️ CROSS-CONTAMINATION MAP</div>
+      <div class="tab-sub">paste a wallet → scan their Monad meme bags · compare up to 8 wallets · find the cross-holders</div>
+    </div>
+  </div>
+
+  <div class="scan-form">
+    <label>WALLET</label>
+    <input class="input" id="crossInput" placeholder="0x… (paste any wallet to scan)" maxlength="42">
+    <button class="btn" id="crossScanBtn">⌗ SCAN</button>
+    <button class="btn btn-ghost" id="crossSampleBtn">+ SAMPLE</button>
+    <button class="btn btn-ghost" id="crossClearBtn">↺ CLEAR ALL</button>
+  </div>
+
+  <div id="crossWallets"></div>
+  <div id="crossOverlap"></div>
+</section>
+
+<!-- TAB: PACK TRACKER -->
+<section class="tab-panel" id="tab-pack">
+  <div class="tab-head">
+    <div>
+      <div class="tab-title">🐺 PACK TRACKER</div>
+      <div class="tab-sub">watch up to 10 wallets · live multicall balances · auto-poll every 90s</div>
+    </div>
+  </div>
+
+  <div class="scan-form">
+    <label>WATCH</label>
+    <input class="input" id="packInput" placeholder="0x… (paste a wallet to watch)" maxlength="42">
+    <button class="btn" id="packAddBtn">+ ADD WALLET</button>
+    <button class="btn btn-cyan" id="packRefreshBtn">↺ REFRESH ALL</button>
+  </div>
+
+  <div id="packList"></div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    ◆ chogi.xyz · trader hub v1.0
+  </div>
+  <div id="rpcPill" class="rpc-pill ok">
+    <span class="rpc-dot"></span>
+    <span id="rpcLabel">RPC: monad.xyz</span>
+  </div>
+</div>
+
+<script src="/js/config.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CHOGI TRADER HUB — single-file engine
+   - Phase 1 BREACH MONITOR  → DexScreener API
+   - Phase 2 CROSS-MAP       → eth_call balanceOf (fallback RPC chain)
+   - Phase 3 PACK TRACKER    → eth_call balanceOf (fallback RPC chain)
+   - Live TICKER             → DexScreener API
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── CONFIG ───────────────────────────────────────────────── */
+const CFG = window.ChogiConfig || {};
+
+// known Monad meme universe (CHOGI ecosystem + neighbors)
+// extra tokens added by users via localStorage
+const SEED_TOKENS = [
+  {address:'0x5E1b1A14c8758104B8560514e94ab8320e587777', symbol:'CHOGI'  , decimals:18, native:true},
+  {address:'0xB744F5CDb792d8187640214C4A1c9aCE29af7777', symbol:'MONSHI' , decimals:18},
+  {address:'0xaCA86430cCCEdbedB35910fC8A5AFEF07dA37777', symbol:'RENE'   , decimals:18},
+  {address:'0x148a3a811979e5BF8366FC279B2d67742Fe17777', symbol:'PHUCK'  , decimals:18},
+  {address:'0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A', symbol:'WMON'   , decimals:18},
+];
+
+// RPC fallback chain — primary free RPC, then optional QuickNode from ChogiConfig
+const RPC_ENDPOINTS = [
+  {url:'https://rpc.monad.xyz',                label:'monad.xyz' },
+  {url:'https://monad-mainnet.public.blastapi.io', label:'blastapi'},
+];
+if (CFG.RPC) RPC_ENDPOINTS.push({url:CFG.RPC, label:'private'});
+
+const LS = {
+  watch: 'chogi.hub.watchlist',
+  pack:  'chogi.hub.pack',
+  cross: 'chogi.hub.cross'
+};
+
+/* ── STATE ────────────────────────────────────────────────── */
+let TOKENS = loadWatchlist();
+let MARKET = {};          // address(lc) → { price, change24, mcap, vol, liq, name, logo, tier }
+let SORT_KEY = 'mcap';
+let SORT_DIR = -1;        // -1 desc, 1 asc
+let RPC_STATE = {idx:0, ok:true};
+
+/* ── UTILS ────────────────────────────────────────────────── */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const lc = a => (a||'').toLowerCase();
+const isAddr = a => /^0x[a-fA-F0-9]{40}$/.test(a||'');
+const short = a => a ? a.slice(0,6)+'…'+a.slice(-4) : '';
+const num = (n,d=2) => {
+  if (n==null || isNaN(n)) return '—';
+  const x = +n;
+  if (x === 0) return '0';
+  if (Math.abs(x) >= 1e9) return (x/1e9).toFixed(d)+'B';
+  if (Math.abs(x) >= 1e6) return (x/1e6).toFixed(d)+'M';
+  if (Math.abs(x) >= 1e3) return (x/1e3).toFixed(d)+'K';
+  if (Math.abs(x) >= 1)   return x.toFixed(d);
+  if (Math.abs(x) >= .01) return x.toFixed(4);
+  return x.toExponential(2);
+};
+const pct = (p,d=2) => p==null||isNaN(p) ? '—' : (p>0?'+':'')+(+p).toFixed(d)+'%';
+const chgClass = p => p==null?'chg-flat':(p>0?'chg-up':p<0?'chg-down':'chg-flat');
+const usd = n => '$'+num(n);
+
+function tierFor(t){
+  const c1 = Math.abs(+t.change1||0);
+  const c24= Math.abs(+t.change24||0);
+  if (c1 > 25 || c24 > 80) return 'breach';
+  if (c1 > 8  || c24 > 25) return 'elev';
+  return 'stable';
+}
+
+function loadWatchlist(){
+  try{
+    const raw = localStorage.getItem(LS.watch);
+    if (raw){
+      const list = JSON.parse(raw);
+      if (Array.isArray(list) && list.length) return list;
+    }
+  }catch(e){}
+  return [...SEED_TOKENS];
+}
+function saveWatchlist(){ localStorage.setItem(LS.watch, JSON.stringify(TOKENS)); }
+function loadPack(){
+  try{ const r = localStorage.getItem(LS.pack); if(r) return JSON.parse(r); }catch(e){}
+  return [];
+}
+function savePack(arr){ localStorage.setItem(LS.pack, JSON.stringify(arr)); }
+function loadCross(){
+  try{ const r = localStorage.getItem(LS.cross); if(r) return JSON.parse(r); }catch(e){}
+  return [];
+}
+function saveCross(arr){ localStorage.setItem(LS.cross, JSON.stringify(arr)); }
+
+/* ── RPC LAYER (fallback chain) ────────────────────────────── */
+async function rpcCall(method, params){
+  let lastErr;
+  for (let attempt = 0; attempt < RPC_ENDPOINTS.length; attempt++){
+    const ep = RPC_ENDPOINTS[(RPC_STATE.idx + attempt) % RPC_ENDPOINTS.length];
+    try{
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), 9000);
+      const r = await fetch(ep.url, {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body: JSON.stringify({jsonrpc:'2.0',id:1,method,params}),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+      if (!r.ok) throw new Error('http '+r.status);
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message||'rpc error');
+      // success → lock in this endpoint
+      if (attempt !== 0){
+        RPC_STATE.idx = (RPC_STATE.idx + attempt) % RPC_ENDPOINTS.length;
+      }
+      setRpcPill('ok', 'RPC: '+ep.label);
+      return j.result;
+    }catch(e){
+      lastErr = e;
+      setRpcPill('fb', 'RPC: trying '+ep.label+'…');
+    }
+  }
+  setRpcPill('err', 'RPC: offline');
+  throw lastErr || new Error('all RPCs failed');
+}
+
+function setRpcPill(state, label){
+  const pill = $('#rpcPill'), lbl = $('#rpcLabel');
+  if (!pill) return;
+  pill.classList.remove('ok','fb','err');
+  pill.classList.add(state);
+  lbl.textContent = label;
+}
+
+// balanceOf(address)  → uint256
+function encodeBalanceOf(holder){
+  return '0x70a08231' + holder.toLowerCase().replace('0x','').padStart(64,'0');
+}
+async function getBalance(token, holder){
+  const data = encodeBalanceOf(holder);
+  const hex = await rpcCall('eth_call', [{to: token, data}, 'latest']);
+  if (!hex || hex === '0x') return 0n;
+  return BigInt(hex);
+}
+async function getBalances(tokenList, holder){
+  // parallel — fastest path; if rate-limited, RPC layer auto-fails over
+  const results = await Promise.allSettled(tokenList.map(t => getBalance(t.address, holder)));
+  return results.map((r,i)=>({
+    token: tokenList[i],
+    balance: r.status === 'fulfilled' ? r.value : 0n,
+    err: r.status === 'rejected' ? r.reason : null
+  }));
+}
+function bigToFloat(b, decimals){
+  if (b == null) return 0;
+  const s = b.toString().padStart(decimals+1,'0');
+  const i = s.slice(0, s.length - decimals);
+  const f = s.slice(s.length - decimals, s.length - decimals + 6);
+  return parseFloat(i + '.' + f);
+}
+
+/* ── DEXSCREENER MARKET DATA ─────────────────────────────── */
+async function fetchMarket(tokens){
+  // chunked fetch — DexScreener accepts up to ~30 CAs per request, comma-joined
+  const ADDRS = tokens.map(t=>t.address).join(',');
+  const url = `https://api.dexscreener.com/latest/dex/tokens/${ADDRS}`;
+  let json;
+  try{
+    const r = await fetch(url, {cache:'no-cache'});
+    json = await r.json();
+  }catch(e){ return {}; }
+  const out = {};
+  const pairs = json.pairs || [];
+  // pick best pair per token (highest liquidity)
+  const byTok = {};
+  for (const p of pairs){
+    const addr = lc(p.baseToken && p.baseToken.address);
+    if (!addr) continue;
+    const liq = +(p.liquidity && p.liquidity.usd || 0);
+    if (!byTok[addr] || liq > byTok[addr]._liq){
+      byTok[addr] = Object.assign({_liq:liq}, p);
+    }
+  }
+  for (const t of tokens){
+    const p = byTok[lc(t.address)];
+    if (!p){
+      out[lc(t.address)] = {
+        price:null, change24:null, change1:null, mcap:null, vol:null, liq:null,
+        name:t.symbol, logo:null, pairUrl:null, tier:'stable'
+      };
+      continue;
+    }
+    const rec = {
+      price:    +p.priceUsd || 0,
+      change24: p.priceChange ? +p.priceChange.h24 : null,
+      change1:  p.priceChange ? +p.priceChange.h1  : null,
+      mcap:     +p.marketCap || +p.fdv || null,
+      vol:      p.volume ? +p.volume.h24 : null,
+      liq:      p.liquidity ? +p.liquidity.usd : null,
+      name:     (p.baseToken && p.baseToken.name) || t.symbol,
+      logo:     (p.info && p.info.imageUrl) || null,
+      pairUrl:  p.url || null,
+      txns:     p.txns ? p.txns.h24 : null,
+    };
+    rec.tier = tierFor(rec);
+    out[lc(t.address)] = rec;
+  }
+  return out;
+}
+
+/* ── BREACH MONITOR RENDER ────────────────────────────────── */
+function renderBreach(){
+  const tb = $('#breachBody');
+  if (!TOKENS.length){
+    tb.innerHTML = `<tr><td colspan="8" class="empty">No tokens in watchlist. Paste a CA above to add one.</td></tr>`;
+    return;
+  }
+  // sort
+  const rows = TOKENS.map(t=>{
+    const m = MARKET[lc(t.address)] || {};
+    return {token:t, ...m, symbol:t.symbol};
+  });
+  rows.sort((a,b)=>{
+    const av = a[SORT_KEY], bv = b[SORT_KEY];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (SORT_KEY === 'symbol') return (av>bv?1:-1) * SORT_DIR * -1; // string asc by default
+    return (av - bv) * SORT_DIR;
+  });
+  tb.innerHTML = rows.map(r=>{
+    const tierLabel = {stable:'STABLE',elev:'ELEVATED',breach:'BREACH'}[r.tier||'stable'];
+    const tierClass = 'tier-'+(r.tier||'stable');
+    const ds  = r.token.address ? `https://dexscreener.com/monad/${r.token.address}` : '#';
+    const buy = `https://nad.fun/tokens/${r.token.address}`;
+    const logo = r.logo
+      ? `<img src="${r.logo}" alt="" onerror="this.style.display='none'">`
+      : `<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#FF1493,#A855F7);"></div>`;
+    return `<tr data-addr="${r.token.address}">
+      <td>
+        <div class="token-cell">
+          ${logo}
+          <div>
+            <div class="tkr">$${r.symbol}</div>
+            <div class="name">${(r.name||'').slice(0,18)}</div>
+          </div>
+        </div>
+      </td>
+      <td>${r.price!=null ? '$'+num(r.price,r.price>=1?2:6) : '—'}</td>
+      <td class="${chgClass(r.change24)}">${pct(r.change24)}</td>
+      <td class="hide-sm">${r.mcap!=null ? usd(r.mcap) : '—'}</td>
+      <td class="hide-sm">${r.vol!=null ? usd(r.vol) : '—'}</td>
+      <td class="hide-sm">${r.liq!=null ? usd(r.liq) : '—'}</td>
+      <td><span class="tier-pill ${tierClass}">${tierLabel}</span></td>
+      <td>
+        <div class="row-act">
+          <a href="${ds}" target="_blank" rel="noopener">CHART</a>
+          <a href="${buy}" target="_blank" rel="noopener">BUY</a>
+          ${r.token.native ? '' : `<button class="rm" data-rm="${r.token.address}">×</button>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // remove handlers
+  $$('button[data-rm]', tb).forEach(b=>{
+    b.onclick = ()=>{
+      const addr = b.getAttribute('data-rm');
+      TOKENS = TOKENS.filter(t => lc(t.address) !== lc(addr));
+      saveWatchlist();
+      renderBreach();
+      renderTicker();
+    };
+  });
+}
+
+/* ── TICKER ───────────────────────────────────────────────── */
+function renderTicker(){
+  const strip = $('#tickerStrip');
+  if (!strip) return;
+  const items = TOKENS.map(t=>{
+    const m = MARKET[lc(t.address)] || {};
+    const cls = chgClass(m.change24).replace('chg-','');
+    return `<span class="ticker-item">
+      <span class="ticker-tkr">$${t.symbol}</span>
+      <span class="ticker-px">${m.price!=null?'$'+num(m.price,m.price>=1?2:6):'—'}</span>
+      <span class="ticker-chg ${cls}">${pct(m.change24)}</span>
+    </span>
+    <span class="ticker-sep">·</span>`;
+  }).join('');
+  // double the strip for seamless loop
+  strip.innerHTML = items + items;
+}
+
+/* ── BREACH ACTIONS ───────────────────────────────────────── */
+async function refreshBreach(){
+  if (!TOKENS.length){ renderBreach(); return; }
+  const m = await fetchMarket(TOKENS);
+  MARKET = m;
+  renderBreach();
+  renderTicker();
+}
+
+function addToken(addr){
+  addr = (addr||'').trim();
+  if (!isAddr(addr)){ alert('Invalid address. Use 0x… 42 chars.'); return; }
+  if (TOKENS.some(t => lc(t.address) === lc(addr))){ alert('Already in watchlist.'); return; }
+  TOKENS.push({address:addr, symbol:'???', decimals:18});
+  saveWatchlist();
+  renderBreach();
+  // pull market data + symbol from DexScreener
+  fetchMarket([{address:addr,symbol:'???'}]).then(m=>{
+    const rec = m[lc(addr)];
+    if (rec && rec.name){
+      const i = TOKENS.findIndex(t => lc(t.address) === lc(addr));
+      if (i>=0){
+        // try to extract symbol from name; fallback to short address
+        const sym = (rec.name.split(/\s|·/)[0] || '').toUpperCase().slice(0,8) || addr.slice(2,6).toUpperCase();
+        TOKENS[i].symbol = sym;
+        MARKET[lc(addr)] = rec;
+        saveWatchlist();
+        renderBreach();
+        renderTicker();
+      }
+    }
+  });
+}
+
+/* ── CROSS-MAP ───────────────────────────────────────────── */
+const SAMPLE_WALLETS = [
+  // notable seed wallets — pre-loaded for demo
+  '0xB9d4B73bE18914c6d64Bee65a806648370be467f', // King's deployer
+];
+
+let CROSS = loadCross(); // array of {address, scanned_at, balances:[{addr,bal,usd}]}
+
+async function scanWallet(addr){
+  if (!isAddr(addr)) throw new Error('bad address');
+  // make sure market is fresh
+  if (Object.keys(MARKET).length === 0) await refreshBreach();
+  const balances = await getBalances(TOKENS, addr);
+  const result = balances.map(b => {
+    const m = MARKET[lc(b.token.address)] || {};
+    const balFloat = bigToFloat(b.balance, b.token.decimals);
+    const usdVal = (m.price && balFloat) ? balFloat * m.price : 0;
+    return {
+      addr: b.token.address,
+      sym:  b.token.symbol,
+      bal:  balFloat,
+      usd:  usdVal,
+      price: m.price || 0,
+    };
+  });
+  return {
+    address: addr,
+    scanned_at: Date.now(),
+    balances: result,
+    diversity: result.filter(r => r.bal > 0).length,
+    total_usd: result.reduce((s,r)=>s+r.usd,0)
+  };
+}
+
+function renderCross(){
+  const wrap = $('#crossWallets');
+  if (!CROSS.length){
+    wrap.innerHTML = `<div class="empty">paste a wallet above + SCAN, or click + SAMPLE to load a demo wallet.</div>`;
+    $('#crossOverlap').innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = CROSS.map(w => walletCardHtml(w, 'cross')).join('');
+  $$('button[data-rm-cross]', wrap).forEach(b=>{
+    b.onclick = ()=>{
+      const a = b.getAttribute('data-rm-cross');
+      CROSS = CROSS.filter(w => lc(w.address) !== lc(a));
+      saveCross(CROSS);
+      renderCross();
+    };
+  });
+  $$('button[data-rescan-cross]', wrap).forEach(b=>{
+    b.onclick = async ()=>{
+      const a = b.getAttribute('data-rescan-cross');
+      b.textContent = '…';
+      try{
+        const w = await scanWallet(a);
+        const i = CROSS.findIndex(x=>lc(x.address)===lc(a));
+        if(i>=0) CROSS[i]=w; else CROSS.push(w);
+        saveCross(CROSS);
+        renderCross();
+      }catch(e){ alert('rescan failed: '+e.message); }
+    };
+  });
+
+  // overlap matrix
+  if (CROSS.length >= 2) renderOverlap();
+  else $('#crossOverlap').innerHTML = '';
+}
+
+function renderOverlap(){
+  const wrap = $('#crossOverlap');
+  // for each token, list which wallets hold > 0
+  const heldBy = {};
+  CROSS.forEach((w,wi) => {
+    w.balances.forEach(b => {
+      if (b.bal > 0){
+        const k = lc(b.addr);
+        if (!heldBy[k]) heldBy[k] = {sym:b.sym, addr:b.addr, wallets:[]};
+        heldBy[k].wallets.push(wi);
+      }
+    });
+  });
+  const rows = Object.values(heldBy).filter(h => h.wallets.length >= 1);
+  rows.sort((a,b) => b.wallets.length - a.wallets.length);
+  if (!rows.length){
+    wrap.innerHTML = `<div class="overlap"><h3>OVERLAP MATRIX</h3><div class="empty">No overlapping holdings yet.</div></div>`;
+    return;
+  }
+  let html = `<div class="overlap"><h3>OVERLAP MATRIX — which Monad bags each wallet shares</h3><table><thead><tr><th>TOKEN</th>`;
+  CROSS.forEach((w,i)=> html += `<th title="${w.address}">W${i+1}</th>`);
+  html += `<th>SHARED BY</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    html += `<tr><td style="text-align:left;color:#fff;font-weight:700;">$${r.sym}</td>`;
+    CROSS.forEach((w,i)=>{
+      const has = r.wallets.includes(i);
+      html += `<td class="${has?'match':'self'}" style="color:${has?'var(--green)':'var(--mute)'};">${has?'◆':'·'}</td>`;
+    });
+    const cnt = r.wallets.length;
+    const colorClass = cnt>=3?'chg-up':cnt===2?'chg-flat':'chg-flat';
+    html += `<td class="${colorClass}" style="font-weight:700;">${cnt}/${CROSS.length}</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  wrap.innerHTML = html;
+}
+
+/* ── PACK TRACKER ──────────────────────────────────────────── */
+let PACK = loadPack(); // [{address, scanned_at, balances:[...]}]
+let PACK_TIMER = null;
+
+async function addPack(addr){
+  if (!isAddr(addr)){ alert('Invalid address.'); return; }
+  if (PACK.length >= 10){ alert('Max 10 wallets tracked.'); return; }
+  if (PACK.some(p => lc(p.address) === lc(addr))){ alert('Already watching.'); return; }
+  PACK.push({address: addr, scanned_at: 0, balances: []});
+  savePack(PACK);
+  renderPack();
+  rescanOne(addr);
+}
+
+async function rescanOne(addr){
+  try{
+    const w = await scanWallet(addr);
+    const i = PACK.findIndex(p => lc(p.address) === lc(addr));
+    if (i >= 0){
+      PACK[i] = w;
+      savePack(PACK);
+      renderPack();
+    }
+  }catch(e){
+    console.warn('rescan failed', e);
+  }
+}
+
+function renderPack(){
+  const wrap = $('#packList');
+  if (!PACK.length){
+    wrap.innerHTML = `<div class="empty">No wallets being watched. Paste an address above + ADD WALLET.</div>`;
+    return;
+  }
+  wrap.innerHTML = PACK.map(w => walletCardHtml(w, 'pack')).join('');
+  $$('button[data-rm-pack]', wrap).forEach(b=>{
+    b.onclick = ()=>{
+      const a = b.getAttribute('data-rm-pack');
+      PACK = PACK.filter(p => lc(p.address) !== lc(a));
+      savePack(PACK);
+      renderPack();
+    };
+  });
+  $$('button[data-rescan-pack]', wrap).forEach(b=>{
+    b.onclick = ()=>rescanOne(b.getAttribute('data-rescan-pack'));
+  });
+}
+
+/* ── SHARED WALLET CARD ──────────────────────────────────── */
+function walletCardHtml(w, ns){
+  const empty = !w.balances || !w.balances.length;
+  const totalUsd = w.balances ? w.balances.reduce((s,b)=>s+(b.usd||0),0) : 0;
+  const diversity = w.balances ? w.balances.filter(b=>b.bal>0).length : 0;
+  const div10 = TOKENS.length ? Math.min(10, Math.round(10*diversity/TOKENS.length)) : 0;
+  const explorer = `${CFG.EXPLORER||'https://monadexplorer.com'}/address/${w.address}`;
+  const holds = empty
+    ? `<div class="empty" style="padding:18px;">…scanning balances…</div>`
+    : `<div class="holdings">${w.balances.map(b=>{
+        const hasBal = b.bal > 0;
+        return `<div class="hold ${hasBal?'':'empty-h'}">
+          <div class="tkr">$${b.sym}</div>
+          <div class="bal">${hasBal? num(b.bal,b.bal>=1?2:6):'0'}</div>
+          <div class="usd">${b.usd>0?'$'+num(b.usd,2):'—'}</div>
+        </div>`;
+      }).join('')}</div>`;
+  return `<div class="wallet-card">
+    <div class="wallet-head">
+      <div>
+        <div class="wallet-addr"><span class="short">${short(w.address)}</span></div>
+        <div class="wallet-meta">${w.scanned_at ? 'scanned '+timeAgo(w.scanned_at) : 'pending…'} · total ≈ $${num(totalUsd,2)}</div>
+      </div>
+      <div class="diversity">DIVERSITY <span class="num">${div10}/10</span></div>
+    </div>
+    ${holds}
+    <div class="wallet-actions">
+      <button class="btn btn-cyan" data-rescan-${ns}="${w.address}">↺ RESCAN</button>
+      <a class="btn btn-ghost" href="${explorer}" target="_blank" rel="noopener">↗ EXPLORER</a>
+      <button class="btn btn-ghost" data-rm-${ns}="${w.address}">× REMOVE</button>
+    </div>
+  </div>`;
+}
+
+function timeAgo(ts){
+  const d = Date.now() - ts;
+  if (d < 60_000) return Math.floor(d/1000)+'s ago';
+  if (d < 3600_000) return Math.floor(d/60000)+'m ago';
+  return Math.floor(d/3600000)+'h ago';
+}
+
+/* ── TABS ─────────────────────────────────────────────────── */
+function bindTabs(){
+  $$('.tab-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const tab = btn.dataset.tab;
+      $$('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+      $$('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
+      if (tab==='pack' && !PACK.length){ /* no-op */ }
+    };
+  });
+}
+
+/* ── SORTING ──────────────────────────────────────────────── */
+function bindSort(){
+  $$('.grid-table thead th[data-sort]').forEach(th=>{
+    th.onclick = ()=>{
+      const k = th.dataset.sort;
+      if (SORT_KEY === k) SORT_DIR *= -1;
+      else { SORT_KEY = k; SORT_DIR = -1; }
+      renderBreach();
+    };
+  });
+}
+
+/* ── INIT ─────────────────────────────────────────────────── */
+async function init(){
+  bindTabs();
+  bindSort();
+
+  // BREACH controls
+  $('#addTokenBtn').onclick = ()=>{
+    const v = $('#addTokenInput').value;
+    $('#addTokenInput').value = '';
+    addToken(v);
+  };
+  $('#addTokenInput').addEventListener('keydown', e=>{
+    if (e.key==='Enter') $('#addTokenBtn').click();
+  });
+  $('#resetTokensBtn').onclick = ()=>{
+    if (!confirm('Reset watchlist to defaults?')) return;
+    TOKENS = [...SEED_TOKENS];
+    saveWatchlist();
+    refreshBreach();
+  };
+
+  // CROSS controls
+  CROSS = loadCross();
+  renderCross();
+  $('#crossScanBtn').onclick = async ()=>{
+    const v = $('#crossInput').value.trim();
+    $('#crossInput').value = '';
+    if (!isAddr(v)){ alert('Invalid address.'); return; }
+    if (CROSS.some(w=>lc(w.address)===lc(v))){ alert('Already scanned.'); return; }
+    if (CROSS.length >= 8){ alert('Max 8 wallets in cross-map. Remove one first.'); return; }
+    const btn = $('#crossScanBtn');
+    btn.textContent='…SCANNING';
+    try{
+      const w = await scanWallet(v);
+      CROSS.push(w);
+      saveCross(CROSS);
+      renderCross();
+    }catch(e){ alert('Scan failed: '+e.message); }
+    btn.textContent='⌗ SCAN';
+  };
+  $('#crossInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#crossScanBtn').click(); });
+  $('#crossSampleBtn').onclick = ()=>{
+    $('#crossInput').value = SAMPLE_WALLETS[0];
+    $('#crossScanBtn').click();
+  };
+  $('#crossClearBtn').onclick = ()=>{
+    if (!CROSS.length) return;
+    if (!confirm('Clear all scanned wallets?')) return;
+    CROSS = [];
+    saveCross(CROSS);
+    renderCross();
+  };
+
+  // PACK controls
+  PACK = loadPack();
+  renderPack();
+  $('#packAddBtn').onclick = ()=>{
+    const v = $('#packInput').value.trim();
+    $('#packInput').value = '';
+    addPack(v);
+  };
+  $('#packInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#packAddBtn').click(); });
+  $('#packRefreshBtn').onclick = ()=>{
+    PACK.forEach(p => rescanOne(p.address));
+  };
+
+  // initial data pull
+  await refreshBreach();
+
+  // poll loops
+  setInterval(refreshBreach, 30_000);  // 30s market refresh
+  PACK_TIMER = setInterval(()=>{
+    PACK.forEach(p => rescanOne(p.address));
+  }, 90_000);  // 90s pack refresh
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+})();
+</script>
+</body>
+</html>
