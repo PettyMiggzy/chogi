@@ -333,47 +333,104 @@ body::after{
 .overlap td.self{background:rgba(168,85,247,.1);color:var(--mute);}
 .overlap td.match{font-weight:700;}
 
-/* ─── LAUNCHES ─── */
+/* ─── LAUNCHES — trader-grade dense layout ─── */
+.lnch-search-row{
+  display:flex;gap:8px;align-items:center;margin-bottom:12px;
+}
+.lnch-search{
+  flex:1;padding:10px 14px;
+  background:rgba(8,0,18,.65);border:1px solid var(--panel-line);
+  color:#fff;border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.4px;
+}
+.lnch-search::placeholder{color:var(--mute);}
+.lnch-search:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,20,147,.12);}
+.lnch-count{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:1px;
+  white-space:nowrap;
+}
+
 .lnch-toolbar{
-  display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;
-  margin-bottom:14px;
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:14px;
 }
 .lnch-pillrow{display:flex;gap:6px;flex-wrap:wrap;}
+.lnch-pillrow .lbl{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--mute);
+  align-self:center;margin-right:2px;
+}
 .lnch-pill{
-  padding:8px 12px;cursor:pointer;
-  background:var(--panel);border:1px solid var(--panel-line);border-radius:8px;
+  padding:7px 11px;cursor:pointer;
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:7px;
   font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;font-weight:700;
-  color:var(--mute);transition:all .15s;
+  color:var(--mute);transition:all .12s;
 }
 .lnch-pill:hover{color:#fff;border-color:var(--pink);}
 .lnch-pill.active{
   background:linear-gradient(135deg,rgba(255,20,147,.22),rgba(168,85,247,.16));
   color:#fff;border-color:var(--pink);
-  box-shadow:0 0 14px rgba(255,20,147,.22);
+  box-shadow:0 0 12px rgba(255,20,147,.22);
 }
-.lnch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.lnch-pill.hot{
+  background:linear-gradient(135deg,rgba(255,170,51,.2),rgba(255,77,109,.18));
+  color:#FFD55A;border-color:rgba(255,170,51,.55);
+}
+.lnch-pill.hot.active{
+  background:linear-gradient(135deg,#FF1493,#FFAA33);
+  color:#000;border-color:#FFD55A;
+  animation:hotpulse 1.4s infinite;
+}
+@keyframes hotpulse{0%,100%{box-shadow:0 0 0 rgba(255,170,51,0);}50%{box-shadow:0 0 20px rgba(255,170,51,.7);}}
+
+.lnch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;}
 .lnch-card{
   background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
-  padding:14px;display:flex;flex-direction:column;gap:10px;
-  transition:all .18s;position:relative;overflow:hidden;
+  padding:12px;display:flex;flex-direction:column;gap:10px;
+  transition:all .15s;position:relative;overflow:hidden;
 }
 .lnch-card:hover{border-color:var(--pink);transform:translateY(-2px);
-  box-shadow:0 8px 24px rgba(255,20,147,.18);}
-.lnch-card.cto-flag::before{
-  content:'CTO';position:absolute;top:8px;right:8px;
+  box-shadow:0 8px 22px rgba(255,20,147,.18);}
+.lnch-card.cto-flag::after{
+  content:'CTO';position:absolute;top:0;right:0;
   background:linear-gradient(135deg,#FFD55A,#FF1493);
-  color:#000;font-family:'Bungee',sans-serif;font-size:8px;letter-spacing:1.5px;
-  padding:2px 7px;border-radius:5px;z-index:2;
+  color:#000;font-family:'Bungee',sans-serif;font-size:8px;letter-spacing:1.4px;
+  padding:3px 9px;border-radius:0 0 0 8px;z-index:2;
 }
+.lnch-card.about-to-grad{
+  border-color:rgba(255,170,51,.55);
+  box-shadow:0 0 22px rgba(255,170,51,.15);
+}
+
+/* TOP ROW: status + curve % + star */
+.lnch-topbar{
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.2px;
+}
+.lnch-topbar .left{display:flex;align-items:center;gap:6px;}
+.lnch-status{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:3px 7px;border-radius:5px;font-size:9px;font-weight:700;
+}
+.lnch-status.curve{background:rgba(255,170,51,.14);color:var(--amber);border:1px solid rgba(255,170,51,.4);}
+.lnch-status.dex{background:rgba(34,211,111,.14);color:var(--green);border:1px solid rgba(34,211,111,.4);}
+.lnch-age{color:var(--mute);}
+.lnch-star{
+  background:transparent;border:none;cursor:pointer;
+  color:var(--mute);font-size:16px;line-height:1;padding:2px 4px;
+  transition:transform .12s, color .12s;
+}
+.lnch-star:hover{transform:scale(1.2);color:var(--pink);}
+.lnch-star.on{color:#FFD55A;text-shadow:0 0 10px rgba(255,213,90,.8);}
+
+/* HEAD: logo + symbol + price change badge */
 .lnch-head{display:flex;gap:10px;align-items:center;}
 .lnch-logo{
-  width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  width:40px;height:40px;border-radius:9px;flex-shrink:0;
   background:linear-gradient(135deg,#FF1493,#A855F7);
   object-fit:cover;border:1.5px solid rgba(255,20,147,.4);
 }
 .lnch-meta{flex:1;min-width:0;}
 .lnch-symbol{
-  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:1.5px;color:#fff;
+  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:1.3px;color:#fff;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .lnch-name{
@@ -381,61 +438,101 @@ body::after{
   letter-spacing:.3px;margin-top:1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.lnch-status{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 8px;border-radius:5px;
-  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;font-weight:700;
+.lnch-pct{
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1px;
+  padding:4px 9px;border-radius:6px;flex-shrink:0;
 }
-.lnch-status.curve{background:rgba(255,170,51,.14);color:var(--amber);border:1px solid rgba(255,170,51,.4);}
-.lnch-status.dex{background:rgba(34,211,111,.14);color:var(--green);border:1px solid rgba(34,211,111,.4);}
+.lnch-pct.up{background:rgba(34,211,111,.16);color:var(--green);border:1px solid rgba(34,211,111,.45);}
+.lnch-pct.down{background:rgba(255,77,109,.16);color:var(--red);border:1px solid rgba(255,77,109,.45);}
+.lnch-pct.flat{background:rgba(255,255,255,.04);color:var(--mute);border:1px solid rgba(255,255,255,.1);}
+
+/* BONDING CURVE PROGRESS */
+.lnch-curvebar{
+  background:rgba(8,0,18,.6);border-radius:6px;overflow:hidden;
+  height:18px;position:relative;border:1px solid rgba(255,170,51,.25);
+}
+.lnch-curvebar-fill{
+  height:100%;
+  background:linear-gradient(90deg,#FFAA33,#FF1493);
+  box-shadow:0 0 10px rgba(255,170,51,.5);
+  transition:width .4s;
+}
+.lnch-curvebar-fill.about-to-grad{
+  background:linear-gradient(90deg,#FFD55A,#22d36f);
+  animation:gradPulse 1.2s infinite;
+}
+@keyframes gradPulse{0%,100%{box-shadow:0 0 10px rgba(255,213,90,.5);}50%{box-shadow:0 0 22px rgba(34,211,111,.8);}}
+.lnch-curvebar-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;
+  color:#fff;text-shadow:0 0 4px rgba(0,0,0,.8);
+}
+
+/* STATS GRID */
 .lnch-stats{
-  display:grid;grid-template-columns:1fr 1fr;gap:6px;
-  font-family:'JetBrains Mono',monospace;font-size:11px;
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;
+  font-family:'JetBrains Mono',monospace;
 }
 .lnch-stat{
-  background:rgba(8,0,18,.55);border:1px solid rgba(255,20,147,.1);
-  border-radius:6px;padding:7px 9px;
+  background:rgba(8,0,18,.55);border:1px solid rgba(255,20,147,.08);
+  border-radius:6px;padding:6px 7px;
 }
 .lnch-stat .lbl{font-size:8px;color:var(--mute);letter-spacing:1px;}
-.lnch-stat .val{color:#fff;font-weight:700;margin-top:2px;font-size:12px;}
-.lnch-desc{
-  font-size:10px;color:var(--mute);line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;
+.lnch-stat .val{color:#fff;font-weight:700;margin-top:2px;font-size:11px;}
+.lnch-stat .val.up{color:var(--green);}
+.lnch-stat .val.down{color:var(--red);}
+
+/* QUICK BUY ROW */
+.lnch-qbuy{
+  display:grid;grid-template-columns:repeat(4,1fr) 1.4fr;gap:5px;
 }
-.lnch-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.lnch-actions .buy{
-  flex:1;text-align:center;text-decoration:none;
-  padding:9px;border-radius:7px;
+.lnch-qbuy a{
+  text-decoration:none;text-align:center;
+  padding:8px 4px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.5px;
+  background:rgba(255,20,147,.08);color:var(--pink);
+  border:1px solid rgba(255,20,147,.3);
+  transition:all .12s;
+}
+.lnch-qbuy a:hover{background:rgba(255,20,147,.22);color:#fff;}
+.lnch-qbuy .buy-main{
   background:linear-gradient(135deg,var(--pink),var(--purple));
-  color:#fff;font-family:'Bungee',sans-serif;font-size:10px;letter-spacing:1.5px;
-  box-shadow:0 0 14px rgba(255,20,147,.3);
+  color:#fff;font-family:'Bungee',sans-serif;font-size:10px;letter-spacing:1.4px;
+  border:none;box-shadow:0 0 12px rgba(255,20,147,.35);
 }
-.lnch-actions .buy:hover{transform:translateY(-1px);}
-.lnch-actions .chart{
-  padding:9px 11px;border-radius:7px;text-decoration:none;
-  background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);
-  color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+.lnch-qbuy .buy-main:hover{transform:translateY(-1px);}
+
+/* FOOT — CA copy + socials */
+.lnch-foot{
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);
 }
-.lnch-actions .chart:hover{background:rgba(34,211,238,.25);color:#fff;}
-.lnch-actions .soc{
-  width:28px;height:28px;border-radius:6px;
+.lnch-ca{
+  background:rgba(8,0,18,.55);
+  padding:5px 9px;border-radius:6px;cursor:pointer;
+  border:1px solid rgba(255,20,147,.1);
+  display:inline-flex;align-items:center;gap:6px;
+  transition:all .12s;
+}
+.lnch-ca:hover{border-color:var(--pink);color:#fff;}
+.lnch-ca.copied{background:rgba(34,211,111,.15);color:var(--green);border-color:rgba(34,211,111,.4);}
+.lnch-socrow{display:flex;gap:4px;align-items:center;}
+.lnch-socrow .soc{
+  width:24px;height:24px;border-radius:5px;
   display:inline-flex;align-items:center;justify-content:center;
   background:rgba(8,0,18,.6);border:1px solid rgba(255,255,255,.08);
-  text-decoration:none;font-size:12px;
+  text-decoration:none;font-size:11px;color:var(--mute);
 }
-.lnch-actions .soc:hover{border-color:var(--pink);}
-.lnch-foot{
-  display:flex;justify-content:space-between;align-items:center;
-  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);
-  letter-spacing:.5px;
-}
-.lnch-loadwrap{
-  display:flex;gap:10px;justify-content:center;margin-top:18px;
-}
+.lnch-socrow .soc:hover{border-color:var(--pink);color:#fff;}
+
+.lnch-loadwrap{display:flex;gap:10px;justify-content:center;margin-top:18px;}
+
 @media (max-width:720px){
   .lnch-grid{grid-template-columns:1fr;}
-  .lnch-toolbar{flex-direction:column;}
+  .lnch-toolbar{flex-direction:column;align-items:stretch;}
+  .lnch-stats{grid-template-columns:1fr 1fr;}
+  .lnch-qbuy{grid-template-columns:repeat(4,1fr);}
+  .lnch-qbuy .buy-main{grid-column:1/-1;margin-top:4px;padding:11px;}
 }
 
 /* ─── FOOTER ─── */
@@ -605,16 +702,25 @@ body::after{
     </div>
   </div>
 
+  <div class="lnch-search-row">
+    <input class="lnch-search" id="lnchSearch" placeholder="🔍 search by symbol, name, or paste CA…" maxlength="64">
+    <span class="lnch-count" id="lnchCount">— launches</span>
+  </div>
+
   <div class="lnch-toolbar">
     <div class="lnch-pillrow" data-group="sort">
+      <span class="lbl">SORT</span>
       <button class="lnch-pill active" data-sort="creation_time">🆕 NEW</button>
       <button class="lnch-pill" data-sort="market_cap">📈 MCAP</button>
       <button class="lnch-pill" data-sort="latest_trade">🔥 ACTIVITY</button>
     </div>
     <div class="lnch-pillrow" data-group="filter">
+      <span class="lbl">FILTER</span>
       <button class="lnch-pill active" data-filter="all">ALL</button>
+      <button class="lnch-pill hot" data-filter="grad-soon">🔥 ABOUT TO GRAD</button>
       <button class="lnch-pill" data-filter="curve">⏳ PRE-GRAD</button>
       <button class="lnch-pill" data-filter="dex">✅ GRADUATED</button>
+      <button class="lnch-pill" data-filter="watchlist">⭐ WATCHED</button>
     </div>
   </div>
 
@@ -1168,11 +1274,16 @@ function timeAgo(ts){
   return Math.floor(d/3600000)+'h ago';
 }
 
-/* ── LAUNCHES (nad.fun feed) ─────────────────────────────── */
-const NADFUN_API = 'https://api.nad.fun';
+/* ── LAUNCHES (nad.fun feed) — trader-grade engine ─── */
+const NADFUN_API = 'https://api.nadapp.net';
+const NADFUN_REF = (window.ChogiConfig && window.ChogiConfig.NADFUN_REF) || '';
+const LENS_ADDR = '0x7e78A8DE94f21804F7a17F4E8BF9EC2c872187ea';
+
 const LNCH = {
   sort:   localStorage.getItem('chogi.hub.lnch.sort')   || 'creation_time',
   filter: localStorage.getItem('chogi.hub.lnch.filter') || 'all',
+  search: '',
+  watch:  JSON.parse(localStorage.getItem('chogi.hub.lnch.watch') || '[]'),
   page:   1,
   rows:   [],
   total:  0,
@@ -1186,17 +1297,40 @@ function ageShort(unixSec){
   if (d < 86400) return Math.floor(d/3600)+'h';
   return Math.floor(d/86400)+'d';
 }
+function tokAmount(rawWithDec){
+  if (!rawWithDec) return 0;
+  try{ return Number(BigInt(rawWithDec) / 10n**12n) / 1e6; }catch(e){ return 0; }
+}
 function computeMcap(t){
-  const supRaw = t.market_info && t.market_info.total_supply;
-  const px     = t.market_info && (+t.market_info.price_usd || 0);
-  if (!supRaw || !px) return null;
-  // total_supply is in raw 18-decimal units; divide
-  const sup = Number(BigInt(supRaw) / 10n**12n) / 1e6;
+  const sup = tokAmount(t.market_info && t.market_info.total_supply);
+  const px  = +((t.market_info||{}).price_usd) || 0;
+  if (!sup || !px) return null;
   return sup * px;
 }
 function isPreGrad(t){
   const mt = (t.market_info && t.market_info.market_type) || '';
-  return mt.includes('CURVE') || t.token_info && t.token_info.is_graduated === false;
+  return mt.includes('CURVE') || (t.token_info && t.token_info.is_graduated === false);
+}
+function curveProgress(t){
+  if (!isPreGrad(t)) return 1;
+  const sup = tokAmount(t.market_info && t.market_info.total_supply);
+  const remaining = tokAmount(t.market_info && t.market_info.reserve_token);
+  if (!sup || !remaining) return 0;
+  const sold = Math.max(0, sup - remaining);
+  return Math.max(0, Math.min(1, sold / sup / 0.8));
+}
+function offATH(t){
+  const cur = +((t.market_info||{}).price_usd) || 0;
+  const ath = +((t.market_info||{}).ath_price_usd) || 0;
+  if (!cur || !ath || ath <= 0) return null;
+  return ((cur - ath) / ath) * 100;
+}
+function isWatched(addr){ return LNCH.watch.includes((addr||'').toLowerCase()); }
+function toggleWatch(addr){
+  const a = (addr||'').toLowerCase();
+  const i = LNCH.watch.indexOf(a);
+  if (i>=0) LNCH.watch.splice(i,1); else LNCH.watch.push(a);
+  localStorage.setItem('chogi.hub.lnch.watch', JSON.stringify(LNCH.watch));
 }
 
 async function fetchLaunches(append){
@@ -1205,7 +1339,7 @@ async function fetchLaunches(append){
   const grid = $('#launchesGrid');
   if (!append) grid.innerHTML = `<div class="empty">⏳ pulling live launches from nad.fun…</div>`;
   try{
-    const url = `${NADFUN_API}/order/${LNCH.sort}?page=${LNCH.page}&limit=18`;
+    const url = `${NADFUN_API}/order/${LNCH.sort}?page=${LNCH.page}&limit=24`;
     const r = await fetch(url, {cache:'no-cache'});
     if (!r.ok) throw new Error('http '+r.status);
     const j = await r.json();
@@ -1222,63 +1356,145 @@ async function fetchLaunches(append){
 
 function renderLaunches(){
   const grid = $('#launchesGrid');
-  const rows = LNCH.rows.filter(t=>{
-    if (LNCH.filter === 'all')   return true;
-    if (LNCH.filter === 'curve') return isPreGrad(t);
-    if (LNCH.filter === 'dex')   return !isPreGrad(t);
+  const q = LNCH.search.trim().toLowerCase();
+
+  let rows = LNCH.rows.filter(t=>{
+    const ti = t.token_info || {};
+    const addr = (ti.token_id || ti.token_address || '').toLowerCase();
+    if (LNCH.filter === 'curve')     { if (!isPreGrad(t)) return false; }
+    else if (LNCH.filter === 'dex')  { if (isPreGrad(t))  return false; }
+    else if (LNCH.filter === 'watchlist'){ if (!isWatched(addr)) return false; }
+    else if (LNCH.filter === 'grad-soon'){
+      if (!isPreGrad(t)) return false;
+      const p = curveProgress(t);
+      if (p < 0.5 || p >= 1) return false;
+    }
+    if (q){
+      const hit = (ti.symbol||'').toLowerCase().includes(q)
+               || (ti.name  ||'').toLowerCase().includes(q)
+               || addr.includes(q);
+      if (!hit) return false;
+    }
     return true;
   });
+
+  if (LNCH.filter === 'grad-soon'){
+    rows.sort((a,b)=> curveProgress(b) - curveProgress(a));
+  }
+
+  $('#lnchCount').textContent = `${rows.length} of ${LNCH.total || LNCH.rows.length} launches`;
+
   if (!rows.length){
-    grid.innerHTML = `<div class="empty">No tokens match the current filter.</div>`;
-    $('#launchesMoreBtn').style.display = 'none';
+    grid.innerHTML = `<div class="empty">No tokens match. Try a different filter or clear the search.</div>`;
+    $('#launchesMoreBtn').style.display = (LNCH.rows.length < LNCH.total) ? '' : 'none';
     return;
   }
+
   grid.innerHTML = rows.map(t=>{
     const ti  = t.token_info  || {};
     const mi  = t.market_info || {};
-    const addr= ti.token_id || ti.token_address;
-    const sym = (ti.symbol || '?').slice(0,10);
-    const name= (ti.name   || '?').slice(0,28);
-    const desc= (ti.description || '').slice(0,140);
+    const addr= ti.token_id || ti.token_address || '';
+    const sym = (ti.symbol || '?').slice(0,12);
+    const name= (ti.name   || '?').slice(0,32);
     const px  = +mi.price_usd || 0;
     const mcap= computeMcap(t);
+    const hold= mi.holder_count || 0;
+    const pct = +t.percent;
+    const ath = offATH(t);
     const pre = isPreGrad(t);
+    const prog= curveProgress(t);
+    const progPct = Math.round(prog*100);
+    const aboutToGrad = pre && prog >= 0.6 && prog < 1;
     const ctoFlag = ti.is_cto ? ' cto-flag' : '';
+    const gradFlag = aboutToGrad ? ' about-to-grad' : '';
     const logo= ti.image_uri ? `<img class="lnch-logo" src="${ti.image_uri}" alt="" onerror="this.style.display='none'">`
                              : `<div class="lnch-logo"></div>`;
     const age = ti.created_at ? ageShort(ti.created_at) : '—';
-    const buyUrl = `https://nad.fun/tokens/${addr}`;
+    const watched = isWatched(addr);
+
+    const baseBuy = NADFUN_REF
+      ? `https://nad.fun/tokens/${addr}?ref=${encodeURIComponent(NADFUN_REF)}`
+      : `https://nad.fun/tokens/${addr}`;
     const chartUrl = `https://dexscreener.com/monad/${addr}`;
+    const sep = NADFUN_REF ? '&' : '?';
+    const qb = amt => `${baseBuy}${sep}buy=${amt}`;
+
+    const pctCls = isNaN(pct) ? 'flat' : (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat');
+    const pctText = isNaN(pct) ? '—' : (pct>0?'+':'')+pct.toFixed(2)+'%';
+    const athCls = ath==null ? 'flat' : (ath > -5 ? 'up' : 'down');
+    const athTxt = ath==null ? '—' : (ath>0?'+':'')+ath.toFixed(1)+'%';
+
     const socials = [
       ti.twitter  ? `<a class="soc" href="${ti.twitter}"  target="_blank" rel="noopener" title="X">𝕏</a>`  : '',
       ti.telegram ? `<a class="soc" href="${ti.telegram}" target="_blank" rel="noopener" title="TG">✈</a>` : '',
       ti.website  ? `<a class="soc" href="${ti.website}"  target="_blank" rel="noopener" title="Web">🌐</a>`: ''
     ].join('');
-    return `<div class="lnch-card${ctoFlag}">
+
+    const curveBar = pre
+      ? `<div class="lnch-curvebar"><div class="lnch-curvebar-fill ${aboutToGrad?'about-to-grad':''}" style="width:${progPct}%"></div><div class="lnch-curvebar-text">${progPct}% TO GRADUATION</div></div>`
+      : '';
+
+    return `<div class="lnch-card${ctoFlag}${gradFlag}">
+      <div class="lnch-topbar">
+        <div class="left">
+          <span class="lnch-status ${pre?'curve':'dex'}">${pre?'⏳ CURVE':'✅ DEX'}</span>
+          <span class="lnch-age">${age} old · ${ti.version||''}</span>
+        </div>
+        <button class="lnch-star ${watched?'on':''}" data-star="${addr}" aria-label="watchlist">${watched?'★':'☆'}</button>
+      </div>
       <div class="lnch-head">
         ${logo}
         <div class="lnch-meta">
           <div class="lnch-symbol">$${sym}</div>
           <div class="lnch-name">${name}</div>
         </div>
-        <span class="lnch-status ${pre?'curve':'dex'}">${pre?'⏳ CURVE':'✅ DEX'}</span>
+        <span class="lnch-pct ${pctCls}">${pctText}</span>
       </div>
-      ${desc ? `<div class="lnch-desc">${desc}</div>` : ''}
+      ${curveBar}
       <div class="lnch-stats">
         <div class="lnch-stat"><div class="lbl">PRICE USD</div><div class="val">${px ? '$'+num(px, px>=1?2:8) : '—'}</div></div>
         <div class="lnch-stat"><div class="lbl">MARKET CAP</div><div class="val">${mcap ? '$'+num(mcap,2) : '—'}</div></div>
+        <div class="lnch-stat"><div class="lbl">HOLDERS</div><div class="val">${hold ? num(hold,0) : '—'}</div></div>
+        <div class="lnch-stat"><div class="lbl">OFF ATH</div><div class="val ${athCls}">${athTxt}</div></div>
       </div>
-      <div class="lnch-actions">
-        <a class="buy" href="${buyUrl}" target="_blank" rel="noopener">⚡ BUY ON NAD.FUN</a>
-        <a class="chart" href="${chartUrl}" target="_blank" rel="noopener">📊</a>
-        ${socials}
+      <div class="lnch-qbuy">
+        <a href="${qb(0.1)}" target="_blank" rel="noopener">0.1</a>
+        <a href="${qb(0.5)}" target="_blank" rel="noopener">0.5</a>
+        <a href="${qb(1)}"   target="_blank" rel="noopener">1</a>
+        <a href="${qb(5)}"   target="_blank" rel="noopener">5</a>
+        <a class="buy-main" href="${baseBuy}" target="_blank" rel="noopener">⚡ BUY/SELL</a>
       </div>
       <div class="lnch-foot">
-        <span>age ${age}</span>
-        <span>${ti.version || ''} ${pre ? '· bonding curve' : ''}</span>
+        <button class="lnch-ca" data-copy="${addr}" title="copy contract address">📋 ${addr.slice(0,6)}…${addr.slice(-4)}</button>
+        <div class="lnch-socrow">
+          <a class="soc" href="${chartUrl}" target="_blank" rel="noopener" title="chart">📊</a>
+          ${socials}
+        </div>
       </div>
     </div>`;
   }).join('');
+
+  $$('button[data-star]', grid).forEach(b=>{
+    b.onclick = (ev)=>{
+      ev.stopPropagation();
+      toggleWatch(b.getAttribute('data-star'));
+      renderLaunches();
+    };
+  });
+  $$('button[data-copy]', grid).forEach(b=>{
+    b.onclick = async (ev)=>{
+      ev.stopPropagation();
+      const addr = b.getAttribute('data-copy');
+      try{
+        await navigator.clipboard.writeText(addr);
+        const orig = b.innerHTML;
+        b.innerHTML = '✓ COPIED';
+        b.classList.add('copied');
+        setTimeout(()=>{ b.innerHTML=orig; b.classList.remove('copied'); }, 1200);
+      }catch(e){ alert('Address: '+addr); }
+    };
+  });
+
   $('#launchesMoreBtn').style.display = (LNCH.rows.length < LNCH.total) ? '' : 'none';
 }
 
@@ -1300,9 +1516,20 @@ function bindLaunches(){
       renderLaunches();
     };
   });
-  // restore prefs from storage
   $$('.lnch-pill[data-sort]').forEach(x=>x.classList.toggle('active', x.dataset.sort===LNCH.sort));
   $$('.lnch-pill[data-filter]').forEach(x=>x.classList.toggle('active', x.dataset.filter===LNCH.filter));
+
+  const sb = $('#lnchSearch');
+  if (sb){
+    let t = null;
+    sb.addEventListener('input', e=>{
+      clearTimeout(t);
+      t = setTimeout(()=>{
+        LNCH.search = sb.value || '';
+        renderLaunches();
+      }, 150);
+    });
+  }
 
   $('#launchesMoreBtn').onclick = ()=>{ LNCH.page++; fetchLaunches(true); };
   $('#launchesRefreshBtn').onclick = ()=>{ LNCH.page=1; LNCH.rows=[]; fetchLaunches(false); };
