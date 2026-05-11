@@ -175,12 +175,59 @@ async function waitReceipt(hash, maxMs=60000){
   return null;
 }
 
+// ────── Pre-flight simulation ──────
+async function simulateCall(to, data, fromAccount, valueWei){
+  // run eth_call with state-override to test if the tx would revert
+  // (state-override gives the from-address enough MON to bypass the balance check
+  //  so the only revert we see is the actual contract logic)
+  const overrideBalance = valueWei ? (valueWei * 4n) + 10n**18n : 10n**18n;
+  const params = [
+    { from: fromAccount, to, data, ...(valueWei != null ? {value: '0x'+valueWei.toString(16)} : {}) },
+    'latest',
+    { [fromAccount]: { balance: '0x'+overrideBalance.toString(16) } }
+  ];
+  try{
+    await rpcCall('eth_call', params);
+    return { ok: true };
+  }catch(e){
+    return { ok: false, error: e };
+  }
+}
+
+function explainRevert(err){
+  const m = (err && (err.message || err.shortMessage || String(err))) || '';
+  const low = m.toLowerCase();
+  if (low.includes('insufficient balance') || low.includes('insufficient funds'))
+    return 'Not enough MON in your wallet to cover this trade + gas.';
+  if (low.includes('insufficient_output_amount') || low.includes('amount_out_min'))
+    return 'Slippage too tight — price moved. Try increasing slippage to 3% or 5%.';
+  if (low.includes('expired') || low.includes('deadline'))
+    return 'Tx deadline passed. Retry the trade.';
+  if (low.includes('transfer_failed') || low.includes('transfer failed'))
+    return 'Token transfer blocked. Token may have transfer restrictions.';
+  if (low.includes('not graduated') || low.includes('locked'))
+    return 'Curve still locked. Try the bonding-curve buy on nad.fun directly.';
+  if (low.includes('execution reverted') && !low.includes('reason'))
+    return 'Trade simulation failed (no reason returned). Likely causes: slippage too tight, low pool liquidity, or token not tradeable on nad.fun. Try a larger slippage or use a different token.';
+  if (low.includes('user denied') || low.includes('user rejected'))
+    return 'Wallet signature cancelled.';
+  // fallback
+  return m || 'Unknown revert';
+}
+
 // ────── BUY execution ──────
 async function executeBuy({token, amountInWei, slippageBps, account}){
   // 1) Quote → router + expected output
-  const quote = await getAmountOut(token, amountInWei, true);
+  let quote;
+  try{
+    quote = await getAmountOut(token, amountInWei, true);
+  }catch(e){
+    throw new Error('This token isn\'t indexed on nad.fun — quote unavailable. Use Monorail (monorail.xyz) for non-nad.fun tokens, or trade via the nad.fun website directly.');
+  }
   const router = quote.router;
   const expected = quote.amount;
+  if (!expected || expected === 0n)
+    throw new Error('Quote returned zero output. Pool may be drained — try a different amount.');
   // 2) min-out with slippage
   const minOut = expected - (expected * BigInt(slippageBps) / 10000n);
   // 3) Build calldata
@@ -191,7 +238,12 @@ async function executeBuy({token, amountInWei, slippageBps, account}){
     to: account,
     deadline,
   }]);
-  // 4) Send tx with MON value
+  // 4) PRE-FLIGHT SIMULATION — catch reverts BEFORE wallet sign
+  const sim = await simulateCall(router, data, account, amountInWei);
+  if (!sim.ok){
+    throw new Error(explainRevert(sim.error));
+  }
+  // 5) Send tx
   const txHash = await sendTx({
     from: account,
     to: router,
@@ -203,26 +255,32 @@ async function executeBuy({token, amountInWei, slippageBps, account}){
 
 // ────── SELL execution ──────
 async function executeSell({token, amountInWei, slippageBps, account, onApproveStarted, onApproveConfirmed}){
-  // 1) Quote → router + expected MON out
-  const quote = await getAmountOut(token, amountInWei, false);
+  // 1) Quote
+  let quote;
+  try{
+    quote = await getAmountOut(token, amountInWei, false);
+  }catch(e){
+    throw new Error('This token isn\'t indexed on nad.fun — sell quote unavailable. Use Monorail or the nad.fun website.');
+  }
   const router = quote.router;
   const expected = quote.amount;
+  if (!expected || expected === 0n)
+    throw new Error('Sell quote returned zero MON. Pool too thin or amount too large.');
   const minOut = expected - (expected * BigInt(slippageBps) / 10000n);
   // 2) Check allowance + approve if needed
   const current = await tokenAllowance(token, account, router);
   if (current < amountInWei){
     if (onApproveStarted) onApproveStarted();
     const approveData = tokenIface.encodeFunctionData('approve', [router, (2n**256n - 1n)]);
-    const approveTx = await sendTx({
-      from: account,
-      to: token,
-      data: approveData,
-    });
+    // pre-flight the approve too
+    const simA = await simulateCall(token, approveData, account, null);
+    if (!simA.ok) throw new Error('Approve will fail: ' + explainRevert(simA.error));
+    const approveTx = await sendTx({ from: account, to: token, data: approveData });
     const rec = await waitReceipt(approveTx, 90000);
     if (!rec) throw new Error('Approve tx not confirmed in 90s — try again');
     if (onApproveConfirmed) onApproveConfirmed(approveTx);
   }
-  // 3) Build sell calldata
+  // 3) Sell calldata
   const deadline = BigInt(Math.floor(Date.now()/1000) + 1200);
   const data = routerIface.encodeFunctionData('sell', [{
     amountIn: amountInWei,
@@ -231,12 +289,13 @@ async function executeSell({token, amountInWei, slippageBps, account, onApproveS
     to: account,
     deadline,
   }]);
-  // 4) Send tx
-  const txHash = await sendTx({
-    from: account,
-    to: router,
-    data,
-  });
+  // 4) Pre-flight
+  const sim = await simulateCall(router, data, account, null);
+  if (!sim.ok){
+    throw new Error(explainRevert(sim.error));
+  }
+  // 5) Send tx
+  const txHash = await sendTx({ from: account, to: router, data });
   return { txHash, router, expected, minOut };
 }
 

@@ -565,23 +565,27 @@ async function doQuote(){
     const out = tokAmt(q.amount.toString(), decOut);
     const sym = isBuy ? '$'+STATE.symbol : 'MON';
     $('#quoteOut').textContent = fmt(out, 6) + ' ' + sym;
-    // usd estimate (only have token price; approximate MON via dexscreener WMON)
+    // usd estimate
     const mi = STATE.token.market_info || {};
     const px = +mi.price_usd || 0;
     if (isBuy && px){
       $('#quoteUsd').textContent = ' ≈ $' + fmt(out * px, 2);
     } else if (!isBuy && px){
-      // we're selling tokens → out is MON; we need MON USD price (~$0.03 hardcoded fallback if no quote)
-      // pull native_price from market_info
       const monUsd = +mi.native_price || 0;
       if (monUsd) $('#quoteUsd').textContent = ' ≈ $' + fmt(out * monUsd, 2);
       else $('#quoteUsd').textContent = '';
     } else $('#quoteUsd').textContent = '';
+    // clear "not on nad.fun" status if it had been set
+    STATE.notOnNadfun = false;
+    setStatus('', '');
+    clearStatus();
   }catch(e){
     console.warn('quote failed', e);
-    $('#quoteOut').textContent = '— (quote unavailable)';
-    $('#quoteUsd').textContent = '';
     STATE.quote = null;
+    STATE.notOnNadfun = true;
+    $('#quoteOut').textContent = 'unavailable';
+    $('#quoteUsd').textContent = '';
+    setStatus('error', `⚠ Quote unavailable — this token isn't on nad.fun. <a href="https://monorail.xyz/?to=${ADDR}" target="_blank">Try Monorail ↗</a>`);
   }
 }
 
