@@ -247,7 +247,9 @@ footer a{color:var(--pink);text-decoration:none;}
     <span>SLIPPAGE</span>
     <div class="pill" data-slip="50">0.5%</div>
     <div class="pill" data-slip="100">1%</div>
-    <div class="pill active" data-slip="300">3%</div>
+    <div class="pill" data-slip="300">3%</div>
+    <div class="pill active" data-slip="500">5%</div>
+    <div class="pill" data-slip="1000">10%</div>
   </div>
 
   <div class="details" id="detailsBox" style="display:none;">
@@ -305,7 +307,7 @@ footer a{color:var(--pink);text-decoration:none;}
   var signer = null;
   var wallet = null;
   var mode = 'buy';
-  var slipBps = 300n; // default 3% — covers integer-rounding edge in v2 burner inner-min math
+  var slipBps = 500n; // default 5% — accounts for Capricorn V3 price impact on non-trivial trades
   var burnBps = 100n;
   var bestQuote = null;
 
@@ -434,45 +436,45 @@ footer a{color:var(--pink);text-decoration:none;}
   });
 
   var quoteSeq = 0;
-  // Compute swap output directly from the pool's slot0 — no QuoterV2 needed.
-  // Token0 = WMON, Token1 = CHOGI.
-  // sqrtPriceX96 is sqrt(token1/token0 * 2^96), so:
-  //   price (CHOGI per WMON) = (sqrtPriceX96 / 2^96)^2
-  // For the buy direction (WMON in -> CHOGI out): out = in * price * (1 - feeBps)
-  // For the sell direction (CHOGI in -> WMON out): out = in / price * (1 - feeBps)
-  // This is a "spot price" estimate ignoring price impact for small trades.
-  // Good enough for UI quotes; the real swap uses minOutToUser slippage protection.
+  // Get quote from Monorail aggregator. Routes through the same Capricorn V3 pool
+  // the burner uses, but returns IMPACT-AWARE output (not just spot price). This
+  // is what the previous slot0-based quote got wrong — for any trade that moves
+  // the pool even slightly, spot price over-estimates the delivered amount,
+  // causing the contract's slippage check to revert with the cryptic
+  // 'execution reverted (no data present)' error.
   async function quote(amountInBig){
     if(amountInBig === 0n) return null;
     var seq = ++quoteSeq;
-    var pool = new ethers.Contract(POOL, POOL_ABI, rp);
 
     // For sells the burner contract burns burnBps from input BEFORE swap
     var swapAmt = mode === 'buy' ? amountInBig : (amountInBig - (amountInBig * burnBps) / 10000n);
     if(swapAmt === 0n) return null;
 
+    var fromTok = mode === 'buy' ? '0x0000000000000000000000000000000000000000' : CHOGI;
+    var toTok   = mode === 'buy' ? CHOGI : '0x0000000000000000000000000000000000000000';
+    var human   = ethers.formatUnits(swapAmt, 18);
+    var sender  = wallet || '0x0000000000000000000000000000000000000001';
+    var url     = 'https://pathfinder.monorail.xyz/v4/quote?from='+fromTok+'&to='+toTok+
+                  '&amount='+encodeURIComponent(human)+'&sender='+sender+'&slippage=100';
     try{
-      var s = await pool.slot0();
+      var r = await fetch(url, {cache:'no-cache'});
+      var j = await r.json();
       if(seq !== quoteSeq) return null;
-      var sqrtPriceX96 = BigInt(s.sqrtPriceX96 || s[0]);
-      // price scaled by 2^192 = sqrtPriceX96^2
-      // out_chogi (per 1 wmon, both 18 decimals) = sqrtPriceX96^2 / 2^192
-      // For a buy: amountInBig (wmon) * price = chogi out
-      // We work with bigints — multiply first, divide last to preserve precision
-      var Q96 = 1n << 96n;
-      var priceX192 = sqrtPriceX96 * sqrtPriceX96; // CHOGI/WMON in Q192
-      var grossOut;
-      if(mode === 'buy'){
-        // CHOGI out = WMON in * price = swapAmt * priceX192 / 2^192
-        grossOut = (swapAmt * priceX192) >> 192n;
-      } else {
-        // WMON out = CHOGI in / price = swapAmt * 2^192 / priceX192
-        if(priceX192 === 0n) return null;
-        grossOut = (swapAmt << 192n) / priceX192;
+      if(j.message && !j.transaction){
+        console.warn('Monorail quote:', j.message);
+        return null;
       }
-      // Apply pool fee (1% = 10000 bps of 1_000_000)
-      var afterFee = grossOut - (grossOut * BigInt(POOL_FEE)) / 1000000n;
-      return { fee: POOL_FEE, amountOut: afterFee };
+      // Use Monorail's gross output as the realistic estimate
+      var gross = BigInt(j.output);
+      // Confirm the route went through capricorn-v3 (same pool the burner uses).
+      // If a different route was returned, the burner's actual swap may deliver less.
+      // We still proceed but the user is warned via the impact field.
+      var protocol = '';
+      try{ protocol = j.routes[0][0].splits[0].protocol; }catch(e){}
+      if(protocol && protocol !== 'capricorn-v3'){
+        console.warn('Monorail routed via', protocol, '— burner uses capricorn-v3 directly');
+      }
+      return { fee: POOL_FEE, amountOut: gross, impact: parseFloat(j.compound_impact||0)*100 };
     }catch(e){
       console.warn('quote failed:', e.message);
       return null;
@@ -533,7 +535,7 @@ footer a{color:var(--pink);text-decoration:none;}
     $('dRoute').textContent  = (q.fee/10000) + '% pool · '+ (mode === 'buy' ? 'WMON → CHOGI' : 'CHOGI → WMON → MON');
     $('dMin').textContent    = fmtBig(minOut) + ' ' + (mode === 'buy' ? 'CHOGI' : 'MON');
     $('dBurn').textContent   = fmtBig(burnAmt) + ' CHOGI';
-    $('dImpact').textContent = (q.fee/10000) + '%';
+    $('dImpact').textContent = (q.impact != null ? q.impact.toFixed(3) : (q.fee/10000)) + '%';
 
     bestQuote.minOut = minOut;
     bestQuote.userOut = userOut;

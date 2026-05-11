@@ -13,10 +13,15 @@ const MIN_TOKENS   = 1_000_000n;            // 1M $CHOGI
 const MIN_RAW      = MIN_TOKENS * 10n**18n; // raw wei
 const CHAIN_HEX    = CFG.CHAIN_HEX || '0x8f';
 const RECHECK_MS   = 60000;                 // verify every 60s while on hub
+const ADMIN_BYPASS = ((CFG.HUB_ADMIN_WALLETS || []).map(a => a.toLowerCase()));
 const RPC_URLS = [
   'https://rpc.monad.xyz',
   'https://monad-mainnet.public.blastapi.io',
 ];
+
+function isAdmin(account){
+  return !!(account && ADMIN_BYPASS.includes(account.toLowerCase()));
+}
 
 async function rpcCall(method, params){
   let lastErr;
@@ -309,6 +314,22 @@ function showConnected(account, balanceRaw){
 }
 
 async function verify(account, silent){
+  // Admin wallets skip the balance check entirely
+  if (isAdmin(account)){
+    document.getElementById('cg-disconnected') && (document.getElementById('cg-disconnected').style.display = 'none');
+    const c = document.getElementById('cg-connected');
+    if (c){
+      c.style.display = '';
+      document.getElementById('cg-hold').textContent = '∞';
+      document.getElementById('cg-gap').textContent  = '0';
+      document.getElementById('cg-gap').className    = 'val ok';
+      document.getElementById('cg-fill').style.width = '100%';
+      document.getElementById('cg-pct').textContent  = '🔓 ADMIN ACCESS';
+      document.getElementById('cg-addr').textContent = account.slice(0,6)+'…'+account.slice(-4);
+    }
+    setTimeout(teardown, 400);
+    return true;
+  }
   try{
     const bal = await getChogiBalance(account);
     showConnected(account, bal);

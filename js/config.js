@@ -31,6 +31,13 @@
     HUB_FEE_BPS:         100,   // 1% (100/10000) — adjust before router deploy
     HUB_ROUTER_ADDRESS:  '',    // populated after ChogiHubRouter.sol deploy
 
+    // Wallets that bypass the 1M $CHOGI hub gate (deployer/admin/treasury)
+    HUB_ADMIN_WALLETS: [
+      '0xB9d4B73bE18914c6d64Bee65a806648370be467f',  // deployer / treasury / buyback
+      '0x57C8A5AeC1c172fE41416A2FAE6eBDD92b552A16',  // platform
+      '0x4601a7f665ca13c40d2236b8b9ff1e4b87226351'   // hub treasury (buyback flywheel)
+    ],
+
     // nad.fun mainnet (for native on-page swap)
     NADFUN_LENS:                 '0x7e78A8DE94f21804F7a17F4E8BF9EC2c872187ea',
     NADFUN_BONDING_CURVE_ROUTER: '0x6F6B8F1a20703309951a5127c45B49b1CD981A22',
