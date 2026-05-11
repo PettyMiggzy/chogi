@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#0a0118">
 <title>Chogi Trader HUB — Monad meme command center</title>
-<meta name="description" content="One-stop terminal for Monad meme trading. Live prices, wallet pack tracker, cross-contamination holder map.">
+<meta name="description" content="One-stop terminal for Monad meme trading. Live prices, subject watch, cross-contamination holder map.">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <meta property="og:title" content="Chogi Trader HUB">
-<meta property="og:description" content="One-stop terminal for Monad meme trading. Built by Chogi Labs.">
+<meta property="og:description" content="Live Monad meme prices, subject watch, cross-holder map. Built by Chogi Labs.">
 <meta property="og:image" content="/hub-banner-poster.jpg">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chogi.xyz/hub">
@@ -260,7 +260,7 @@ body::after{
 .row-act .rm{border-color:rgba(255,77,109,.35);color:var(--red);background:rgba(255,77,109,.06);}
 .empty{padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;}
 
-/* ─── CROSS MAP + PACK TRACKER ─── */
+/* ─── CROSS MAP + SUBJECT WATCH ─── */
 .scan-form{
   background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;
   padding:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;
@@ -404,7 +404,7 @@ body::after{
     </video>
     <div class="banner-overlay">
       <div class="banner-tag">◆ Monad Meme Command Center</div>
-      <div class="banner-sub">live prices · pack tracker · cross-holder map</div>
+      <div class="banner-sub">live prices · subject watch · cross-holder map</div>
     </div>
   </div>
 </div>
@@ -413,7 +413,7 @@ body::after{
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="breach"><span class="ic">📡</span>BREACH MONITOR</button>
   <button class="tab-btn" data-tab="cross"><span class="ic">🗺️</span>CROSS-MAP</button>
-  <button class="tab-btn" data-tab="pack"><span class="ic">🐺</span>PACK TRACKER</button>
+  <button class="tab-btn" data-tab="pack"><span class="ic">👁</span>SUBJECT WATCH</button>
 </div>
 
 <!-- TAB: BREACH MONITOR -->
@@ -471,19 +471,19 @@ body::after{
   <div id="crossOverlap"></div>
 </section>
 
-<!-- TAB: PACK TRACKER -->
+<!-- TAB: SUBJECT WATCH -->
 <section class="tab-panel" id="tab-pack">
   <div class="tab-head">
     <div>
-      <div class="tab-title">🐺 PACK TRACKER</div>
-      <div class="tab-sub">watch up to 10 wallets · live multicall balances · auto-poll every 90s</div>
+      <div class="tab-title">👁 SUBJECT WATCH</div>
+      <div class="tab-sub">tag up to 10 wallets · live multicall balances · auto-poll every 90s</div>
     </div>
   </div>
 
   <div class="scan-form">
-    <label>WATCH</label>
-    <input class="input" id="packInput" placeholder="0x… (paste a wallet to watch)" maxlength="42">
-    <button class="btn" id="packAddBtn">+ ADD WALLET</button>
+    <label>TAG</label>
+    <input class="input" id="packInput" placeholder="0x… (paste a wallet to tag)" maxlength="42">
+    <button class="btn" id="packAddBtn">+ TAG SUBJECT</button>
     <button class="btn btn-cyan" id="packRefreshBtn">↺ REFRESH ALL</button>
   </div>
 
@@ -507,7 +507,7 @@ body::after{
    CHOGI TRADER HUB — single-file engine
    - Phase 1 BREACH MONITOR  → DexScreener API
    - Phase 2 CROSS-MAP       → eth_call balanceOf (fallback RPC chain)
-   - Phase 3 PACK TRACKER    → eth_call balanceOf (fallback RPC chain)
+   - Phase 3 SUBJECT WATCH    → eth_call balanceOf (fallback RPC chain)
    - Live TICKER             → DexScreener API
    ═══════════════════════════════════════════════════════════════ */
 (function(){
@@ -937,14 +937,14 @@ function renderOverlap(){
   wrap.innerHTML = html;
 }
 
-/* ── PACK TRACKER ──────────────────────────────────────────── */
+/* ── SUBJECT WATCH ─────────────────────────────────────────── */
 let PACK = loadPack(); // [{address, scanned_at, balances:[...]}]
 let PACK_TIMER = null;
 
 async function addPack(addr){
   if (!isAddr(addr)){ alert('Invalid address.'); return; }
-  if (PACK.length >= 10){ alert('Max 10 wallets tracked.'); return; }
-  if (PACK.some(p => lc(p.address) === lc(addr))){ alert('Already watching.'); return; }
+  if (PACK.length >= 10){ alert('Max 10 subjects tagged.'); return; }
+  if (PACK.some(p => lc(p.address) === lc(addr))){ alert('Already tagged.'); return; }
   PACK.push({address: addr, scanned_at: 0, balances: []});
   savePack(PACK);
   renderPack();
@@ -968,7 +968,7 @@ async function rescanOne(addr){
 function renderPack(){
   const wrap = $('#packList');
   if (!PACK.length){
-    wrap.innerHTML = `<div class="empty">No wallets being watched. Paste an address above + ADD WALLET.</div>`;
+    wrap.innerHTML = `<div class="empty">No subjects tagged. Paste an address above + TAG SUBJECT.</div>`;
     return;
   }
   wrap.innerHTML = PACK.map(w => walletCardHtml(w, 'pack')).join('');
