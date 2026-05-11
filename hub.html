@@ -12,13 +12,13 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <meta property="og:title" content="Chogi Trader HUB">
 <meta property="og:description" content="Trade Monad memes from one place — prices, launches, trending, wallet research. Built by Chogi Labs.">
-<meta property="og:image" content="/hub-banner-poster.jpg">
+<meta property="og:image" content="/hub-banner.jpg">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chogi.xyz/hub">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Chogi Trader HUB">
 <meta name="twitter:description" content="Monad memecoin trading terminal.">
-<meta name="twitter:image" content="/hub-banner-poster.jpg">
+<meta name="twitter:image" content="/hub-banner.jpg">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -123,14 +123,15 @@ body::after{
   position:relative;border-radius:18px;overflow:hidden;
   border:2px solid var(--pink);
   box-shadow:0 0 60px rgba(255,20,147,.32),0 0 140px rgba(168,85,247,.22);
-  aspect-ratio:1200/720;background:#000;
+  background:#1e0640;
 }
-.banner-inner video{width:100%;height:100%;object-fit:cover;display:block;}
+.banner-inner video,
+.banner-inner img.banner-img{width:100%;height:auto;display:block;}
 .banner-overlay{
   position:absolute;left:0;right:0;bottom:0;
   padding:14px 20px;
-  background:linear-gradient(180deg,transparent,rgba(10,1,24,.85));
-  display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;
+  background:linear-gradient(180deg,transparent,rgba(10,1,24,.92));
+  display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;
 }
 .banner-tag{
   font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
@@ -139,6 +140,42 @@ body::after{
 .banner-sub{
   font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);
   letter-spacing:1px;
+}
+
+/* CA pill — tap to copy, sits under the banner */
+.banner-ca{
+  max-width:1180px;margin:10px auto 0;padding:0 18px;
+  display:flex;justify-content:center;
+}
+.banner-ca-inner{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:9px 14px;
+  background:linear-gradient(180deg,rgba(8,0,18,.7),rgba(28,4,56,.55));
+  border:1px solid rgba(255,20,147,.28);border-radius:10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.6px;
+  color:#fff;cursor:pointer;
+  transition:all .15s;
+  -webkit-user-select:all;user-select:all;
+  max-width:100%;
+}
+.banner-ca-inner:hover{border-color:var(--pink);background:linear-gradient(180deg,rgba(255,20,147,.12),rgba(168,85,247,.08));}
+.banner-ca-inner.copied{
+  border-color:var(--green);color:var(--green);
+  background:rgba(34,211,111,.1);
+}
+.banner-ca-inner .ca-lbl{
+  font-size:9px;letter-spacing:1.8px;color:var(--mute);font-weight:700;
+  text-transform:uppercase;
+  flex-shrink:0;
+}
+.banner-ca-inner .ca-val{
+  font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  min-width:0;
+}
+.banner-ca-inner .ca-icon{flex-shrink:0;font-size:13px;opacity:.7;}
+@media (max-width:760px){
+  .banner-ca-inner .ca-val{font-size:10px;}
 }
 
 /* ─── LIVE TICKER ─── */
@@ -835,15 +872,21 @@ body::after{
 <!-- BANNER -->
 <div class="banner">
   <div class="banner-inner">
-    <video src="/hub-banner.mp4" poster="/hub-banner-poster.jpg" autoplay muted playsinline preload="auto">
-      <source src="/hub-banner.webm" type="video/webm">
-      <source src="/hub-banner.mp4" type="video/mp4">
-    </video>
+    <img class="banner-img" src="/hub-banner.jpg" alt="Chogi Trading Hub" loading="eager" fetchpriority="high">
     <div class="banner-overlay">
       <div class="banner-tag">◆ Monad Memecoin Terminal</div>
       <div class="banner-sub">live prices · new launches · trending · wallet research · trade in-place</div>
     </div>
   </div>
+</div>
+
+<!-- CONTRACT ADDRESS -->
+<div class="banner-ca">
+  <button class="banner-ca-inner" id="bannerCaCopy" type="button" title="Tap to copy $CHOGI contract address">
+    <span class="ca-lbl">$CHOGI</span>
+    <span class="ca-val" id="bannerCaVal">0x5E1b1A14c8758104B8560514e94ab8320e587777</span>
+    <span class="ca-icon">📋</span>
+  </button>
 </div>
 
 <!-- LIVE TICKER -->
@@ -2057,6 +2100,30 @@ async function init(){
   bindSort();
   bindLaunches();
   bindTrending();
+
+  // CA copy pill — tap or click to copy the $CHOGI contract address
+  const caBtn = document.getElementById('bannerCaCopy');
+  if (caBtn){
+    caBtn.addEventListener('click', async ()=>{
+      const v = document.getElementById('bannerCaVal').textContent.trim();
+      try{
+        await navigator.clipboard.writeText(v);
+      }catch(e){
+        // fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = v; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(_){}
+        document.body.removeChild(ta);
+      }
+      caBtn.classList.add('copied');
+      const oldIcon = caBtn.querySelector('.ca-icon').textContent;
+      caBtn.querySelector('.ca-icon').textContent = '✓';
+      setTimeout(()=>{
+        caBtn.classList.remove('copied');
+        caBtn.querySelector('.ca-icon').textContent = oldIcon;
+      }, 1400);
+    });
+  }
 
   // BREACH controls
   $('#addTokenBtn').onclick = ()=>{
