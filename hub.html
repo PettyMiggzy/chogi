@@ -654,18 +654,45 @@ body::after{
 }
 .trend-ca-pill .ca-mono{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;}
 .trend-ca-pill .ca-icon{font-size:12px;opacity:.7;}
-.trend-sentinel{
+.trend-loadmore{
   grid-column:1/-1;
-  padding:24px 12px;text-align:center;
-  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;
-  color:var(--mute);
-  background:rgba(8,0,18,.4);border:1px dashed rgba(255,20,147,.18);
-  border-radius:12px;
-  animation:sentinelPulse 1.4s ease-in-out infinite;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;
+  padding:22px 16px;
+  background:linear-gradient(180deg,rgba(255,20,147,.12),rgba(168,85,247,.08));
+  border:1.5px solid rgba(255,20,147,.4);
+  border-radius:14px;
+  font-family:'Bungee',sans-serif;color:#fff;letter-spacing:2px;font-size:13px;
+  cursor:pointer;
+  transition:all .15s;
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+@media (hover: hover){
+  .trend-loadmore:hover{
+    background:linear-gradient(180deg,rgba(255,20,147,.22),rgba(168,85,247,.14));
+    border-color:var(--pink);
+    box-shadow:0 0 28px rgba(255,20,147,.3);
+  }
+}
+.trend-loadmore:active{transform:scale(.98);background:linear-gradient(180deg,rgba(255,20,147,.22),rgba(168,85,247,.14));}
+.trend-loadmore:disabled{opacity:.5;cursor:default;animation:sentinelPulse 1.4s ease-in-out infinite;}
+.trend-loadmore .lm-icon{
+  font-size:22px;animation:bounceDown 2s ease-in-out infinite;
+}
+.trend-loadmore .lm-text{font-size:14px;letter-spacing:2.5px;}
+.trend-loadmore .lm-sub{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.4px;
+  color:var(--mute);font-weight:400;margin-top:2px;
+}
+@keyframes bounceDown{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(5px);}
 }
 @keyframes sentinelPulse{
   0%,100%{opacity:.5;}
-  50%{opacity:1;color:#fff;}
+  50%{opacity:1;}
 }
 .lnch-card{
   background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
@@ -2166,27 +2193,59 @@ function renderTrending(){
       </a>`;
   }).join('');
 
-  // Sentinel for infinite scroll — appears at bottom while there are still
-  // more rows to reveal. IntersectionObserver fires when it scrolls into view.
+  // LOAD MORE — visible at bottom whenever there are more rows. Tappable
+  // button (manual fallback) PLUS IntersectionObserver auto-trigger when
+  // scrolled into view. Either works.
   if (visible.length < rows.length){
-    grid.insertAdjacentHTML('beforeend', `<div id="trendingSentinel" class="trend-sentinel">⟳ loading more memes…</div>`);
-    setupTrendSentinel();
+    const remaining = rows.length - visible.length;
+    const nextBatch = Math.min(30, remaining);
+    grid.insertAdjacentHTML('beforeend',
+      `<button type="button" id="trendingLoadMore" class="trend-loadmore" data-remaining="${remaining}">
+        <span class="lm-icon">⬇</span>
+        <span class="lm-text">LOAD ${nextBatch} MORE</span>
+        <span class="lm-sub">${remaining} remaining · tap or scroll</span>
+      </button>`);
+    setupTrendLoadMore();
   }
 }
 
-function setupTrendSentinel(){
-  const s = document.getElementById('trendingSentinel');
-  if (!s || !('IntersectionObserver' in window)) return;
-  if (TREND.observer) TREND.observer.disconnect();
-  TREND.observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting){
-      TREND.observer.disconnect();
-      TREND.visible = Math.min(TREND.visible + 30, sortedTrending().length);
-      renderTrending();
-      enrichVisibleTrending();  // enrich the newly-revealed batch
-    }
-  }, { rootMargin: '300px' });
-  TREND.observer.observe(s);
+function loadMoreTrending(){
+  const rows = sortedTrending();
+  if (TREND.visible >= rows.length) return;
+  TREND.visible = Math.min(TREND.visible + 30, rows.length);
+  renderTrending();
+  enrichVisibleTrending();
+}
+
+function setupTrendLoadMore(){
+  const btn = document.getElementById('trendingLoadMore');
+  if (!btn) return;
+  // tap to load — manual fallback when observer doesn't fire
+  btn.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    btn.disabled = true;
+    btn.querySelector('.lm-text').textContent = 'LOADING…';
+    loadMoreTrending();
+  }, { once: true });
+  // auto-trigger when scrolled into view (works on iOS Safari 12.2+)
+  if ('IntersectionObserver' in window){
+    if (TREND.observer) TREND.observer.disconnect();
+    TREND.observer = new IntersectionObserver((entries)=>{
+      for (const en of entries){
+        if (en.isIntersecting){
+          TREND.observer.disconnect();
+          // simulate the tap so UI flips state
+          btn.disabled = true;
+          const tx = btn.querySelector('.lm-text');
+          if (tx) tx.textContent = 'LOADING…';
+          loadMoreTrending();
+          break;
+        }
+      }
+    }, { rootMargin: '400px 0px' });
+    TREND.observer.observe(btn);
+  }
 }
 
 function bindTrending(){
