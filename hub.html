@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#0a0118">
-<title>Chogi Trader HUB — Monad meme command center</title>
-<meta name="description" content="One-stop terminal for Monad meme trading. Live prices, subject watch, cross-contamination holder map.">
+<title>Chogi Trader HUB — Monad memecoin trading terminal./title>
+<meta name="description" content="Monad memecoin trading terminal — live prices, new launches, trending memes, wallet research, swap in-place.">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <meta property="og:title" content="Chogi Trader HUB">
-<meta property="og:description" content="Live Monad meme prices, subject watch, cross-holder map. Built by Chogi Labs.">
+<meta property="og:description" content="Trade Monad memes from one place — prices, launches, trending, wallet research. Built by Chogi Labs.">
 <meta property="og:image" content="/hub-banner-poster.jpg">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chogi.xyz/hub">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Chogi Trader HUB">
-<meta name="twitter:description" content="Monad meme command center.">
+<meta name="twitter:description" content="Monad memecoin trading terminal.">
 <meta name="twitter:image" content="/hub-banner-poster.jpg">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
@@ -141,27 +141,63 @@ body::after{
   letter-spacing:1px;
 }
 
-/* ─── TAB BAR ─── */
+/* ─── TAB BAR — terminal-grade ─── */
 .tab-bar{
   max-width:1180px;margin:24px auto 0;padding:0 18px;
-  display:flex;gap:8px;flex-wrap:wrap;
+  display:flex;gap:6px;flex-wrap:wrap;
+  position:relative;
+}
+.tab-bar::before{
+  content:'';position:absolute;left:18px;right:18px;bottom:-10px;
+  height:1px;background:linear-gradient(90deg,transparent,rgba(255,20,147,.4),transparent);
 }
 .tab-btn{
-  flex:1;min-width:140px;
-  padding:14px 16px;cursor:pointer;
-  background:var(--panel);
-  border:1px solid var(--panel-line);border-radius:12px;
-  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:2px;
-  color:var(--mute);text-align:center;
-  transition:all .18s;
+  flex:1;min-width:120px;
+  padding:13px 12px 12px;cursor:pointer;position:relative;
+  background:linear-gradient(180deg,rgba(8,0,18,.7) 0%,rgba(28,4,56,.55) 100%);
+  border:1px solid rgba(255,20,147,.18);
+  border-top:1px solid rgba(255,20,147,.32);
+  border-radius:10px 10px 4px 4px;
+  font-family:'Bungee',sans-serif;font-size:12px;letter-spacing:2.5px;
+  color:rgba(196,181,253,.55);text-align:center;
+  transition:all .15s;
+  text-transform:uppercase;
+  overflow:hidden;
 }
-.tab-btn:hover{color:#fff;border-color:var(--pink);}
+.tab-btn::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:transparent;transition:background .15s;
+}
+.tab-btn:hover{
+  color:#fff;
+  border-color:rgba(255,20,147,.5);
+  background:linear-gradient(180deg,rgba(255,20,147,.08) 0%,rgba(28,4,56,.6) 100%);
+}
+.tab-btn:hover::after{background:rgba(255,20,147,.5);}
 .tab-btn.active{
-  background:linear-gradient(135deg,rgba(255,20,147,.22),rgba(168,85,247,.18));
-  color:#fff;border-color:var(--pink);
-  box-shadow:0 0 24px rgba(255,20,147,.22);
+  color:#fff;
+  background:linear-gradient(180deg,rgba(255,20,147,.25) 0%,rgba(168,85,247,.16) 100%);
+  border-color:var(--pink);
+  box-shadow:0 0 20px rgba(255,20,147,.32), inset 0 1px 0 rgba(255,255,255,.08);
+  text-shadow:0 0 10px rgba(255,20,147,.55);
 }
-.tab-btn .ic{font-size:16px;margin-right:6px;}
+.tab-btn.active::after{background:var(--pink);box-shadow:0 0 12px var(--pink);}
+.tab-btn .ic{font-size:14px;margin-right:5px;display:inline-block;vertical-align:-1px;}
+.tab-btn .pulse{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--green);margin-right:6px;vertical-align:1px;
+  animation:livePulse 1.6s infinite;box-shadow:0 0 8px var(--green);
+}
+@keyframes livePulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.35;transform:scale(.7);}
+}
+.tab-btn .badge-num{
+  display:inline-block;margin-left:5px;padding:1px 6px;
+  background:rgba(255,20,147,.18);border:1px solid rgba(255,20,147,.4);
+  border-radius:8px;font-size:9px;color:#fff;letter-spacing:1px;
+  font-family:'JetBrains Mono',monospace;font-weight:700;
+}
 
 /* ─── PANELS ─── */
 .tab-panel{
@@ -382,6 +418,57 @@ body::after{
 @keyframes hotpulse{0%,100%{box-shadow:0 0 0 rgba(255,170,51,0);}50%{box-shadow:0 0 20px rgba(255,170,51,.7);}}
 
 .lnch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;}
+
+/* ─── TRENDING SORT BUTTONS ─── */
+.trending-sort{
+  font-size:11px;letter-spacing:1.5px;padding:8px 12px;
+  background:rgba(8,0,18,.55);border-color:rgba(255,20,147,.18);
+  color:var(--mute);
+}
+.trending-sort:hover{color:#fff;border-color:var(--pink);}
+.trending-sort.active{
+  background:linear-gradient(135deg,rgba(255,20,147,.22),rgba(168,85,247,.16));
+  color:#fff;border-color:var(--pink);
+  box-shadow:0 0 14px rgba(255,20,147,.3);
+}
+
+/* ─── TRENDING CARDS — hard-core visuals ─── */
+.trend-card{position:relative;overflow:hidden;}
+.trend-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,20,147,.45),transparent);
+  opacity:.7;
+}
+.trend-card:hover{
+  border-color:var(--pink);
+  box-shadow:0 0 28px rgba(255,20,147,.25), 0 4px 16px rgba(0,0,0,.4);
+  transform:translateY(-1px);
+}
+.trend-rank{
+  position:absolute;top:8px;right:10px;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:1.5px;
+  color:rgba(196,181,253,.45);
+}
+.trend-rank-top{
+  color:var(--gold,#fbbf24);text-shadow:0 0 10px rgba(251,191,36,.55);
+}
+.trend-card-head{
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;
+}
+.trend-img{
+  width:38px;height:38px;border-radius:8px;object-fit:cover;
+  border:1px solid rgba(255,20,147,.3);background:rgba(8,0,18,.6);
+}
+.trend-img-fb{
+  width:38px;height:38px;border-radius:8px;
+  background:linear-gradient(135deg,rgba(255,20,147,.18),rgba(168,85,247,.14));
+  border:1px solid rgba(255,20,147,.32);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bungee',sans-serif;font-size:13px;color:#fff;letter-spacing:1px;
+}
+.trend-card-meta{flex:1;min-width:0;}
+.trend-card-meta .lnch-sym{font-size:14px;margin:0;line-height:1.2;}
+.trend-card-meta .lnch-name{font-size:10px;margin:1px 0 0;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .lnch-card{
   background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
   padding:12px;display:flex;flex-direction:column;gap:10px;
@@ -605,25 +692,26 @@ body::after{
       <source src="/hub-banner.mp4" type="video/mp4">
     </video>
     <div class="banner-overlay">
-      <div class="banner-tag">◆ Monad Meme Command Center</div>
-      <div class="banner-sub">live prices · subject watch · cross-holder map</div>
+      <div class="banner-tag">◆ Monad Memecoin Terminal</div>
+      <div class="banner-sub">live prices · new launches · trending · wallet research · trade in-place</div>
     </div>
   </div>
 </div>
 
 <!-- TAB BAR -->
 <div class="tab-bar">
-  <button class="tab-btn active" data-tab="breach"><span class="ic">📡</span>BREACH MONITOR</button>
-  <button class="tab-btn" data-tab="launches"><span class="ic">🚀</span>LAUNCHES</button>
-  <button class="tab-btn" data-tab="cross"><span class="ic">🗺️</span>CROSS-MAP</button>
-  <button class="tab-btn" data-tab="pack"><span class="ic">👁</span>SUBJECT WATCH</button>
+  <button class="tab-btn active" data-tab="breach"><span class="pulse"></span>PRICES</button>
+  <button class="tab-btn" data-tab="launches"><span class="ic">🆕</span>NEW</button>
+  <button class="tab-btn" data-tab="trending"><span class="ic">🔥</span>TRENDING</button>
+  <button class="tab-btn" data-tab="cross"><span class="ic">🔍</span>WALLETS</button>
+  <button class="tab-btn" data-tab="pack"><span class="ic">👁</span>TRACK</button>
 </div>
 
 <!-- TAB: BREACH MONITOR -->
 <section class="tab-panel active" id="tab-breach">
   <div class="tab-head">
     <div>
-      <div class="tab-title">📡 BREACH MONITOR</div>
+      <div class="tab-title">📊 LIVE PRICES</div>
       <div class="tab-sub">live price + risk surveillance · auto-refresh 30s · DexScreener feed</div>
     </div>
     <div class="tab-tools">
@@ -657,7 +745,7 @@ body::after{
 <section class="tab-panel" id="tab-cross">
   <div class="tab-head">
     <div>
-      <div class="tab-title">🗺️ CROSS-CONTAMINATION MAP</div>
+      <div class="tab-title">🔍 WALLET COMPARE</div>
       <div class="tab-sub">paste a wallet → scan their Monad meme bags · compare up to 8 wallets · find the cross-holders</div>
     </div>
   </div>
@@ -674,11 +762,38 @@ body::after{
   <div id="crossOverlap"></div>
 </section>
 
-<!-- TAB: SUBJECT WATCH -->
+<!-- TAB: TRENDING -->
+<section class="tab-panel" id="tab-trending">
+  <div class="tab-head">
+    <div>
+      <div class="tab-title">🔥 TRENDING MEMES</div>
+      <div class="tab-sub">all Monad memes · live USD prices · sorted by holders · powered by Monorail</div>
+    </div>
+    <div class="tab-tools" id="trendingTools">
+      <button class="btn trending-sort active" data-sort="price">💎 PRICE</button>
+      <button class="btn trending-sort" data-sort="mcap">📊 MCAP</button>
+      <button class="btn trending-sort" data-sort="holders">👥 HOLDERS</button>
+    </div>
+  </div>
+
+  <div class="lnch-search-row">
+    <input class="lnch-search" id="trendingSearch" placeholder="🔍 filter by symbol or name…" maxlength="64">
+    <span class="lnch-count" id="trendingCount">loading…</span>
+  </div>
+
+  <div id="trendingGrid" class="lnch-grid">
+    <div class="empty" style="padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;">
+      <div style="font-size:14px;letter-spacing:1.5px;margin-bottom:6px;">⏳ trending feed loading…</div>
+      <div style="font-size:10px;letter-spacing:1px;">pulling 500 memes from Monorail</div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB: TRACK -->
 <section class="tab-panel" id="tab-pack">
   <div class="tab-head">
     <div>
-      <div class="tab-title">👁 SUBJECT WATCH</div>
+      <div class="tab-title">👁 WALLET TRACKER</div>
       <div class="tab-sub">tag up to 10 wallets · live multicall balances · auto-poll every 90s</div>
     </div>
   </div>
@@ -697,7 +812,7 @@ body::after{
 <section class="tab-panel" id="tab-launches">
   <div class="tab-head">
     <div>
-      <div class="tab-title">🚀 LAUNCHES</div>
+      <div class="tab-title">🆕 NEW LAUNCHES</div>
       <div class="tab-sub">live token feed from nad.fun · pre-grad bonding curves + graduated DEX pairs</div>
     </div>
   </div>
@@ -1588,8 +1703,154 @@ function bindTabs(){
       $$('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
       $$('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
       if (tab==='launches' && !LNCH.rows.length) fetchLaunches(false);
+      if (tab==='trending' && !TREND.rows.length) fetchTrending();
     };
   });
+}
+
+/* ── TRENDING (Monorail memes catalog) ────────────────────── */
+const TREND = { rows: [], sort: 'price', search: '', enriched: new Map() };
+
+async function fetchTrending(){
+  try{
+    const r = await fetch('https://api.monorail.xyz/v2/tokens/category/meme');
+    const j = await r.json();
+    if (!Array.isArray(j)) throw new Error('bad response');
+    // bulk endpoint returns price + symbol but NOT holders/supply.
+    // filter out junk (blank symbols, zero price).
+    TREND.rows = j.filter(t => {
+      const s = (t.symbol || '').trim();
+      const px = parseFloat(t.usd_per_token || 0);
+      return s.length > 0 && px > 0 && t.address;
+    }).map(t => ({
+      address: t.address.toLowerCase(),
+      symbol:  (t.symbol||'').trim(),
+      name:    (t.name||'').trim() || t.symbol,
+      decimals:t.decimals || 18,
+      price:   parseFloat(t.usd_per_token || 0),
+      monPx:   parseFloat(t.mon_per_token || 0),
+      categories: t.categories || [],
+    }));
+    renderTrending();
+    // background enrich: fetch full details for visible top tokens
+    enrichTopTrending();
+  }catch(e){
+    console.warn('trending fetch failed', e);
+    $('#trendingGrid').innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;color:var(--red);font-family:'JetBrains Mono',monospace;">⚠ failed to load trending feed · ${e.message}</div>`;
+  }
+}
+
+// Fetch /v2/token/{addr} for top 30 in parallel, fill holders/mcap/image
+async function enrichTopTrending(){
+  const rows = sortedTrending().slice(0, 30);
+  const fetches = rows.map(async r => {
+    if (TREND.enriched.has(r.address)) return;
+    try{
+      const x = await fetch(`https://api.monorail.xyz/v2/token/${r.address}`).then(r=>r.json());
+      TREND.enriched.set(r.address, {
+        holders: parseInt(x.holders || 0),
+        supply:  parseFloat(x.supply || 0),
+        image:   x.image_uri || null,
+        bonding: parseInt(x.bonding_curve_progress || 100),
+      });
+    }catch(e){}
+  });
+  await Promise.allSettled(fetches);
+  renderTrending();  // re-render with enriched data
+}
+
+function sortedTrending(){
+  let rows = [...TREND.rows];
+  const q = (TREND.search || '').toLowerCase().trim();
+  if (q){
+    rows = rows.filter(r =>
+      (r.symbol||'').toLowerCase().includes(q) ||
+      (r.name||'').toLowerCase().includes(q) ||
+      (r.address||'').toLowerCase().includes(q)
+    );
+  }
+  const sk = TREND.sort;
+  rows.sort((a,b)=>{
+    if (sk==='holders'){
+      const ha = TREND.enriched.get(a.address)?.holders || 0;
+      const hb = TREND.enriched.get(b.address)?.holders || 0;
+      return hb - ha;
+    }
+    if (sk==='mcap'){
+      const ea = TREND.enriched.get(a.address);
+      const eb = TREND.enriched.get(b.address);
+      const ma = ea ? (ea.supply * a.price) : 0;
+      const mb = eb ? (eb.supply * b.price) : 0;
+      return mb - ma;
+    }
+    if (sk==='price')   return b.price - a.price;
+    return 0;
+  });
+  return rows;
+}
+
+function renderTrending(){
+  const grid = $('#trendingGrid');
+  if (!grid) return;
+  const rows = sortedTrending();
+  const visible = rows.slice(0, 60);
+
+  $('#trendingCount').textContent = rows.length + ' / ' + TREND.rows.length + ' memes';
+
+  if (!visible.length){
+    grid.innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;">no memes matched.</div>`;
+    return;
+  }
+
+  grid.innerHTML = visible.map((r, i) => {
+    const e = TREND.enriched.get(r.address);
+    const mcap = e ? e.supply * r.price : 0;
+    const mcapTxt = mcap >= 1e6 ? '$'+(mcap/1e6).toFixed(2)+'M' : mcap >= 1e3 ? '$'+(mcap/1e3).toFixed(1)+'K' : (mcap > 0 ? '$'+mcap.toFixed(0) : '—');
+    const priceTxt = r.price < 0.000001 ? '$'+r.price.toExponential(1) : '$'+r.price.toFixed(7);
+    const holdersTxt = e ? e.holders.toLocaleString() : '…';
+    const img = e?.image || null;
+    const imgHtml = img
+      ? `<img src="${img}" alt="" class="trend-img" onerror="this.style.display='none'">`
+      : `<div class="trend-img-fb">${r.symbol.slice(0,2).toUpperCase()}</div>`;
+    const rankCls = i < 3 ? ' trend-rank-top' : '';
+    return `
+      <a class="lnch-card trend-card" href="/hub/token?addr=${r.address}">
+        <div class="trend-rank${rankCls}">#${i+1}</div>
+        <div class="trend-card-head">
+          ${imgHtml}
+          <div class="trend-card-meta">
+            <div class="lnch-sym">$${r.symbol}</div>
+            <div class="lnch-name">${r.name}</div>
+          </div>
+        </div>
+        <div class="lnch-meta">
+          <div class="lnch-meta-item"><span class="k">PRICE</span><span class="v">${priceTxt}</span></div>
+          <div class="lnch-meta-item"><span class="k">MCAP</span><span class="v">${mcapTxt}</span></div>
+          <div class="lnch-meta-item"><span class="k">HOLDERS</span><span class="v">${holdersTxt}</span></div>
+        </div>
+      </a>`;
+  }).join('');
+}
+
+function bindTrending(){
+  // sort pills
+  $$('.trending-sort').forEach(btn=>{
+    btn.onclick = ()=>{
+      $$('.trending-sort').forEach(b=>b.classList.toggle('active', b===btn));
+      TREND.sort = btn.dataset.sort;
+      renderTrending();
+      enrichTopTrending();  // fetch details for the new top-30 visible
+    };
+  });
+  // search
+  const sb = $('#trendingSearch');
+  if (sb){
+    let t = null;
+    sb.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t = setTimeout(()=>{ TREND.search = sb.value || ''; renderTrending(); }, 150);
+    });
+  }
 }
 
 /* ── SORTING ──────────────────────────────────────────────── */
@@ -1609,6 +1870,7 @@ async function init(){
   bindTabs();
   bindSort();
   bindLaunches();
+  bindTrending();
 
   // BREACH controls
   $('#addTokenBtn').onclick = ()=>{
