@@ -35,7 +35,8 @@
     HUB_ADMIN_WALLETS: [
       '0xB9d4B73bE18914c6d64Bee65a806648370be467f',  // deployer / treasury / buyback
       '0x57C8A5AeC1c172fE41416A2FAE6eBDD92b552A16',  // platform
-      '0x4601a7f665ca13c40d2236b8b9ff1e4b87226351'   // hub treasury (buyback flywheel)
+      '0x4601a7f665ca13c40d2236b8b9ff1e4b87226351', // hub treasury (buyback flywheel)
+      '0x233C410944f4f02645988BF6341383Ec3Af4eC84'  // dev wallet
     ],
 
     // nad.fun mainnet (for native on-page swap)
