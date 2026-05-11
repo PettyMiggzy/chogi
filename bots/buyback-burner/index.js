@@ -1,12 +1,21 @@
 #!/usr/bin/env node
 /* ════════════════════════════════════════════════════════════════════
-   CHOGI BUYBACK BURNER — Monorail-powered auto-flywheel bot
+   CHOGI FEE FLYWHEEL — Monorail-powered fee processor
    ----------------------------------------------------------------------
-   Polls treasury wallet (Monorail fee recipient) every TICK_MS.
-   For each non-MON, non-CHOGI token in the wallet > DUST_USD_FLOOR,
-     swaps it to MON via Monorail aggregator.
-   Then converts excess MON (above OPS_RESERVE_MON) into CHOGI,
-   and sends ALL CHOGI in the wallet to the dead address.
+   Polls the Monorail fee-recipient wallet every TICK_MS.
+
+   FOR EACH NON-MON, NON-CHOGI fee token > DUST_USD_FLOOR:
+     swap it to MON via Monorail (output stays in wallet as revenue)
+
+   FOR THE CHOGI BALANCE in the wallet:
+     transfer ALL to 0x...dEaD (direct burn — no buy-back step)
+
+   ROUGH ECONOMICS:
+     - Someone buys CHOGI on the hub → fee lands as CHOGI → 🔥 burned
+     - Someone sells CHOGI on the hub → fee lands as MON → 💰 revenue
+     - Someone buys/sells any other meme → fee lands as that token →
+       bot sweeps to MON → 💰 revenue
+   Burns are tied to actual CHOGI buy-pressure, not synthetic buybacks.
 
    Default mode: DRY_RUN — logs what it WOULD do, signs nothing.
    Set ARMED=true in .env to enable live execution.
@@ -35,8 +44,6 @@ const cfg = {
   privateKey: process.env.PRIVATE_KEY || '',
   armed: String(process.env.ARMED || 'false').toLowerCase() === 'true',
   tickMs: parseInt(process.env.TICK_MS || '600000'),          // 10 min
-  opsReserveMon: parseFloat(process.env.OPS_RESERVE_MON || '50'),  // keep 50 MON for ops
-  burnThresholdMon: parseFloat(process.env.BURN_THRESHOLD_MON || '5'), // min 5 MON over reserve to fire
   dustUsdFloor: parseFloat(process.env.DUST_USD_FLOOR || '1'), // don't sweep fee tokens worth < $1
   slippageBps: parseInt(process.env.SLIPPAGE_BPS || '300'),    // 3% — bot tolerates more slip
   statsPath: process.env.STATS_PATH || './burn-stats.json',
@@ -168,7 +175,7 @@ async function tick(){
     other_value_usd: others.reduce((s, t) => s + parseFloat(t.usd_per_token||0)*parseFloat(t.balance||0), 0).toFixed(2),
   });
 
-  // Step 2: swap each non-MON, non-CHOGI token → MON
+  // Step 2: swap each non-MON, non-CHOGI fee token → MON (kept as revenue)
   for (const t of others){
     try{
       const q = await monorailQuote({
@@ -177,39 +184,13 @@ async function tick(){
         sender: cfg.treasuryAddr,
         slippageBps: cfg.slippageBps,
       });
-      log(`sweep ${t.symbol} → MON`, { in: q.input_formatted, out: q.output_formatted, route: q.routes?.[0]?.[0]?.splits?.[0]?.protocol });
+      log(`sweep ${t.symbol} → MON (revenue)`, { in: q.input_formatted, out: q.output_formatted, route: q.routes?.[0]?.[0]?.splits?.[0]?.protocol });
       if (wallet) await executeSwap(wallet, q);
     }catch(e){ log(`sweep ${t.symbol} failed`, { error: e.message }); }
     await new Promise(r => setTimeout(r, 1500));  // pace between txs
   }
 
-  // Step 3: refresh balances after sweeps (skip in dry-run since no state changed)
-  if (cfg.armed && others.length > 0){
-    balances = await fetchTreasuryBalances(cfg.treasuryAddr);
-  }
-
-  // Step 4: convert excess MON → CHOGI
-  const monNow = balances.find(b => b.address.toLowerCase() === NATIVE) ||
-                 balances.find(b => b.address.toLowerCase() === WMON.toLowerCase());
-  const monFloat = monNow ? parseFloat(monNow.balance || 0) : 0;
-  const excessMon = monFloat - cfg.opsReserveMon;
-
-  if (excessMon < cfg.burnThresholdMon){
-    log('no burn this tick', { mon_balance: monFloat, ops_reserve: cfg.opsReserveMon, excess: excessMon, threshold: cfg.burnThresholdMon });
-  } else {
-    try{
-      const q = await monorailQuote({
-        from: NATIVE, to: CHOGI,
-        amount: excessMon.toFixed(6),
-        sender: cfg.treasuryAddr,
-        slippageBps: cfg.slippageBps,
-      });
-      log('MON → CHOGI buyback quote', { in: q.input_formatted, out: q.output_formatted, route: q.routes?.[0]?.[0]?.splits?.[0]?.protocol });
-      if (wallet) await executeSwap(wallet, q);
-    }catch(e){ log('buyback swap failed', { error: e.message }); }
-  }
-
-  // Step 5: burn ALL CHOGI in treasury
+  // Step 3: burn ALL CHOGI in the treasury (direct CHOGI fees from CHOGI-buy trades)
   if (cfg.armed){
     const prov = makeProvider();
     const data = erc20Iface.encodeFunctionData('balanceOf', [cfg.treasuryAddr]);
@@ -242,8 +223,8 @@ async function main(){
     mode: cfg.armed ? '🔥 LIVE' : '👁 DRY-RUN',
     treasury: cfg.treasuryAddr,
     tick_min: cfg.tickMs / 60000,
-    ops_reserve_mon: cfg.opsReserveMon,
-    burn_threshold_mon: cfg.burnThresholdMon,
+    dust_usd_floor: cfg.dustUsdFloor,
+    slippage_bps: cfg.slippageBps,
   });
 
   // Tick immediately, then on interval

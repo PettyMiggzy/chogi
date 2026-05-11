@@ -1,20 +1,32 @@
-# CHOGI BUYBACK BURNER 🔥
+# CHOGI FEE FLYWHEEL 🔥
 
-PM2 bot that drains your Monorail fee wallet into $CHOGI buybacks +
-burns on a 10-minute cadence.
+PM2 bot that processes the Monorail fee wallet on a 10-minute cadence.
 
-## What it does, in order
+## What it does
 
-1. Read all token balances of the treasury wallet via Monorail's
-   `/v2/wallet/{addr}/balances`.
-2. For every non-MON, non-CHOGI token worth more than `DUST_USD_FLOOR`,
-   build a `/v4/quote` to swap it → MON, sign, broadcast.
-3. After sweeps complete, top up `OPS_RESERVE_MON` and check if there's
-   enough excess MON to fire a burn (`BURN_THRESHOLD_MON`).
-4. If yes, quote MON → CHOGI via Monorail, sign, broadcast.
-5. Transfer the **entire** CHOGI balance of the treasury (bought +
-   directly-received) to `0x000000000000000000000000000000000000dEaD`.
-6. Append the burn event to `burn-stats.json` for the dashboard to read.
+Two simple rules per tick:
+
+1. **For every non-MON, non-CHOGI fee token** in the wallet worth more
+   than `DUST_USD_FLOOR`: build a `/v4/quote` to swap it → MON, sign,
+   broadcast. MON stays in the wallet as **revenue**.
+
+2. **For all CHOGI sitting in the wallet** (from people buying CHOGI on
+   the hub): transfer the entire balance to
+   `0x000000000000000000000000000000000000dEaD`. Direct burn.
+
+## Why this design
+
+Burns are tied to **real CHOGI buy-pressure**, not synthetic buybacks:
+
+| User action on hub | Fee token | What bot does |
+|---|---|---|
+| Buy CHOGI with MON | CHOGI | 🔥 burn |
+| Sell CHOGI for MON | MON | 💰 keep as revenue |
+| Buy any other meme | that meme | sweep to MON → 💰 revenue |
+| Sell any other meme | MON | 💰 keep as revenue |
+
+You earn MON every time someone trades. CHOGI burns when there's actual
+demand for CHOGI. No buy-back step, no extra gas.
 
 ## Deploy on the droplet (138.68.248.211)
 
