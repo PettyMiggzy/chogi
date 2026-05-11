@@ -1,0 +1,5 @@
+.env
+node_modules/
+burn-stats.json
+burn-log.jsonl
+*.log
