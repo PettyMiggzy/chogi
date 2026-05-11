@@ -611,6 +611,14 @@ footer a{color:var(--pink);text-decoration:none;}
     el.innerHTML = html;
   }
 
+  // nad.fun DEX_ROUTER on Monad mainnet (wraps the same Capricorn V3 pool, no burn).
+  // Used as a fallback route when the burner reverts so users always have a way to trade.
+  var NADFUN_DEX_ROUTER = '0x0B79d71AE99528D1dB24A4148b5f4F865cc2b137';
+  var NADFUN_ROUTER_IFACE = new ethers.Interface([
+    'function buy((uint256 amountOutMin,address token,address to,uint256 deadline) params) payable returns (uint256)',
+    'function sell((uint256 amountIn,uint256 amountOutMin,address token,address to,uint256 deadline) params) returns (uint256)'
+  ]);
+
   // ABI Interface for manual tx construction (bypasses any contract-proxy quirks)
   var BURNER_IFACE = new ethers.Interface(BURNER_ABI);
   var ERC20_IFACE  = new ethers.Interface(ERC20_ABI);
@@ -623,7 +631,14 @@ footer a{color:var(--pink);text-decoration:none;}
     var amountInBig;
     try{ amountInBig = ethers.parseUnits(raw, 18); }
     catch(e){ status('error', 'Invalid amount'); return; }
+
+    // ABSOLUTE GUARD: contract reverts with ZeroAmount() (selector 0x1f2a2005)
+    // when msg.value is 0. Refuse to send anything that would hit this revert.
     if(amountInBig <= 0n){ status('error', 'Amount must be greater than 0'); return; }
+    if(mode === 'buy' && amountInBig === 0n){
+      status('error', 'Buy requires MON value attached. Got 0. Check the amount field.');
+      return;
+    }
 
     var btn = $('actionBtn');
     btn.disabled = true;
@@ -632,10 +647,11 @@ footer a{color:var(--pink);text-decoration:none;}
       if(mode === 'buy'){
         // Manually construct buy tx — guarantees msg.value is attached.
         var data = BURNER_IFACE.encodeFunctionData('buyChogiAndBurn', [bestQuote.fee, bestQuote.minOut]);
-        var txParams = { to: BURNER, data: data, value: amountInBig };
-        console.log('[CHOGI BUY]', { to: BURNER, valueWei: amountInBig.toString(), valueMon: ethers.formatUnits(amountInBig,18), fee: bestQuote.fee, minOut: bestQuote.minOut.toString() });
+        var hexValue = '0x' + amountInBig.toString(16);
+        var txParams = { to: BURNER, data: data, value: hexValue };
+        console.log('[CHOGI BUY tx params]', JSON.stringify({to: BURNER, valueHex: hexValue, valueMon: ethers.formatUnits(amountInBig,18), fee: bestQuote.fee, minOut: bestQuote.minOut.toString()}, null, 2));
 
-        status('info','Confirm buy in wallet…');
+        status('info','Confirm buy in wallet · MON attached: '+ethers.formatUnits(amountInBig,18));
         var tx = await signer.sendTransaction(txParams);
         status('info','Swapping… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
         var rec = await tx.wait();
@@ -643,6 +659,7 @@ footer a{color:var(--pink);text-decoration:none;}
           status('success','✅ Bought ~'+fmtBig(bestQuote.userOut)+' CHOGI · '+fmtBig(bestQuote.burnAmt)+' burned · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
         } else {
           status('error','Transaction failed.');
+          showFallbackButton(amountInBig);
         }
       } else {
         // Sell — check allowance, approve if needed, then sell
@@ -656,7 +673,7 @@ footer a{color:var(--pink);text-decoration:none;}
         }
 
         var sellData = BURNER_IFACE.encodeFunctionData('sellChogiAndBurn', [amountInBig, bestQuote.fee, bestQuote.minOut]);
-        console.log('[CHOGI SELL]', { to: BURNER, amountIn: amountInBig.toString(), fee: bestQuote.fee, minOut: bestQuote.minOut.toString() });
+        console.log('[CHOGI SELL tx params]', { to: BURNER, amountIn: amountInBig.toString(), fee: bestQuote.fee, minOut: bestQuote.minOut.toString() });
 
         status('info','Confirm sell in wallet…');
         var tx = await signer.sendTransaction({ to: BURNER, data: sellData });
@@ -666,6 +683,7 @@ footer a{color:var(--pink);text-decoration:none;}
           status('success','✅ Sold '+fmtBig(amountInBig)+' CHOGI for ~'+fmtBig(bestQuote.userOut)+' MON · '+fmtBig(bestQuote.burnAmt)+' burned · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
         } else {
           status('error','Transaction failed.');
+          showFallbackButton(amountInBig);
         }
       }
       await paintBalances();
@@ -674,18 +692,83 @@ footer a{color:var(--pink);text-decoration:none;}
       console.error(e);
       var msg = e.shortMessage || e.message || 'Transaction rejected';
       var low = msg.toLowerCase();
-      if(low.includes('no data') || low.includes('require') || low.includes('execution reverted')){
-        msg = 'Trade reverted — price impact ('+($('dImpact').textContent||'?')+') exceeded slippage. Try a smaller amount or 10% slippage.';
+      var raw = (e.info && e.info.error && e.info.error.data) || e.data || '';
+      if(raw === '0x1f2a2005' || low.includes('zeroamount')){
+        msg = 'Burner rejected the call (ZeroAmount): the swap was sent with no MON attached. Hard-refresh the page (Ctrl+Shift+R) and try again.';
+      } else if(low.includes('no data') || low.includes('require') || low.includes('execution reverted')){
+        msg = 'Trade reverted via burner. Try the nad.fun fallback route below.';
+        showFallbackButton(amountInBig);
       } else if(low.includes('insufficient funds')){
         msg = 'Not enough MON for trade + gas.';
       } else if(low.includes('user rejected') || low.includes('user denied')){
         msg = 'Signature cancelled.';
       }
-      if(msg.length > 200) msg = msg.slice(0,200)+'…';
+      if(msg.length > 240) msg = msg.slice(0,240)+'…';
       status('error', msg);
     } finally {
       btn.disabled = false;
       paintAction();
+    }
+  }
+
+  // Fallback: route through nad.fun's DEX router (same Capricorn V3 pool, no burn).
+  function showFallbackButton(amountInBig){
+    var el = $('status');
+    if(!el || el.querySelector('.fallback-btn')) return;
+    var btn = document.createElement('button');
+    btn.className = 'fallback-btn';
+    btn.style.cssText = 'margin-top:10px;padding:10px 16px;background:linear-gradient(135deg,#22d3ee,#A855F7);color:#fff;border:none;border-radius:8px;font-family:Bungee,sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;';
+    btn.textContent = '🚀 RETRY VIA NAD.FUN (NO BURN)';
+    btn.onclick = function(){ btn.disabled=true; btn.textContent='ROUTING…'; executeNadfun(amountInBig).catch(function(e){ console.error(e); }); };
+    el.appendChild(btn);
+  }
+
+  async function executeNadfun(amountInBig){
+    if(!signer || !bestQuote) return;
+    try{
+      if(mode === 'buy'){
+        var data = NADFUN_ROUTER_IFACE.encodeFunctionData('buy', [{
+          amountOutMin: bestQuote.minOut,
+          token: CHOGI,
+          to: wallet,
+          deadline: BigInt(Math.floor(Date.now()/1000) + 1200)
+        }]);
+        status('info','Routing via nad.fun · confirm in wallet…');
+        var tx = await signer.sendTransaction({ to: NADFUN_DEX_ROUTER, data, value: '0x'+amountInBig.toString(16) });
+        status('info','Swapping via nad.fun… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
+        var rec = await tx.wait();
+        if(rec.status === 1){
+          status('success','✅ Bought CHOGI via nad.fun (no burn) · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
+        } else { status('error','nad.fun route also reverted.'); }
+      } else {
+        // approve nad.fun router for CHOGI
+        var chogiC = new ethers.Contract(CHOGI, ERC20_ABI, signer);
+        var allowance = await chogiC.allowance(wallet, NADFUN_DEX_ROUTER);
+        if(allowance < amountInBig){
+          status('info','Approving nad.fun router…');
+          var approveData = ERC20_IFACE.encodeFunctionData('approve', [NADFUN_DEX_ROUTER, ethers.MaxUint256]);
+          var atx = await signer.sendTransaction({ to: CHOGI, data: approveData });
+          await atx.wait();
+        }
+        var data = NADFUN_ROUTER_IFACE.encodeFunctionData('sell', [{
+          amountIn: amountInBig,
+          amountOutMin: bestQuote.minOut,
+          token: CHOGI,
+          to: wallet,
+          deadline: BigInt(Math.floor(Date.now()/1000) + 1200)
+        }]);
+        status('info','Selling via nad.fun · confirm in wallet…');
+        var tx = await signer.sendTransaction({ to: NADFUN_DEX_ROUTER, data });
+        status('info','Swapping via nad.fun… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
+        var rec = await tx.wait();
+        if(rec.status === 1){
+          status('success','✅ Sold CHOGI via nad.fun (no burn) · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
+        } else { status('error','nad.fun route also reverted.'); }
+      }
+      await paintBalances();
+    }catch(e){
+      console.error('nadfun fallback err', e);
+      status('error', 'nad.fun route failed: ' + (e.shortMessage || e.message));
     }
   }
   $('actionBtn').addEventListener('click', async function(){
