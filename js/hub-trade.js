@@ -23,6 +23,9 @@ const EXPLORER    = 'https://monadexplorer.com';
 const MONORAIL = {
   QUOTE:  'https://pathfinder.monorail.xyz/v4/quote',
   TOKENS: 'https://api.monorail.xyz/v2/tokens',
+  // Chogi's registered App ID — 1% fee, 100% to treasury (0x4601...).
+  // Earns CHOGI / output-token on every swap through the hub.
+  APP_ID: '1176408161625',
 };
 
 const RPC_URLS = [
@@ -100,6 +103,7 @@ async function monorailQuote({from, to, amount, sender, slippageBps, deadlineSec
     amount: String(amount),
     sender,
     slippage: String(slippageBps || 100),  // bps where 100 = 1%
+    source: MONORAIL.APP_ID,                // chogi App ID → 1% fee → treasury
   });
   if (deadlineSec) params.set('deadline', String(deadlineSec));
   const url = `${MONORAIL.QUOTE}?${params.toString()}`;

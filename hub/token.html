@@ -144,6 +144,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
 .swap-quote .out{color:#fff;font-weight:700;}
 .swap-quote .usd{color:var(--mute);font-size:10px;margin-left:6px;}
 
+.burn-flywheel{
+  background:linear-gradient(135deg, rgba(255,77,109,.10) 0%, rgba(255,20,147,.08) 100%);
+  border:1px solid rgba(255,77,109,.32);
+  border-radius:10px;padding:9px 12px;margin-bottom:10px;
+  display:flex;align-items:center;gap:10px;
+  font-family:'JetBrains Mono',monospace;
+}
+.burn-flywheel .bf-icon{font-size:18px;line-height:1;}
+.burn-flywheel .bf-text{flex:1;}
+.burn-flywheel .bf-line{font-size:11px;color:#fff;letter-spacing:.3px;line-height:1.4;}
+.burn-flywheel .bf-line b{color:var(--red);font-weight:700;}
+.burn-flywheel .bf-sub{font-size:9px;color:var(--mute);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
 .swap-settings{background:rgba(8,0,18,.55);border:1px solid var(--panel-line);border-radius:10px;padding:11px 13px;margin-bottom:10px;}
 .swap-settings summary{cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.8px;color:var(--mute);list-style:none;display:flex;justify-content:space-between;align-items:center;}
 .swap-settings summary::-webkit-details-marker{display:none;}
@@ -296,6 +309,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
           <div class="swap-quote">
             <span>YOU GET</span>
             <span><span class="out" id="quoteOut">—</span><span class="usd" id="quoteUsd"></span></span>
+          </div>
+
+          <div class="burn-flywheel" id="burnFlywheel" style="display:none;">
+            <span class="bf-icon">🔥</span>
+            <div class="bf-text">
+              <div class="bf-line"><b id="burnAmt">—</b> <span id="burnSym">—</span> → CHOGI buyback + burn</div>
+              <div class="bf-sub">1% fee feeds the flywheel · every trade pumps holders</div>
+            </div>
           </div>
 
           <details class="swap-settings">
@@ -652,6 +673,19 @@ async function doQuote(){
     if (isBuy && px) extra = ' ≈ $' + fmt(out * px, 2) + extra;
     else if (!isBuy && (mi.native_price || 0)) extra = ' ≈ $' + fmt(out * mi.native_price, 2) + extra;
     $('#quoteUsd').textContent = extra;
+
+    // ── Burn flywheel: show the protocol fee that routes to CHOGI buyback ──
+    const fees = q.fees || {};
+    const feeAmt = parseFloat(fees.fee_share_amount_formatted || fees.protocol_amount_formatted || 0);
+    const burnEl = $('#burnFlywheel');
+    if (feeAmt > 0 && q._source === 'monorail'){
+      $('#burnAmt').textContent = fmt(feeAmt, 6);
+      $('#burnSym').textContent = sym.replace('$','');
+      burnEl.style.display = '';
+    } else {
+      burnEl.style.display = 'none';
+    }
+
     STATE.notOnNadfun = false;
     clearStatus();
   }catch(e){
@@ -659,6 +693,7 @@ async function doQuote(){
     STATE.quote = null;
     $('#quoteOut').textContent = 'unavailable';
     $('#quoteUsd').textContent = '';
+    $('#burnFlywheel').style.display = 'none';
     const msg = ChogiTrade.explainRevert(e);
     setStatus('error', `⚠ ${msg}`);
   }
