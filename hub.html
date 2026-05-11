@@ -618,6 +618,42 @@ body::after{
   letter-spacing:.4px;line-height:1.3;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.trend-card-flags{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;}
+.badge-cto{
+  display:inline-block;font-family:'Bungee',sans-serif;font-size:8px;letter-spacing:1.2px;
+  padding:2px 5px;border-radius:4px;vertical-align:1px;
+  background:linear-gradient(135deg,#FFD55A,#FF1493);color:#000;
+}
+.badge-src{
+  display:inline-flex;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;font-weight:700;
+  padding:2px 6px;border-radius:4px;
+  text-transform:uppercase;
+}
+.badge-src.src-nadfun{background:rgba(34,211,111,.16);color:var(--green);border:1px solid rgba(34,211,111,.34);}
+.badge-src.src-offpad{background:rgba(255,170,51,.16);color:#ffaa33;border:1px solid rgba(255,170,51,.34);}
+.badge-src.src-loading{background:rgba(196,181,253,.08);color:var(--mute);border:1px solid rgba(196,181,253,.18);}
+.lnch-meta-item .v.dev-ok{color:var(--green);}
+.lnch-meta-item .v.dev-warn{color:#ffaa33;}
+.lnch-meta-item .v.dev-bad{color:var(--red);}
+
+.trend-ca-pill{
+  margin-top:8px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  width:100%;padding:7px 11px;
+  background:rgba(8,0,18,.55);
+  border:1px dashed rgba(255,20,147,.22);
+  border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;
+  color:var(--mute);
+  cursor:pointer;transition:all .15s;
+}
+.trend-ca-pill:hover{border-color:var(--pink);color:#fff;background:rgba(255,20,147,.08);border-style:solid;}
+.trend-ca-pill.copied{
+  border-color:var(--green);color:var(--green);background:rgba(34,211,111,.1);border-style:solid;
+}
+.trend-ca-pill .ca-mono{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;}
+.trend-ca-pill .ca-icon{font-size:12px;opacity:.7;}
 .trend-sentinel{
   grid-column:1/-1;
   padding:24px 12px;text-align:center;
@@ -971,8 +1007,7 @@ body::after{
       <div class="tab-sub">all Monad memes · live USD prices · sorted by holders · powered by Monorail</div>
     </div>
     <div class="tab-tools" id="trendingTools">
-      <button class="btn trending-sort active" data-sort="price">💎 PRICE</button>
-      <button class="btn trending-sort" data-sort="mcap">📊 MCAP</button>
+      <button class="btn trending-sort active" data-sort="mcap">📊 MCAP</button>
       <button class="btn trending-sort" data-sort="holders">👥 HOLDERS</button>
     </div>
   </div>
@@ -1910,16 +1945,28 @@ function bindTabs(){
   });
 }
 
-/* ── TRENDING (Monorail memes catalog) ────────────────────── */
-const TREND = { rows: [], sort: 'price', search: '', enriched: new Map(), visible: 30, observer: null };
+/* ── TRENDING (Monorail memes catalog + nad.fun enrichment) ────
+   Two-tier enrichment:
+   1. Per-token: GET /token/{addr}  → on nad.fun? get creator+supply+holders
+   2. Per-creator: GET /profile/tokens/created/{creator}  → all their tokens
+       with current balance → derives DEV % when matched to this token
+
+   Both layers cached for the session. Off-pad tokens flagged ⚠.
+   ────────────────────────────────────────────────────────────── */
+const TREND = {
+  rows: [], sort: 'mcap', search: '',
+  enriched:    new Map(),  // addr  → {source, creator, holders, supply, image, isCto, isGrad, twitter, telegram, website, mcap, pct24}
+  creatorPos:  new Map(),  // creator → [token positions array] (one fetch per creator)
+  visible: 30, observer: null
+};
+
+const NADFUN_API_BASE = 'https://api.nadapp.net';
 
 async function fetchTrending(){
   try{
     const r = await fetch('https://api.monorail.xyz/v2/tokens/category/meme');
     const j = await r.json();
     if (!Array.isArray(j)) throw new Error('bad response');
-    // bulk endpoint returns price + symbol but NOT holders/supply.
-    // filter out junk (blank symbols, zero price).
     TREND.rows = j.filter(t => {
       const s = (t.symbol || '').trim();
       const px = parseFloat(t.usd_per_token || 0);
@@ -1934,31 +1981,93 @@ async function fetchTrending(){
       categories: t.categories || [],
     }));
     renderTrending();
-    // background enrich: fetch full details for visible top tokens
-    enrichTopTrending();
+    enrichVisibleTrending();
   }catch(e){
     console.warn('trending fetch failed', e);
     $('#trendingGrid').innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;color:var(--red);font-family:'JetBrains Mono',monospace;">⚠ failed to load trending feed · ${e.message}</div>`;
   }
 }
 
-// Fetch /v2/token/{addr} for currently visible cards in parallel
-async function enrichTopTrending(){
+// Enrich currently-visible cards in parallel via nad.fun (primary) + Monorail (fallback)
+async function enrichVisibleTrending(){
   const rows = sortedTrending().slice(0, TREND.visible);
-  const fetches = rows.map(async r => {
-    if (TREND.enriched.has(r.address)) return;
-    try{
-      const x = await fetch(`https://api.monorail.xyz/v2/token/${r.address}`).then(r=>r.json());
-      TREND.enriched.set(r.address, {
-        holders: parseInt(x.holders || 0),
-        supply:  parseFloat(x.supply || 0),
-        image:   x.image_uri || null,
-        bonding: parseInt(x.bonding_curve_progress || 100),
-      });
-    }catch(e){}
-  });
-  await Promise.allSettled(fetches);
+  await Promise.allSettled(rows.map(r => enrichOneTrending(r)));
+  // After per-token enrichment, batch-fetch creator positions for unique creators
+  const creators = new Set();
+  for (const r of rows){
+    const e = TREND.enriched.get(r.address);
+    if (e && e.creator && !TREND.creatorPos.has(e.creator.toLowerCase())){
+      creators.add(e.creator.toLowerCase());
+    }
+  }
+  await Promise.allSettled([...creators].map(c => fetchCreatorPositions(c)));
+  // Re-render with the now-loaded DEV % data
   renderTrending();
+}
+
+async function enrichOneTrending(r){
+  if (TREND.enriched.has(r.address)) return;
+  // primary: nad.fun (richer data + CTO flag + creator)
+  try{
+    const res = await fetch(`${NADFUN_API_BASE}/token/${r.address}`);
+    if (res.ok){
+      const j = await res.json();
+      const ti = j.token_info || {};
+      TREND.enriched.set(r.address, {
+        source: 'nadfun',
+        creator:  ti.creator?.account_id || null,
+        image:    ti.image_uri || null,
+        isCto:    !!ti.is_cto,
+        isGrad:   !!ti.is_graduated,
+        twitter:  ti.twitter  || null,
+        telegram: ti.telegram || null,
+        website:  ti.website  || null,
+        // supply + holders come from Monorail (richer for already-trading tokens)
+      });
+    } else {
+      // off-pad = not indexed on nad.fun
+      TREND.enriched.set(r.address, { source: 'offpad' });
+    }
+  }catch(e){
+    TREND.enriched.set(r.address, { source: 'offpad' });
+  }
+  // Always also pull Monorail for holders/supply (works for everything)
+  try{
+    const x = await fetch(`https://api.monorail.xyz/v2/token/${r.address}`).then(r=>r.json());
+    const cur = TREND.enriched.get(r.address) || {};
+    cur.holders = parseInt(x.holders || 0);
+    cur.supply  = parseFloat(x.supply || 0);
+    if (!cur.image) cur.image = x.image_uri || null;
+    cur.mcap = cur.supply * r.price;
+    TREND.enriched.set(r.address, cur);
+  }catch(e){}
+}
+
+// One call per unique creator returns ALL their created tokens with balances
+async function fetchCreatorPositions(creator){
+  if (!creator || TREND.creatorPos.has(creator)) return;
+  try{
+    const res = await fetch(`${NADFUN_API_BASE}/profile/tokens/created/${creator}?page=1&limit=50`);
+    if (!res.ok) { TREND.creatorPos.set(creator, []); return; }
+    const j = await res.json();
+    TREND.creatorPos.set(creator, j.tokens || []);
+  }catch(e){
+    TREND.creatorPos.set(creator, []);
+  }
+}
+
+// Compute dev % for a given token using cached creator positions
+function devPercent(addr, creator){
+  if (!creator) return null;
+  const positions = TREND.creatorPos.get(creator.toLowerCase());
+  if (!positions || !positions.length) return null;
+  const a = (addr||'').toLowerCase();
+  const match = positions.find(p => (p.token_info?.token_id||'').toLowerCase() === a);
+  if (!match) return null;
+  const bal = parseFloat(match.balance_info?.balance || 0);
+  const sup = parseFloat(match.market_info?.total_supply || 0);
+  if (sup <= 0) return null;
+  return (bal / sup) * 100;
 }
 
 function sortedTrending(){
@@ -1979,14 +2088,11 @@ function sortedTrending(){
       return hb - ha;
     }
     if (sk==='mcap'){
-      const ea = TREND.enriched.get(a.address);
-      const eb = TREND.enriched.get(b.address);
-      const ma = ea ? (ea.supply * a.price) : 0;
-      const mb = eb ? (eb.supply * b.price) : 0;
+      const ma = TREND.enriched.get(a.address)?.mcap || a.price;
+      const mb = TREND.enriched.get(b.address)?.mcap || b.price;
       return mb - ma;
     }
-    if (sk==='price')   return b.price - a.price;
-    return 0;
+    return b.price - a.price;
   });
   return rows;
 }
@@ -2005,31 +2111,58 @@ function renderTrending(){
   }
 
   grid.innerHTML = visible.map((r, i) => {
-    const e = TREND.enriched.get(r.address);
-    const mcap = e ? e.supply * r.price : 0;
-    const mcapTxt = mcap >= 1e6 ? '$'+(mcap/1e6).toFixed(2)+'M' : mcap >= 1e3 ? '$'+(mcap/1e3).toFixed(1)+'K' : (mcap > 0 ? '$'+mcap.toFixed(0) : '—');
-    const priceTxt = r.price < 0.000001 ? '$'+r.price.toExponential(1) : '$'+r.price.toFixed(7);
-    const holdersTxt = e ? e.holders.toLocaleString() : '…';
-    const img = e?.image || null;
+    const e = TREND.enriched.get(r.address) || {};
+    const mcap = e.mcap || 0;
+    const mcapTxt = mcap >= 1e6 ? '$'+(mcap/1e6).toFixed(2)+'M'
+                  : mcap >= 1e3 ? '$'+(mcap/1e3).toFixed(1)+'K'
+                  : (mcap > 0 ? '$'+mcap.toFixed(0) : '…');
+    const holdersTxt = e.holders ? e.holders.toLocaleString() : '…';
+
+    // DEV % — pulled via creator → /profile/tokens/created
+    const devPct = devPercent(r.address, e.creator);
+    let devTxt = '…', devCls = '';
+    if (e.source === 'offpad'){ devTxt = '—'; }
+    else if (devPct == null){ devTxt = e.creator ? '…' : '—'; }
+    else {
+      devTxt = devPct < 0.01 ? '<0.01%' : devPct.toFixed(2)+'%';
+      devCls = devPct < 5 ? 'dev-ok' : devPct < 15 ? 'dev-warn' : 'dev-bad';
+    }
+
+    const img = e.image || null;
     const imgHtml = img
-      ? `<img src="${img}" alt="" class="trend-img" onerror="this.style.display='none'">`
+      ? `<img src="${img}" alt="" class="trend-img" onerror="this.outerHTML='<div class=&quot;trend-img-fb&quot;>${r.symbol.slice(0,2).toUpperCase()}</div>'">`
       : `<div class="trend-img-fb">${r.symbol.slice(0,2).toUpperCase()}</div>`;
+
     const rankCls = i < 3 ? ' trend-rank-top' : '';
+    const ctoBadge  = e.isCto    ? `<span class="badge-cto" title="Community Takeover">CTO</span>` : '';
+    const srcBadge  = e.source === 'nadfun'
+      ? `<span class="badge-src src-nadfun" title="indexed on nad.fun">✓ NAD.FUN</span>`
+      : e.source === 'offpad'
+        ? `<span class="badge-src src-offpad" title="not indexed on nad.fun — exercise caution">⚠ OFF-PAD</span>`
+        : `<span class="badge-src src-loading">…</span>`;
+
+    const caShort = r.address.slice(0,6) + '…' + r.address.slice(-4);
+
     return `
       <a class="lnch-card trend-card" href="/hub/token?addr=${r.address}" data-token-addr="${r.address}">
         <div class="trend-rank${rankCls}">#${i+1}</div>
         <div class="trend-card-head">
           ${imgHtml}
           <div class="trend-card-meta">
-            <div class="lnch-sym">$${r.symbol}</div>
+            <div class="lnch-sym">$${r.symbol} ${ctoBadge}</div>
             <div class="lnch-name">${r.name}</div>
+            <div class="trend-card-flags">${srcBadge}</div>
           </div>
         </div>
         <div class="lnch-meta">
-          <div class="lnch-meta-item"><span class="k">PRICE</span><span class="v">${priceTxt}</span></div>
-          <div class="lnch-meta-item"><span class="k">MCAP</span><span class="v">${mcapTxt}</span></div>
+          <div class="lnch-meta-item"><span class="k">MCAP</span><span class="v" data-token-addr="${r.address}">${mcapTxt}</span></div>
           <div class="lnch-meta-item"><span class="k">HOLDERS</span><span class="v">${holdersTxt}</span></div>
+          <div class="lnch-meta-item"><span class="k">DEV</span><span class="v ${devCls}">${devTxt}</span></div>
         </div>
+        <button class="trend-ca-pill" type="button" data-copy="${r.address}" aria-label="copy contract address">
+          <span class="ca-mono">${caShort}</span>
+          <span class="ca-icon">📋</span>
+        </button>
       </a>`;
   }).join('');
 
@@ -2050,7 +2183,7 @@ function setupTrendSentinel(){
       TREND.observer.disconnect();
       TREND.visible = Math.min(TREND.visible + 30, sortedTrending().length);
       renderTrending();
-      enrichTopTrending();  // fetch detail for the newly-revealed batch
+      enrichVisibleTrending();  // enrich the newly-revealed batch
     }
   }, { rootMargin: '300px' });
   TREND.observer.observe(s);
@@ -2062,9 +2195,9 @@ function bindTrending(){
     btn.onclick = ()=>{
       $$('.trending-sort').forEach(b=>b.classList.toggle('active', b===btn));
       TREND.sort = btn.dataset.sort;
-      TREND.visible = 30;  // reset pagination when sort changes
+      TREND.visible = 30;
       renderTrending();
-      enrichTopTrending();
+      enrichVisibleTrending();
     };
   });
   // search
@@ -2075,9 +2208,37 @@ function bindTrending(){
       clearTimeout(t);
       t = setTimeout(()=>{
         TREND.search = sb.value || '';
-        TREND.visible = 30;  // reset pagination when search changes
+        TREND.visible = 30;
         renderTrending();
       }, 150);
+    });
+  }
+  // CA copy pill (delegated since cards are dynamic + nested in <a>)
+  const grid = $('#trendingGrid');
+  if (grid){
+    grid.addEventListener('click', (ev)=>{
+      const btn = ev.target.closest('.trend-ca-pill');
+      if (!btn) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const ca = btn.dataset.copy;
+      if (!ca) return;
+      (async ()=>{
+        try{ await navigator.clipboard.writeText(ca); }
+        catch(e){
+          const ta = document.createElement('textarea');
+          ta.value = ca; document.body.appendChild(ta); ta.select();
+          try{ document.execCommand('copy'); }catch(_){}
+          document.body.removeChild(ta);
+        }
+      })();
+      btn.classList.add('copied');
+      const ic = btn.querySelector('.ca-icon');
+      const prev = ic ? ic.textContent : '';
+      if (ic) ic.textContent = '✓';
+      setTimeout(()=>{
+        btn.classList.remove('copied');
+        if (ic) ic.textContent = prev;
+      }, 1400);
     });
   }
 }
@@ -2209,20 +2370,18 @@ async function init(){
 
 /* ════════════════════════════════════════════════════════════════
    LIVE ENGINE — keeps the hub feeling alive without contracts
-   - Polls Monorail /v2/token/{addr} every 6s for ticker tokens
-   - Flashes any rendered cell whose token price changes
-   - WebSocket subscribes to new_tokens + trending for toast events
+   - Single bulk poll: /v2/tokens/category/meme every 6s
+     → updates ALL trending cards' prices in one request
+     → flashes any cell whose price moved
+     → drives the scrolling ticker bar
+   - Plus opportunistic WebSocket for new_tokens + trending events
    ════════════════════════════════════════════════════════════════ */
 const LiveEngine = {
   ws: null,
   reconnectAttempts: 0,
   prices: new Map(),       // addr → last USD price
-  changes: new Map(),      // addr → 24h-pct (computed locally as %Δ from session start)
-  sessionFirst: new Map(), // addr → first observed price this session
+  sessionFirst: new Map(), // addr → first observed price this session (for % change)
   pollTimer: null,
-  toastTimer: null,
-  toastQueue: [],
-  // Tokens always in the ticker (CHOGI ecosystem) — plus we mix in trending top
   TICKER_BASE: [
     '0x5e1b1a14c8758104b8560514e94ab8320e587777',  // CHOGI
     '0xb744f5cdb792d8187640214c4a1c9ace29af7777',  // MONSHI
@@ -2231,80 +2390,104 @@ const LiveEngine = {
   ],
 
   init(){
-    this.pollTickerNow();
-    this.pollTimer = setInterval(()=>this.pollTickerNow(), 6_000);
+    this.pollNow();
+    this.pollTimer = setInterval(()=>this.pollNow(), 6_000);
     this.connectWS();
   },
 
-  // pick which tokens to show in the ticker — base set + top 6 trending
-  tickerAddrs(){
-    const trending = (TREND.rows || []).slice(0, 12).map(t => t.address.toLowerCase());
-    const set = new Set([...this.TICKER_BASE, ...trending]);
-    return [...set].slice(0, 14);
-  },
+  // ONE call refreshes prices for the entire meme catalog.
+  async pollNow(){
+    try{
+      const r = await fetch('https://api.monorail.xyz/v2/tokens/category/meme', {cache:'no-store'});
+      const j = await r.json();
+      if (!Array.isArray(j)) return;
 
-  async pollTickerNow(){
-    const addrs = this.tickerAddrs();
-    if (!addrs.length) return;
-    // batch parallel fetches
-    const promises = addrs.map(a =>
-      fetch(`https://api.monorail.xyz/v2/token/${a}`)
-        .then(r => r.ok ? r.json() : null)
-        .catch(()=>null)
-    );
-    const results = await Promise.allSettled(promises);
-    const items = [];
-    results.forEach((res, i) => {
-      const j = res.status === 'fulfilled' ? res.value : null;
-      if (!j || !j.address) return;
-      const addr = j.address.toLowerCase();
-      const price = parseFloat(j.usd_per_token || 0);
-      const sym = j.symbol || '?';
-      const old = this.prices.get(addr);
-      if (price > 0){
-        if (!this.sessionFirst.has(addr)) this.sessionFirst.set(addr, price);
-        const first = this.sessionFirst.get(addr);
-        const pctChange = first > 0 ? ((price - first) / first) * 100 : 0;
-        this.changes.set(addr, pctChange);
-        this.prices.set(addr, price);
-        if (old !== undefined && Math.abs(old - price) > 0){
-          this.flashCells(addr, price > old);
-        }
-        items.push({ addr, sym, price, pct: pctChange });
+      const fresh = new Map();
+      for (const t of j){
+        if (!t.address) continue;
+        const addr  = t.address.toLowerCase();
+        const price = parseFloat(t.usd_per_token || 0);
+        if (price <= 0) continue;
+        fresh.set(addr, {addr, sym: t.symbol||'?', price});
       }
-    });
-    this.renderTicker(items);
+
+      // Patch live prices into TREND.rows so MCAP / ticker stay current.
+      if (Array.isArray(TREND?.rows)){
+        for (const row of TREND.rows){
+          const fp = fresh.get(row.address);
+          if (fp) row.price = fp.price;
+        }
+        // re-compute mcap on enriched entries
+        for (const [a, e] of TREND.enriched){
+          if (e.supply){
+            const fp = fresh.get(a);
+            if (fp) e.mcap = e.supply * fp.price;
+          }
+        }
+      }
+
+      // Flash any cell where the price changed vs last poll
+      for (const [addr, info] of fresh){
+        const old = this.prices.get(addr);
+        if (!this.sessionFirst.has(addr)) this.sessionFirst.set(addr, info.price);
+        this.prices.set(addr, info.price);
+        if (old !== undefined && Math.abs(old - info.price) > 0){
+          this.flashCells(addr, info.price > old);
+        }
+      }
+
+      this.renderTicker(fresh);
+    }catch(e){ /* swallow — next tick will retry */ }
   },
 
-  renderTicker(items){
-    if (!items.length) return;
+  renderTicker(fresh){
     const el = document.getElementById('liveTicker');
     if (!el) return;
+    // Ticker contents: TICKER_BASE first (CHOGI ecosystem) + top trending by mcap
+    const baseItems = this.TICKER_BASE
+      .map(a => fresh.get(a))
+      .filter(Boolean);
+    // From trending, fill up to 14 total
+    let extraNeeded = 14 - baseItems.length;
+    const baseSet = new Set(this.TICKER_BASE);
+    const sortedTrend = (TREND?.rows||[])
+      .filter(r => !baseSet.has(r.address) && fresh.has(r.address))
+      .sort((a,b)=>{
+        const ea = TREND.enriched.get(a.address);
+        const eb = TREND.enriched.get(b.address);
+        return ((eb?.mcap||0) - (ea?.mcap||0));
+      })
+      .slice(0, Math.max(0, extraNeeded))
+      .map(r => fresh.get(r.address))
+      .filter(Boolean);
+    const items = [...baseItems, ...sortedTrend];
+    if (!items.length) return;
+
     const fmtPx = p => p < 0.000001 ? '$' + p.toExponential(1) : '$' + p.toFixed(7);
     const html = items.map(t => {
-      const isUp = t.pct >= 0;
+      const first = this.sessionFirst.get(t.addr) || t.price;
+      const pct = first > 0 ? ((t.price - first) / first) * 100 : 0;
+      const isUp = pct >= 0;
       const sign = isUp ? '+' : '';
       return `<span class="ticker-item" data-token-addr="${t.addr}">
         <span class="sym">$${t.sym}</span>
         <span class="px">${fmtPx(t.price)}</span>
-        <span class="ch ${isUp?'up':'down'}">${sign}${t.pct.toFixed(2)}%</span>
+        <span class="ch ${isUp?'up':'down'}">${sign}${pct.toFixed(2)}%</span>
       </span>`;
     }).join('');
-    // duplicate for seamless scroll
-    el.innerHTML = html + html;
+    el.innerHTML = html + html;  // duplicate for seamless scroll
   },
 
-  // flash any rendered DOM element bound to this token address
   flashCells(addr, isUp){
     const cls = isUp ? 'flash-up' : 'flash-down';
     document.querySelectorAll(`[data-token-addr="${addr}"]`).forEach(el => {
       el.classList.remove('flash-up','flash-down');
-      void el.offsetWidth;  // force restart
+      void el.offsetWidth;
       el.classList.add(cls);
     });
   },
 
-  // ── WebSocket — opportunistic event source ──
+  // WebSocket — opportunistic event source
   connectWS(){
     try{
       this.ws = new WebSocket('wss://ws.monorail.xyz/v1/ws');
@@ -2321,13 +2504,13 @@ const LiveEngine = {
         setTimeout(()=>this.connectWS(), delay);
       };
       this.ws.onerror = ()=>{ try{ this.ws.close(); }catch(_){} };
-    }catch(e){ console.warn('LiveEngine WS failed', e); }
+    }catch(e){}
   },
 
   handleWS(msg){
     try{
       const j = JSON.parse(msg.data);
-      if (j.status) return;  // acks
+      if (j.status) return;
       const topic = j.topic || j.channel;
       if (topic === 'new_tokens' || (j.data && j.data.address && !j.data.amount)){
         const d = j.data || j;
@@ -2348,7 +2531,6 @@ const LiveEngine = {
     }catch(e){}
   },
 
-  // ── Toast ──
   toast({ icon='🔔', html='', link=null, klass='' }){
     const wrap = document.getElementById('liveToasts');
     if (!wrap) return;
@@ -2357,7 +2539,6 @@ const LiveEngine = {
     el.innerHTML = `<span style="margin-right:8px;">${icon}</span>${html}`;
     if (link){ el.onclick = ()=>{ location.href = link; }; }
     wrap.prepend(el);
-    // auto-fade after 6s; limit visible to 3
     setTimeout(()=>{ el.classList.add('fade'); setTimeout(()=>el.remove(), 220); }, 6_000);
     const toasts = wrap.querySelectorAll('.live-toast');
     if (toasts.length > 3){
