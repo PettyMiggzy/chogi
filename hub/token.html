@@ -664,12 +664,17 @@ async function doQuote(){
     const proto = r0 && r0.splits && r0.splits[0] && r0.splits[0].protocol;
     const sourceTag = q._source === 'nadfun' ? '🚀 nad.fun curve' : (proto ? `via ${proto}` : '');
     const impact = parseFloat(q.compound_impact || 0) * 100;
-    let extra = '';
-    if (sourceTag) extra += ` · ${sourceTag}`;
-    if (impact >= 3) extra += ` · ⚠ ${impact.toFixed(2)}% impact`;
-    // USD estimate
+    // Suppress impact warning for small trades — Monorail's compound_impact
+    // is gas-dominated for tiny trades (reports 100%+ on $1 swaps). Only show
+    // when the trade is substantial enough that the metric is reliable.
     const mi = STATE.token.market_info || {};
     const px = +mi.price_usd || 0;
+    const tradeValueUsd = isBuy ? (parseFloat(num) * 0.04) : (parseFloat(num) * (px || 0));
+    const showImpactWarn = tradeValueUsd >= 5 && impact >= 7;
+    let extra = '';
+    if (sourceTag) extra += ` · ${sourceTag}`;
+    if (showImpactWarn) extra += ` · ⚠ ${impact.toFixed(2)}% impact`;
+    // USD estimate
     if (isBuy && px) extra = ' ≈ $' + fmt(out * px, 2) + extra;
     else if (!isBuy && (mi.native_price || 0)) extra = ' ≈ $' + fmt(out * mi.native_price, 2) + extra;
     $('#quoteUsd').textContent = extra;

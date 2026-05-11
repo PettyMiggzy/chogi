@@ -541,21 +541,30 @@ footer a{color:var(--pink);text-decoration:none;}
     // Color-code impact: green <1%, amber 1-5%, red ≥5%
     var dImpEl = $('dImpact');
     dImpEl.style.color = impactPct < 1 ? '#22d36f' : impactPct < 5 ? '#ffaa33' : '#ff4d6d';
-    // Big warning banner if impact is high
+
+    // Suppress the impact warning for small trades — Monorail's compound_impact
+    // metric is gas-dominated for trades under ~$20 and reports bogus huge
+    // percentages. For substantial trades the metric is reliable.
+    // The user's slippage tolerance is the real safety net: if actual fill
+    // is worse than minOut, the tx reverts automatically.
+    var amtIn = parseFloat(raw || '0');
+    var isBuy = (mode === 'buy');
+    // Substantial = ≥ ~$3 worth at current prices (MON≈$0.04, CHOGI≈$0.0001)
+    var isSubstantial = isBuy ? (amtIn >= 0.5) : (amtIn >= 5000);
     var warnEl = $('impactWarn');
     if(warnEl){
-      if(impactPct >= 10){
+      if(isSubstantial && impactPct >= 15){
         warnEl.style.display = 'block';
         warnEl.style.background = 'rgba(255,77,109,.16)';
         warnEl.style.borderColor = 'rgba(255,77,109,.5)';
         warnEl.style.color = '#ff4d6d';
-        warnEl.innerHTML = '🚨 EXTREME PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b><br>Pool liquidity is thin for this trade size. The swap will likely revert OR fill at a much worse price than quoted. Try a smaller amount.';
-      } else if(impactPct >= 5){
+        warnEl.innerHTML = '🚨 HIGH PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b><br>This trade size is large relative to pool liquidity. Consider splitting into smaller swaps, or raise slippage tolerance if you want it to fill anyway.';
+      } else if(isSubstantial && impactPct >= 7){
         warnEl.style.display = 'block';
         warnEl.style.background = 'rgba(255,170,51,.14)';
         warnEl.style.borderColor = 'rgba(255,170,51,.5)';
         warnEl.style.color = '#ffaa33';
-        warnEl.innerHTML = '⚠ HIGH PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b> — your trade will move the pool noticeably. Consider splitting into smaller swaps or raising slippage to 10%.';
+        warnEl.innerHTML = '⚠ MODERATE PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b> — trade will move the pool noticeably. Your slippage tolerance ('+(slipBps/100).toFixed(1)+'%) determines whether it fills.';
       } else {
         warnEl.style.display = 'none';
       }
