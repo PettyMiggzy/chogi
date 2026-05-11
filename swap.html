@@ -252,11 +252,12 @@ footer a{color:var(--pink);text-decoration:none;}
     <div class="pill" data-slip="1000">10%</div>
   </div>
 
+  <div id="impactWarn" style="display:none;margin-top:10px;padding:12px 14px;border-radius:10px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;letter-spacing:.3px;"></div>
   <div class="details" id="detailsBox" style="display:none;">
     <div class="row"><span>route</span><b id="dRoute">—</b></div>
     <div class="row"><span>min received</span><b id="dMin">—</b></div>
     <div class="row fire"><span>🔥 burned this swap</span><b id="dBurn">—</b></div>
-    <div class="row gold"><span>fee tier</span><b id="dImpact">—</b></div>
+    <div class="row gold"><span>price impact</span><b id="dImpact">—</b></div>
   </div>
 
   <button class="action-btn" id="actionBtn" disabled>CONNECT WALLET</button>
@@ -535,7 +536,30 @@ footer a{color:var(--pink);text-decoration:none;}
     $('dRoute').textContent  = (q.fee/10000) + '% pool · '+ (mode === 'buy' ? 'WMON → CHOGI' : 'CHOGI → WMON → MON');
     $('dMin').textContent    = fmtBig(minOut) + ' ' + (mode === 'buy' ? 'CHOGI' : 'MON');
     $('dBurn').textContent   = fmtBig(burnAmt) + ' CHOGI';
-    $('dImpact').textContent = (q.impact != null ? q.impact.toFixed(3) : (q.fee/10000)) + '%';
+    var impactPct = (q.impact != null ? q.impact : 0);
+    $('dImpact').textContent = impactPct.toFixed(3) + '%';
+    // Color-code impact: green <1%, amber 1-5%, red ≥5%
+    var dImpEl = $('dImpact');
+    dImpEl.style.color = impactPct < 1 ? '#22d36f' : impactPct < 5 ? '#ffaa33' : '#ff4d6d';
+    // Big warning banner if impact is high
+    var warnEl = $('impactWarn');
+    if(warnEl){
+      if(impactPct >= 10){
+        warnEl.style.display = 'block';
+        warnEl.style.background = 'rgba(255,77,109,.16)';
+        warnEl.style.borderColor = 'rgba(255,77,109,.5)';
+        warnEl.style.color = '#ff4d6d';
+        warnEl.innerHTML = '🚨 EXTREME PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b><br>Pool liquidity is thin for this trade size. The swap will likely revert OR fill at a much worse price than quoted. Try a smaller amount.';
+      } else if(impactPct >= 5){
+        warnEl.style.display = 'block';
+        warnEl.style.background = 'rgba(255,170,51,.14)';
+        warnEl.style.borderColor = 'rgba(255,170,51,.5)';
+        warnEl.style.color = '#ffaa33';
+        warnEl.innerHTML = '⚠ HIGH PRICE IMPACT: <b>'+impactPct.toFixed(2)+'%</b> — your trade will move the pool noticeably. Consider splitting into smaller swaps or raising slippage to 10%.';
+      } else {
+        warnEl.style.display = 'none';
+      }
+    }
 
     bestQuote.minOut = minOut;
     bestQuote.userOut = userOut;
@@ -587,22 +611,32 @@ footer a{color:var(--pink);text-decoration:none;}
     el.innerHTML = html;
   }
 
+  // ABI Interface for manual tx construction (bypasses any contract-proxy quirks)
+  var BURNER_IFACE = new ethers.Interface(BURNER_ABI);
+  var ERC20_IFACE  = new ethers.Interface(ERC20_ABI);
+
   async function execute(){
     if(!signer){ await connect(); return; }
     if(!validBurner()) return;
     if(!bestQuote) return;
+    var raw = $('amountIn').value.trim().replace(/[, _]/g,'');
     var amountInBig;
-    try{ amountInBig = ethers.parseUnits($('amountIn').value.trim().replace(/[, _]/g,''), 18); }
-    catch(e){ return; }
+    try{ amountInBig = ethers.parseUnits(raw, 18); }
+    catch(e){ status('error', 'Invalid amount'); return; }
+    if(amountInBig <= 0n){ status('error', 'Amount must be greater than 0'); return; }
 
     var btn = $('actionBtn');
     btn.disabled = true;
-    var burner = new ethers.Contract(BURNER, BURNER_ABI, signer);
 
     try{
       if(mode === 'buy'){
+        // Manually construct buy tx — guarantees msg.value is attached.
+        var data = BURNER_IFACE.encodeFunctionData('buyChogiAndBurn', [bestQuote.fee, bestQuote.minOut]);
+        var txParams = { to: BURNER, data: data, value: amountInBig };
+        console.log('[CHOGI BUY]', { to: BURNER, valueWei: amountInBig.toString(), valueMon: ethers.formatUnits(amountInBig,18), fee: bestQuote.fee, minOut: bestQuote.minOut.toString() });
+
         status('info','Confirm buy in wallet…');
-        var tx = await burner.buyChogiAndBurn(bestQuote.fee, bestQuote.minOut, { value: amountInBig });
+        var tx = await signer.sendTransaction(txParams);
         status('info','Swapping… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
         var rec = await tx.wait();
         if(rec.status === 1){
@@ -611,15 +645,21 @@ footer a{color:var(--pink);text-decoration:none;}
           status('error','Transaction failed.');
         }
       } else {
+        // Sell — check allowance, approve if needed, then sell
         var chogiC = new ethers.Contract(CHOGI, ERC20_ABI, signer);
         var allowance = await chogiC.allowance(wallet, BURNER);
         if(allowance < amountInBig){
           status('info','Approving CHOGI…');
-          var atx = await chogiC.approve(BURNER, ethers.MaxUint256);
+          var approveData = ERC20_IFACE.encodeFunctionData('approve', [BURNER, ethers.MaxUint256]);
+          var atx = await signer.sendTransaction({ to: CHOGI, data: approveData });
           await atx.wait();
         }
+
+        var sellData = BURNER_IFACE.encodeFunctionData('sellChogiAndBurn', [amountInBig, bestQuote.fee, bestQuote.minOut]);
+        console.log('[CHOGI SELL]', { to: BURNER, amountIn: amountInBig.toString(), fee: bestQuote.fee, minOut: bestQuote.minOut.toString() });
+
         status('info','Confirm sell in wallet…');
-        var tx = await burner.sellChogiAndBurn(amountInBig, bestQuote.fee, bestQuote.minOut);
+        var tx = await signer.sendTransaction({ to: BURNER, data: sellData });
         status('info','Swapping… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
         var rec = await tx.wait();
         if(rec.status === 1){
@@ -633,7 +673,15 @@ footer a{color:var(--pink);text-decoration:none;}
     }catch(e){
       console.error(e);
       var msg = e.shortMessage || e.message || 'Transaction rejected';
-      if(msg.length > 120) msg = msg.slice(0,120)+'…';
+      var low = msg.toLowerCase();
+      if(low.includes('no data') || low.includes('require') || low.includes('execution reverted')){
+        msg = 'Trade reverted — price impact ('+($('dImpact').textContent||'?')+') exceeded slippage. Try a smaller amount or 10% slippage.';
+      } else if(low.includes('insufficient funds')){
+        msg = 'Not enough MON for trade + gas.';
+      } else if(low.includes('user rejected') || low.includes('user denied')){
+        msg = 'Signature cancelled.';
+      }
+      if(msg.length > 200) msg = msg.slice(0,200)+'…';
       status('error', msg);
     } finally {
       btn.disabled = false;
