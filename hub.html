@@ -2514,16 +2514,36 @@ const LiveEngine = {
     this.connectWS();
   },
 
-  // ONE call refreshes prices for the entire meme catalog.
+  // ONE catalog call + parallel base-token calls. Ecosystem tokens
+  // aren't always in /v2/tokens/category/meme (cap on response size),
+  // so we fetch them individually to guarantee they're in the ticker.
   async pollNow(){
     try{
-      const r = await fetch('https://api.monorail.xyz/v2/tokens/category/meme', {cache:'no-store'});
-      const j = await r.json();
-      if (!Array.isArray(j)) return;
+      const baseFetches = this.TICKER_BASE.map(a =>
+        fetch(`https://api.monorail.xyz/v2/token/${a}`, {cache:'no-store'})
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      );
+      const catalogFetch = fetch('https://api.monorail.xyz/v2/tokens/category/meme', {cache:'no-store'})
+        .then(r => r.json())
+        .catch(() => []);
+
+      const [catalog, ...baseResults] = await Promise.all([catalogFetch, ...baseFetches]);
 
       const fresh = new Map();
-      for (const t of j){
-        if (!t.address) continue;
+      // ingest catalog
+      if (Array.isArray(catalog)){
+        for (const t of catalog){
+          if (!t.address) continue;
+          const addr  = t.address.toLowerCase();
+          const price = parseFloat(t.usd_per_token || 0);
+          if (price <= 0) continue;
+          fresh.set(addr, {addr, sym: t.symbol||'?', price});
+        }
+      }
+      // ingest ecosystem tokens (may overwrite stale catalog entry — that's fine)
+      for (const t of baseResults){
+        if (!t || !t.address) continue;
         const addr  = t.address.toLowerCase();
         const price = parseFloat(t.usd_per_token || 0);
         if (price <= 0) continue;
@@ -2536,7 +2556,6 @@ const LiveEngine = {
           const fp = fresh.get(row.address);
           if (fp) row.price = fp.price;
         }
-        // re-compute mcap on enriched entries
         for (const [a, e] of TREND.enriched){
           if (e.supply){
             const fp = fresh.get(a);
