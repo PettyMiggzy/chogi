@@ -1035,65 +1035,79 @@ function initNativeChart(){
 function buildChart(){
   const container = $('#chartCanvas');
   if (!container) return;
-  // If somehow we're still 0-width, try once more after another frame
+  // If somehow we're still 0-width, try once more after another frame.
+  // Cap retries so we don't loop forever on a hidden container.
   if (container.clientWidth === 0){
-    requestAnimationFrame(() => buildChart());
+    CHART._retries = (CHART._retries || 0) + 1;
+    if (CHART._retries < 6){
+      requestAnimationFrame(() => buildChart());
+      return;
+    }
+    // gave up — show fallback rather than silent empty box
+    container.innerHTML = `<div class="chart-fallback">📊 Chart container couldn't measure layout. Try refreshing the page.</div>`;
+    console.warn('[chart] container.clientWidth=0 after 6 retries — giving up');
     return;
   }
+  CHART._retries = 0;
 
-  CHART.chart = LightweightCharts.createChart(container, {
-    width: container.clientWidth,
-    height: 480,
-    layout: {
-      background: { type: 'solid', color: '#0a0118' },
-      textColor: '#9a8bb3',
-      fontFamily: "'JetBrains Mono', monospace",
-      fontSize: 10,
-    },
-    grid: {
-      vertLines: { color: 'rgba(255,20,147,0.06)' },
-      horzLines: { color: 'rgba(255,20,147,0.06)' },
-    },
-    rightPriceScale: {
-      borderColor: 'rgba(255,20,147,0.18)',
-      scaleMargins: { top: 0.08, bottom: 0.08 },
-    },
-    timeScale: {
-      borderColor: 'rgba(255,20,147,0.18)',
-      timeVisible: true,
-      secondsVisible: false,
-    },
-    crosshair: {
-      mode: LightweightCharts.CrosshairMode.Normal,
-      vertLine: { color: '#FF1493', width: 1, style: 3, labelBackgroundColor: '#FF1493' },
-      horzLine: { color: '#FF1493', width: 1, style: 3, labelBackgroundColor: '#FF1493' },
-    },
-  });
+  try{
+    CHART.chart = LightweightCharts.createChart(container, {
+      width: container.clientWidth,
+      height: 480,
+      layout: {
+        background: { type: 'solid', color: '#0a0118' },
+        textColor: '#9a8bb3',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 10,
+      },
+      grid: {
+        vertLines: { color: 'rgba(255,20,147,0.06)' },
+        horzLines: { color: 'rgba(255,20,147,0.06)' },
+      },
+      rightPriceScale: {
+        borderColor: 'rgba(255,20,147,0.18)',
+        scaleMargins: { top: 0.08, bottom: 0.08 },
+      },
+      timeScale: {
+        borderColor: 'rgba(255,20,147,0.18)',
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+        vertLine: { color: '#FF1493', width: 1, style: 3, labelBackgroundColor: '#FF1493' },
+        horzLine: { color: '#FF1493', width: 1, style: 3, labelBackgroundColor: '#FF1493' },
+      },
+    });
 
-  // Keep chart in sync with container size — handles viewport resize,
-  // orientation change, devtools open/close, anything that affects layout.
-  if ('ResizeObserver' in window){
-    CHART.resizeObserver = new ResizeObserver(entries => {
-      const w = entries[0]?.contentRect?.width;
-      if (w && CHART.chart) CHART.chart.applyOptions({ width: w });
+    // Keep chart in sync with container size — handles viewport resize,
+    // orientation change, devtools open/close, anything that affects layout.
+    if ('ResizeObserver' in window){
+      CHART.resizeObserver = new ResizeObserver(entries => {
+        const w = entries[0]?.contentRect?.width;
+        if (w > 0 && CHART.chart) CHART.chart.applyOptions({ width: w });
+      });
+      CHART.resizeObserver.observe(container);
+    } else {
+      window.addEventListener('resize', ()=>{
+        if (CHART.chart) CHART.chart.applyOptions({ width: container.clientWidth });
+      });
+    }
+
+    CHART.series = CHART.chart.addCandlestickSeries({
+      upColor:   '#22d36f',
+      downColor: '#ff4d6d',
+      borderUpColor:   '#22d36f',
+      borderDownColor: '#ff4d6d',
+      wickUpColor:   '#22d36f',
+      wickDownColor: '#ff4d6d',
+      priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 },
     });
-    CHART.resizeObserver.observe(container);
-  } else {
-    // Older Safari fallback: window resize listener
-    window.addEventListener('resize', ()=>{
-      if (CHART.chart) CHART.chart.applyOptions({ width: container.clientWidth });
-    });
+  }catch(err){
+    console.warn('[chart] createChart failed:', err);
+    container.innerHTML = `<div class="chart-fallback">📊 Chart failed to initialize.<br><span style="font-size:10px;opacity:.6;">${(err && err.message)||'unknown error'}</span></div>`;
+    return;
   }
-
-  CHART.series = CHART.chart.addCandlestickSeries({
-    upColor:   '#22d36f',
-    downColor: '#ff4d6d',
-    borderUpColor:   '#22d36f',
-    borderDownColor: '#ff4d6d',
-    wickUpColor:   '#22d36f',
-    wickDownColor: '#ff4d6d',
-    priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 },
-  });
 
   // hover stats
   CHART.chart.subscribeCrosshairMove(p => {
@@ -1135,7 +1149,20 @@ async function loadBars(reset){
     const r = await fetch(url);
     const j = await r.json();
     if (j.s !== 'ok' || !j.t || !j.t.length){
-      if (reset) $('#chartCanvas').querySelector('.loading-overlay')?.remove();
+      // Empty / no_data — visible message instead of silent empty chart.
+      if (reset){
+        const container = $('#chartCanvas');
+        // Remove the empty chart canvas and show a fallback. The chart
+        // library can still be reused if pills are clicked.
+        console.warn('[chart] no_data from Monorail TV:', CHART.symbol, j.s);
+        if (container && !container.querySelector('.chart-fallback')){
+          container.innerHTML = `<div class="chart-fallback">📊 No chart history available yet for this pair.<br><span style="font-size:10px;opacity:.6;">Monorail TV returned: ${j.s || 'empty'}</span><br><br><a href="https://nad.fun/tokens/${ADDR}" target="_blank" rel="noopener">View on nad.fun ↗</a></div>`;
+          // The chart instance no longer has a backing canvas; null out
+          // so the next pill-click doesn't try to update a detached chart
+          CHART.chart = null;
+          CHART.series = null;
+        }
+      }
       return;
     }
     const bars = j.t.map((t, i) => ({
