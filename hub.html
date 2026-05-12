@@ -187,12 +187,14 @@ body::after{
 .live-ticker-label{
   display:flex;align-items:center;gap:6px;
   padding:0 14px;
-  background:linear-gradient(135deg,rgba(34,211,111,.18),rgba(34,211,111,.08));
-  border:1px solid rgba(34,211,111,.45);
+  background:linear-gradient(135deg,rgba(34,211,111,.32),rgba(34,211,111,.18)),rgba(8,0,18,.98);
+  background-color:rgba(8,0,18,.98);
+  border:1px solid rgba(34,211,111,.55);
   border-right:none;border-radius:10px 0 0 10px;
   font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;
   color:var(--green);
   flex-shrink:0;
+  position:relative;z-index:2;
 }
 .live-ticker-label .ldot{
   width:7px;height:7px;border-radius:50%;background:var(--green);
@@ -433,6 +435,39 @@ body::after{
 .row-act a:hover, .row-act button:hover{background:rgba(255,20,147,.25);color:#fff;}
 .row-act .rm{border-color:rgba(255,77,109,.35);color:var(--red);background:rgba(255,77,109,.06);}
 .empty{padding:40px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+/* Helpful empty state with one-tap clear-filters action */
+.empty-launches{
+  padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+.empty-launches .empty-title{
+  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:1.8px;
+  color:#fff;
+}
+.empty-launches .empty-reason{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--mute);letter-spacing:.5px;
+}
+.empty-launches .empty-reason b{color:var(--pink);font-weight:700;}
+.empty-launches .empty-hint{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:rgba(255,233,244,.4);letter-spacing:.5px;
+}
+.empty-launches .empty-clear{
+  margin-top:6px;padding:11px 22px;
+  background:linear-gradient(180deg,rgba(255,20,147,.22),rgba(168,85,247,.12));
+  border:1.5px solid var(--pink);border-radius:10px;
+  font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;color:#fff;
+  cursor:pointer;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.empty-launches .empty-clear:active{transform:scale(.97);}
+@media (hover: hover){
+  .empty-launches .empty-clear:hover{
+    background:linear-gradient(180deg,rgba(255,20,147,.32),rgba(168,85,247,.2));
+    box-shadow:0 0 22px rgba(255,20,147,.3);
+  }
+}
 
 /* ─── CROSS MAP + SUBJECT WATCH ─── */
 .scan-form{
@@ -893,9 +928,11 @@ body::after{
   .brand-sub{font-size:8px;}
   .nav-back{padding:6px 10px;font-size:10px;}
   .banner{padding:0 12px;margin-top:12px;}
-  .tab-bar{padding:0 12px;}
-  .tab-btn{font-size:11px;padding:11px 10px;letter-spacing:1.2px;min-width:0;}
-  .tab-btn .ic{font-size:14px;margin-right:4px;}
+  .tab-bar{padding:0 12px;gap:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tab-bar::-webkit-scrollbar{display:none;}
+  .tab-btn{font-size:10.5px;padding:10px 12px;letter-spacing:1.1px;min-width:0;flex:0 0 auto;
+    white-space:nowrap;overflow:hidden;}
+  .tab-btn .ic{font-size:13px;margin-right:4px;}
   .tab-panel{padding:0 12px;}
   .grid-wrap{border-radius:10px;}
   .grid-table thead th{font-size:8.5px;padding:9px 6px;letter-spacing:1px;}
@@ -1810,8 +1847,31 @@ function renderLaunches(){
   $('#lnchCount').textContent = `${rows.length} of ${LNCH.total || LNCH.rows.length} launches`;
 
   if (!rows.length){
-    grid.innerHTML = `<div class="empty">No tokens match. Try a different filter or clear the search.</div>`;
-    $('#launchesMoreBtn').style.display = (LNCH.rows.length < LNCH.total) ? '' : 'none';
+    const filterActive = LNCH.filter && LNCH.filter !== 'all';
+    const searchActive = !!q;
+    const reasons = [];
+    if (filterActive) reasons.push(`filter: <b>${LNCH.filter.replace('-',' ')}</b>`);
+    if (searchActive) reasons.push(`search: "<b>${q}</b>"`);
+    const reasonTxt = reasons.length ? `<div class="empty-reason">${reasons.join(' · ')}</div>` : '';
+    grid.innerHTML = `<div class="empty empty-launches">
+        <div class="empty-title">⚠ no tokens match your filters</div>
+        ${reasonTxt}
+        <div class="empty-hint">${LNCH.rows.length} fetched · ${LNCH.total} total on nad.fun</div>
+        <button class="empty-clear" id="lnchClearFilters" type="button">↺ SHOW ALL TOKENS</button>
+      </div>`;
+    const clearBtn = $('#lnchClearFilters');
+    if (clearBtn){
+      clearBtn.onclick = ()=>{
+        LNCH.filter = 'all';
+        LNCH.search = '';
+        localStorage.setItem('chogi.hub.lnch.filter', 'all');
+        const sb = $('#lnchSearch'); if (sb) sb.value = '';
+        $$('.lnch-pill[data-filter]').forEach(x=>x.classList.toggle('active', x.dataset.filter==='all'));
+        renderLaunches();
+      };
+    }
+    // hide load more when nothing renders (it's misleading)
+    $('#launchesMoreBtn').style.display = 'none';
     return;
   }
 
