@@ -454,10 +454,6 @@ footer a:hover{color:var(--pink);}
       STATE.connecting = false;
     }
   }
-    }catch(e){
-      setStatus('error', e.message || 'Wallet connect failed');
-    }
-  }
 
   let quoteTimer = null;
   function requestQuote(){
