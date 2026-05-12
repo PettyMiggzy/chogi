@@ -2180,6 +2180,11 @@ async function enrichOneTrending(r){
     TREND.enriched.set(r.address, cur);
   }catch(e){}
   TREND.inflight.delete(r.address);
+  // Progressive render — auditor caught that cards waited 25s for the
+  // whole batch to drain. Now we schedule a render per card; RAF debounce
+  // means rapid enrichments coalesce into one paint per frame instead of
+  // 90+ DOM rebuilds.
+  renderTrendingDebounced();
 }
 
 // One call per unique creator returns ALL their created tokens with balances
@@ -2193,6 +2198,21 @@ async function fetchCreatorPositions(creator){
   }catch(e){
     TREND.creatorPos.set(creator, []);
   }
+  // Creator data populates DEV % across all that creator's cards — schedule
+  // a render so those cards flip from … to the real % within a frame.
+  renderTrendingDebounced();
+}
+
+// RAF-debounced render — multiple enrichOneTrending finishing within a
+// single frame coalesce into one renderTrending() call.
+let _trendRenderScheduled = false;
+function renderTrendingDebounced(){
+  if (_trendRenderScheduled) return;
+  _trendRenderScheduled = true;
+  requestAnimationFrame(()=>{
+    _trendRenderScheduled = false;
+    renderTrending();
+  });
 }
 
 // Compute dev % for a given token using cached creator positions
