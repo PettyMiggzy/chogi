@@ -1041,6 +1041,32 @@ main, header{position:relative;z-index:2}
     return signer;
   }
 
+  /* Pre-fetch nonce from our reliable JsonRpcProvider (QuickNode/Monad
+     public). The wallet's injected provider also queries Monad's RPC for
+     eth_getTransactionCount when ethers auto-populates the nonce, and
+     some Monad RPCs return a value ethers v6 can't parse — surfacing as
+     "INVALID VALUE FOR value.nonce (invalid numeric string)" right when
+     the user clicks CLOCK IN / DROP / CASH PAYCHECK / RESIGN / APPROVE.
+     By passing nonce explicitly, ethers skips that lookup entirely. */
+  async function safeNonce(){
+    if (!account) return undefined;
+    try{
+      return await provider.getTransactionCount(account, 'pending');
+    }catch(e){
+      console.warn('safeNonce failed, letting ethers auto-fill:', e);
+      return undefined;
+    }
+  }
+  function txOpts(extra){
+    return new Promise(function(resolve){
+      safeNonce().then(function(n){
+        var o = extra || {};
+        if (n !== undefined) o.nonce = n;
+        resolve(o);
+      });
+    });
+  }
+
   /* ─── load assets ─── */
   async function loadAssets(){
     ensureContracts();
@@ -1401,7 +1427,7 @@ main, header{position:relative;z-index:2}
     var current = token === CHOGI_TOKEN ? chogiAllowanceWei : allowanceWei;
     if(current >= amount) return true;
     toast('APPROVING ' + (assetCache[token] ? assetCache[token].symbol : 'TOKEN'));
-    var tx = await erc20.approve(PAYROLL_ADDRESS, MAX_UINT);
+    var tx = await erc20.approve(PAYROLL_ADDRESS, MAX_UINT, await txOpts());
     await waitForTx(tx.hash);
     if(token === CHOGI_TOKEN) chogiAllowanceWei = MAX_UINT;
     else allowanceWei = MAX_UINT;
@@ -1429,7 +1455,7 @@ main, header{position:relative;z-index:2}
         await ensureApproval(CHOGI_TOKEN, amt + STAKE_FEE);
       }
       btn.textContent = 'CONFIRM IN WALLET…';
-      var tx = await payrollWrite.stake(selectedToken, amt, selectedTier);
+      var tx = await payrollWrite.stake(selectedToken, amt, selectedTier, await txOpts());
       btn.textContent = 'CLOCKING IN…';
       await waitForTx(tx.hash);
       toast('CLOCKED IN · ' + TIERS[selectedTier].name);
@@ -1460,7 +1486,7 @@ main, header{position:relative;z-index:2}
       btn.textContent = 'APPROVING…';
       await ensureApproval(CHOGI_TOKEN, amt);
       btn.textContent = 'CONFIRM IN WALLET…';
-      var tx = await payrollWrite.donate(amt);
+      var tx = await payrollWrite.donate(amt, await txOpts());
       btn.textContent = 'DROPPING BONUS…';
       await waitForTx(tx.hash);
       toast('💜 BONUS DROPPED');
@@ -1482,7 +1508,7 @@ main, header{position:relative;z-index:2}
     if(!await ensureConnected()) return;
     try {
       toast('CONFIRM CASH OUT…');
-      var tx = await payrollWrite.claim(idx);
+      var tx = await payrollWrite.claim(idx, await txOpts());
       await waitForTx(tx.hash);
       toast('PAYCHECK CASHED');
       coinShower();
@@ -1510,7 +1536,7 @@ main, header{position:relative;z-index:2}
       }
       if(msg && !confirm(msg)) return;
       toast('CONFIRM RESIGN…');
-      var tx2 = await payrollWrite.unstake(idx);
+      var tx2 = await payrollWrite.unstake(idx, await txOpts());
       await tx2.wait();
       toast('RESIGNED');
       await loadBalances();
