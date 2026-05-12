@@ -1044,10 +1044,7 @@ main, header{position:relative;z-index:2}
   /* Pre-fetch nonce from our reliable JsonRpcProvider (QuickNode/Monad
      public). The wallet's injected provider also queries Monad's RPC for
      eth_getTransactionCount when ethers auto-populates the nonce, and
-     some Monad RPCs return a value ethers v6 can't parse — surfacing as
-     "INVALID VALUE FOR value.nonce (invalid numeric string)" right when
-     the user clicks CLOCK IN / DROP / CASH PAYCHECK / RESIGN / APPROVE.
-     By passing nonce explicitly, ethers skips that lookup entirely. */
+     some Monad RPCs return a value ethers v6 can't parse. */
   async function safeNonce(){
     if (!account) return undefined;
     try{
@@ -1057,14 +1054,44 @@ main, header{position:relative;z-index:2}
       return undefined;
     }
   }
-  function txOpts(extra){
-    return new Promise(function(resolve){
-      safeNonce().then(function(n){
-        var o = extra || {};
-        if (n !== undefined) o.nonce = n;
-        resolve(o);
-      });
+
+  /* sendTx — bulletproof transaction sender that bypasses ethers v6's
+     response wrapping. ethers calls contract.METHOD(...) which under the
+     hood does eth_sendTransaction, then tries to parse the wallet's
+     response into a TransactionResponse. Monad's RPC returns the response
+     in a format ethers can't parse — surfacing as
+     'INVALID VALUE FOR value.nonce (invalid numeric string)' AFTER the
+     user signs the tx but BEFORE we see the hash.
+
+     Workaround: use contract.METHOD.populateTransaction(...) to build the
+     calldata in pure JS, then call window.ethereum.request directly so
+     all we get back is a hash string — no parsing for ethers to choke on.
+     We then poll for the receipt via our own provider (waitForTx). */
+  async function sendTx(contract, methodName, args){
+    if (!signer || !account) throw new Error('Wallet not connected');
+    // Build the populated tx (to, data, value, etc.) without sending
+    var populated = await contract[methodName].populateTransaction.apply(
+      contract[methodName], args
+    );
+    // Hex-encode the nonce + value the way eth_sendTransaction expects
+    var nonce = await safeNonce();
+    var req = {
+      from:  account,
+      to:    populated.to,
+      data:  populated.data,
+    };
+    if (populated.value && populated.value !== 0n){
+      req.value = '0x' + BigInt(populated.value).toString(16);
+    }
+    if (nonce !== undefined){
+      req.nonce = '0x' + BigInt(nonce).toString(16);
+    }
+    // Raw eth_sendTransaction returns just the hash — no further parsing
+    var hash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [req]
     });
+    return { hash: hash };
   }
 
   /* ─── load assets ─── */
@@ -1427,7 +1454,7 @@ main, header{position:relative;z-index:2}
     var current = token === CHOGI_TOKEN ? chogiAllowanceWei : allowanceWei;
     if(current >= amount) return true;
     toast('APPROVING ' + (assetCache[token] ? assetCache[token].symbol : 'TOKEN'));
-    var tx = await erc20.approve(PAYROLL_ADDRESS, MAX_UINT, await txOpts());
+    var tx = await sendTx(erc20, "approve", [PAYROLL_ADDRESS, MAX_UINT]);
     await waitForTx(tx.hash);
     if(token === CHOGI_TOKEN) chogiAllowanceWei = MAX_UINT;
     else allowanceWei = MAX_UINT;
@@ -1455,7 +1482,7 @@ main, header{position:relative;z-index:2}
         await ensureApproval(CHOGI_TOKEN, amt + STAKE_FEE);
       }
       btn.textContent = 'CONFIRM IN WALLET…';
-      var tx = await payrollWrite.stake(selectedToken, amt, selectedTier, await txOpts());
+      var tx = await sendTx(payrollWrite, "stake", [selectedToken, amt, selectedTier]);
       btn.textContent = 'CLOCKING IN…';
       await waitForTx(tx.hash);
       toast('CLOCKED IN · ' + TIERS[selectedTier].name);
@@ -1486,7 +1513,7 @@ main, header{position:relative;z-index:2}
       btn.textContent = 'APPROVING…';
       await ensureApproval(CHOGI_TOKEN, amt);
       btn.textContent = 'CONFIRM IN WALLET…';
-      var tx = await payrollWrite.donate(amt, await txOpts());
+      var tx = await sendTx(payrollWrite, "donate", [amt]);
       btn.textContent = 'DROPPING BONUS…';
       await waitForTx(tx.hash);
       toast('💜 BONUS DROPPED');
@@ -1508,7 +1535,7 @@ main, header{position:relative;z-index:2}
     if(!await ensureConnected()) return;
     try {
       toast('CONFIRM CASH OUT…');
-      var tx = await payrollWrite.claim(idx, await txOpts());
+      var tx = await sendTx(payrollWrite, "claim", [idx]);
       await waitForTx(tx.hash);
       toast('PAYCHECK CASHED');
       coinShower();
@@ -1536,7 +1563,7 @@ main, header{position:relative;z-index:2}
       }
       if(msg && !confirm(msg)) return;
       toast('CONFIRM RESIGN…');
-      var tx2 = await payrollWrite.unstake(idx, await txOpts());
+      var tx2 = await sendTx(payrollWrite, "unstake", [idx]);
       await tx2.wait();
       toast('RESIGNED');
       await loadBalances();
