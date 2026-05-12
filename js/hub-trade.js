@@ -29,8 +29,8 @@ const MONORAIL = {
 };
 
 const RPC_URLS = (typeof window !== 'undefined' && window.location && /chogi\.xyz$/i.test(window.location.hostname))
-  ? ['/api/rpc', 'https://rpc.monad.xyz', 'https://monad-mainnet.public.blastapi.io']
-  : ['https://rpc.monad.xyz', 'https://monad-mainnet.public.blastapi.io'];
+  ? ['/api/rpc', 'https://rpc.monad.xyz']
+  : ['https://rpc.monad.xyz'];
 
 // ────── ABI Interfaces (only need ERC20 — Monorail handles router calldata) ──────
 const tokenIface = new ethers.Interface([

@@ -431,6 +431,10 @@ footer a:hover{color:var(--pink);}
   }
 
   async function tryConnect(){
+    // Guard against rapid re-taps so MetaMask doesn't throw
+    // 'wallet_requestPermissions already pending'.
+    if (STATE.connecting) return;
+    STATE.connecting = true;
     try{
       const acct = await T.connect();
       STATE.account = acct;
@@ -441,6 +445,15 @@ footer a:hover{color:var(--pink);}
       $('actionBtn').textContent = 'ENTER AMOUNT';
       await refreshBalances();
       requestQuote();
+    }catch(e){
+      const msg = String(e && e.message || e);
+      if (!/already pending/i.test(msg)){
+        setStatus('error', e.message || 'Wallet connect failed');
+      }
+    }finally{
+      STATE.connecting = false;
+    }
+  }
     }catch(e){
       setStatus('error', e.message || 'Wallet connect failed');
     }
