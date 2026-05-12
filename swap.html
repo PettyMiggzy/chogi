@@ -327,6 +327,59 @@ footer a:hover{color:var(--pink);}
     pickingFor: null,
   };
 
+  // Pre-fill from URL params: ?from=<addr|symbol>&to=<addr|symbol>
+  // Lets external sites deep-link "Buy $MOYAKI" → /swap?to=0xDe22...
+  // Accepts either a contract address or a symbol from KNOWN (case-insensitive).
+  function resolveParamToken(raw){
+    if (!raw) return null;
+    const s = String(raw).trim();
+    // address?
+    if (/^0x[a-f0-9]{40}$/i.test(s)){
+      const lc = s.toLowerCase();
+      const k = KNOWN.find(x => x.address.toLowerCase() === lc);
+      if (k) return k;
+      // not in KNOWN — return a minimal record; logo + decimals get
+      // resolved later via Monorail / tokenInfo if needed.
+      return { address: lc, symbol: 'TOKEN', name: 'Custom token', logo: null, decimals: 18 };
+    }
+    // symbol match
+    const up = s.toUpperCase();
+    const k = KNOWN.find(x => (x.symbol||'').toUpperCase() === up);
+    return k || null;
+  }
+  (function applyUrlParams(){
+    try{
+      const p = new URLSearchParams(window.location.search);
+      const fromParam = resolveParamToken(p.get('from'));
+      const toParam   = resolveParamToken(p.get('to'));
+      if (fromParam) STATE.from = fromParam;
+      if (toParam)   STATE.to   = toParam;
+      // If both ended up the same, leave defaults to avoid an invalid pair
+      if (STATE.from.address.toLowerCase() === STATE.to.address.toLowerCase()){
+        STATE.from = KNOWN[0];
+        STATE.to   = KNOWN[1];
+      }
+      // For unresolved (custom CA) tokens, lazy-fetch metadata in the
+      // background so the symbol + logo appear within ~1s of page load
+      // instead of saying "TOKEN".
+      [STATE.from, STATE.to].forEach(async (tok) => {
+        if (tok.symbol === 'TOKEN' && tok.address !== NATIVE){
+          try{
+            const [info, mono] = await Promise.all([
+              T.tokenInfo(tok.address),
+              fetch('https://api.monorail.xyz/v2/token/' + tok.address).then(r => r.ok ? r.json() : null).catch(()=>null),
+            ]);
+            tok.symbol   = info.symbol || tok.symbol;
+            tok.name     = info.name   || tok.name;
+            tok.decimals = info.decimals || 18;
+            tok.logo     = (mono && mono.image_uri) || null;
+            paintPickers();
+          }catch(e){ /* leave generic */ }
+        }
+      });
+    }catch(e){ /* malformed query → fall through to defaults */ }
+  })();
+
   function fmt(n){
     if (n == null || isNaN(n)) return '—';
     const v = Number(n);
