@@ -203,6 +203,7 @@ body::after{
 .ticker-item .ch{font-size:10px;padding:1px 5px;border-radius:5px;font-weight:700;letter-spacing:.5px;}
 .ticker-item .ch.up{background:rgba(34,211,111,.18);color:var(--green);}
 .ticker-item .ch.down{background:rgba(255,77,109,.18);color:var(--red);}
+.ticker-item .ch .ch-tag{font-size:8px;opacity:.7;font-weight:600;letter-spacing:.3px;margin-left:2px;}
 .ticker-item.ticker-loading{color:var(--mute);}
 
 /* ─── PRICE FLASH ─── */
@@ -1380,9 +1381,16 @@ async function fetchMarket(tokens){
       }
       const px  = parseFloat(j.usd_per_token || 0);
       const sup = parseFloat(j.supply || 0);
+      // If LiveEngine already pulled a real 24h % from DexScreener for this
+      // address (e.g. token sits on a small pool DS indexes but didn't show
+      // up in the bulk PRICES fetch above for some reason), use it. Otherwise
+      // null — 24h column will show '—' instead of fake 0.
+      const ch24 = (typeof LiveEngine !== 'undefined' && LiveEngine.change24)
+        ? LiveEngine.change24.get(addrLc)
+        : undefined;
       const rec = {
         price:    px > 0 ? px : null,
-        change24: null,  // Monorail doesn't expose 24h % — deferred
+        change24: (ch24 !== undefined && Number.isFinite(ch24)) ? ch24 : null,
         change1:  null,
         mcap:     (px > 0 && sup > 0) ? px * sup : null,
         vol:      null,  // Monorail doesn't expose volume directly
@@ -2706,7 +2714,9 @@ const LiveEngine = {
   ws: null,
   reconnectAttempts: 0,
   prices: new Map(),       // addr → last USD price
-  sessionFirst: new Map(), // addr → first observed price this session (for % change)
+  sessionFirst: new Map(), // addr → first observed price this session (fallback for % change)
+  change24: new Map(),     // addr → real 24h % change from DexScreener
+  ch24LastFetch: 0,        // ms timestamp of last DexScreener 24h pull
   pollTimer: null,
   TICKER_BASE: [
     '0x5e1b1a14c8758104b8560514e94ab8320e587777',  // CHOGI
@@ -2717,8 +2727,70 @@ const LiveEngine = {
 
   init(){
     this.pollNow();
+    this.refresh24h();  // initial 24h pull
     this.pollTimer = setInterval(()=>this.pollNow(), 6_000);
+    setInterval(()=>this.refresh24h(), 60_000);  // 24h % refresh every minute
     this.connectWS();
+  },
+
+  // Bulk-fetch 24h % from DexScreener for the ticker's address set. DS
+  // updates roughly every minute so polling faster is wasteful. One bulk
+  // call covers all ecosystem + visible trending addresses. Pre-grad tokens
+  // (no DEX pair) won't be returned — those keep session-relative fallback.
+  async refresh24h(){
+    try{
+      const tickerAddrs = new Set(this.TICKER_BASE.map(a => a.toLowerCase()));
+      // Add top-mcap trending tokens that are currently visible on the ticker
+      if (Array.isArray(TREND?.rows)){
+        const sorted = [...TREND.rows].sort((a,b)=>{
+          const ea = TREND.enriched.get(a.address);
+          const eb = TREND.enriched.get(b.address);
+          return ((eb?.mcap||0) - (ea?.mcap||0));
+        }).slice(0, 14);
+        for (const r of sorted) tickerAddrs.add(r.address.toLowerCase());
+      }
+      // Also include user's watchlist so PRICES tab benefits from this fetch
+      if (Array.isArray(TOKENS)){
+        for (const t of TOKENS) tickerAddrs.add(t.address.toLowerCase());
+      }
+      const addrs = [...tickerAddrs];
+      if (!addrs.length) return;
+      // DexScreener bulk endpoint accepts up to ~30 CAs per request. Chunk
+      // if we ever exceed that — for now ticker + small watchlist is well
+      // under the limit.
+      const chunks = [];
+      for (let i = 0; i < addrs.length; i += 30){
+        chunks.push(addrs.slice(i, i+30));
+      }
+      const allPairs = [];
+      for (const chunk of chunks){
+        const url = `https://api.dexscreener.com/latest/dex/tokens/${chunk.join(',')}`;
+        try{
+          const r = await fetch(url, {cache:'no-cache'});
+          const j = await r.json();
+          if (Array.isArray(j.pairs)) allPairs.push(...j.pairs);
+        }catch(_){}
+      }
+      // Pick best (highest-liquidity) pair per token, extract h24
+      const byTok = {};
+      for (const p of allPairs){
+        const addr = (p.baseToken && p.baseToken.address || '').toLowerCase();
+        if (!addr) continue;
+        const liq = +(p.liquidity && p.liquidity.usd || 0);
+        if (!byTok[addr] || liq > byTok[addr]._liq){
+          byTok[addr] = Object.assign({_liq:liq}, p);
+        }
+      }
+      for (const addr of addrs){
+        const p = byTok[addr];
+        if (p && p.priceChange && p.priceChange.h24 !== undefined && p.priceChange.h24 !== null){
+          this.change24.set(addr, +p.priceChange.h24);
+        }
+        // If no pair found, don't poison the map — leave undefined so the
+        // renderer can fall back to session-relative.
+      }
+      this.ch24LastFetch = Date.now();
+    }catch(_){ /* swallow — retry next interval */ }
   },
 
   // ONE catalog call + parallel base-token calls. Ecosystem tokens
@@ -2810,16 +2882,22 @@ const LiveEngine = {
 
     const fmtPx = p => p < 0.000001 ? '$' + p.toExponential(1) : '$' + p.toFixed(7);
     const html = items.map(t => {
+      // Prefer REAL 24h % from DexScreener. For pre-grad tokens (no DEX
+      // pair) DS returns nothing, so fall back to session-relative — the
+      // since-load delta — clearly labeled by the small "·" before %.
+      const real24 = this.change24.get(t.addr);
       const first = this.sessionFirst.get(t.addr) || t.price;
-      const pct = first > 0 ? ((t.price - first) / first) * 100 : 0;
-      // Only render the change pill if there's been a meaningful tick.
-      // Showing '+0.00%' on every token at page load was the auditor's flag —
-      // it implied real 24h data when we only had 0 since-load delta.
-      const showPct = Math.abs(pct) >= 0.1;
+      const sessionPct = first > 0 ? ((t.price - first) / first) * 100 : 0;
+      const useReal = (real24 !== undefined && Number.isFinite(real24));
+      const pct = useReal ? real24 : sessionPct;
+      // Show 24h pill whenever we have real data (even 0); session-relative
+      // only shows when there's been a meaningful tick (avoid lying +0.00%).
+      const showPct = useReal || Math.abs(pct) >= 0.1;
       const isUp = pct >= 0;
       const sign = isUp ? '+' : '';
+      const tag = useReal ? '24h' : '';
       const chHtml = showPct
-        ? `<span class="ch ${isUp?'up':'down'}">${sign}${pct.toFixed(2)}%</span>`
+        ? `<span class="ch ${isUp?'up':'down'}" title="${useReal?'24h change':'change since page load'}">${sign}${pct.toFixed(2)}%${tag?` <span class="ch-tag">${tag}</span>`:''}</span>`
         : '';
       return `<span class="ticker-item" data-token-addr="${t.addr}">
         <span class="sym">$${t.sym}</span>
