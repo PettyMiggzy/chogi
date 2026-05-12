@@ -1313,14 +1313,17 @@ function bigToFloat(b, decimals){
 
 /* ── DEXSCREENER MARKET DATA ─────────────────────────────── */
 async function fetchMarket(tokens){
-  // chunked fetch — DexScreener accepts up to ~30 CAs per request, comma-joined
+  // Step 1 — bulk DexScreener fetch. Handles graduated/listed tokens.
+  // DexScreener returns nothing for pre-grad tokens on nad.fun bonding
+  // curves, so we keep track of which addresses missed and fall back to
+  // Monorail (which reads bonding-curve contracts directly).
   const ADDRS = tokens.map(t=>t.address).join(',');
   const url = `https://api.dexscreener.com/latest/dex/tokens/${ADDRS}`;
   let json;
   try{
     const r = await fetch(url, {cache:'no-cache'});
     json = await r.json();
-  }catch(e){ return {}; }
+  }catch(e){ json = { pairs: [] }; }
   const out = {};
   const pairs = json.pairs || [];
   // pick best pair per token (highest liquidity)
@@ -1333,15 +1336,10 @@ async function fetchMarket(tokens){
       byTok[addr] = Object.assign({_liq:liq}, p);
     }
   }
+  const missing = [];
   for (const t of tokens){
     const p = byTok[lc(t.address)];
-    if (!p){
-      out[lc(t.address)] = {
-        price:null, change24:null, change1:null, mcap:null, vol:null, liq:null,
-        name:t.symbol, logo:null, pairUrl:null, tier:'stable'
-      };
-      continue;
-    }
+    if (!p){ missing.push(t); continue; }
     const rec = {
       price:    +p.priceUsd || 0,
       change24: p.priceChange ? +p.priceChange.h24 : null,
@@ -1353,9 +1351,52 @@ async function fetchMarket(tokens){
       logo:     (p.info && p.info.imageUrl) || null,
       pairUrl:  p.url || null,
       txns:     p.txns ? p.txns.h24 : null,
+      source:   'dex',
     };
     rec.tier = tierFor(rec);
     out[lc(t.address)] = rec;
+  }
+  // Step 2 — Monorail fallback for tokens DexScreener didn't return.
+  // These are typically pre-grad tokens still on the nad.fun bonding
+  // curve. Monorail's /v2/token/{addr} reads the curve contract directly
+  // and returns usd_per_token + supply + holders even before graduation.
+  if (missing.length){
+    const fetches = missing.map(t =>
+      fetch(`https://api.monorail.xyz/v2/token/${t.address}`, {cache:'no-cache'})
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null)
+        .then(j => ({t, j}))
+    );
+    const results = await Promise.all(fetches);
+    for (const {t, j} of results){
+      const addrLc = lc(t.address);
+      if (!j){
+        // Nothing anywhere — record blank entry so render shows —
+        out[addrLc] = {
+          price:null, change24:null, change1:null, mcap:null, vol:null, liq:null,
+          name:t.symbol, logo:null, pairUrl:null, tier:'stable', source:'none'
+        };
+        continue;
+      }
+      const px  = parseFloat(j.usd_per_token || 0);
+      const sup = parseFloat(j.supply || 0);
+      const rec = {
+        price:    px > 0 ? px : null,
+        change24: null,  // Monorail doesn't expose 24h % — deferred
+        change1:  null,
+        mcap:     (px > 0 && sup > 0) ? px * sup : null,
+        vol:      null,  // Monorail doesn't expose volume directly
+        liq:      null,  // No DEX pair = no liquidity field
+        name:     j.name || t.symbol,
+        logo:     j.image_uri || null,
+        pairUrl:  `https://nad.fun/tokens/${t.address}`,  // pre-grad lives on nad.fun
+        txns:     null,
+        holders:  parseInt(j.holders || 0) || null,
+        source:   'monorail',
+      };
+      rec.tier = tierFor(rec);
+      out[addrLc] = rec;
+    }
   }
   return out;
 }
