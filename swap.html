@@ -309,11 +309,11 @@ footer a:hover{color:var(--pink);}
   const KNOWN = [
     { address: NATIVE, symbol: 'MON',    name: 'Monad', logo:'/monad-logo.png', decimals: 18 },
     { address: '0x5e1b1a14c8758104b8560514e94ab8320e587777', symbol:'CHOGI',  name:'Chogi · Experiment 7777', logo:'/chogi.png', decimals: 18 },
-    { address: '0xb744f5cdb792d8187640214c4a1c9ace29af7777', symbol:'MONSHI', name:'Monshi',                    logo:null,         decimals: 18 },
-    { address: '0xaca86430cccedbedb35910fc8a5afef07da37777', symbol:'RENE',   name:'Rene',                      logo:null,         decimals: 18 },
-    { address: '0x148a3a811979e5bf8366fc279b2d67742fe17777', symbol:'PHUCKMC',name:'Phuckmc',                   logo:null,         decimals: 18 },
-    { address: '0xde22b2d5b92364fec7065c638ad82509949f7777', symbol:'MOYAKI', name:'Moyaki — the Moyaking',     logo:null,         decimals: 18 },
-    { address: '0x3bd359c1119da7da1d913d1c4d2b7c461115433a', symbol:'WMON',   name:'Wrapped MON',               logo:null,         decimals: 18 },
+    { address: '0xb744f5cdb792d8187640214c4a1c9ace29af7777', symbol:'MONSHI', name:'Monshi',                    logo:'https://storage.nadapp.net/coin/bdf23c46-ccd6-447d-b3ed-d84a911aae7a', decimals: 18 },
+    { address: '0xaca86430cccedbedb35910fc8a5afef07da37777', symbol:'RENE',   name:'Rene',                      logo:'https://storage.nadapp.net/coin/515a9ad5-e127-4e97-92af-5f8206fa9478', decimals: 18 },
+    { address: '0x148a3a811979e5bf8366fc279b2d67742fe17777', symbol:'PHUCKMC',name:'Phuckmc',                   logo:'https://storage.nadapp.net/coin/788e6b3f-9e5d-4cd0-bd1d-bba679217056', decimals: 18 },
+    { address: '0xde22b2d5b92364fec7065c638ad82509949f7777', symbol:'MOYAKI', name:'Moyaki — the Moyaking',     logo:'https://storage.nadapp.net/coin/a12e769e-bd61-491e-8e28-6b4acf3ba2da', decimals: 18 },
+    { address: '0x3bd359c1119da7da1d913d1c4d2b7c461115433a', symbol:'WMON',   name:'Wrapped MON',               logo:'https://monorail-static.fra1.digitaloceanspaces.com/tokens/wmon.svg', decimals: 18 },
   ];
   const SHORTCUT_SYMBOLS = ['MON','CHOGI','MONSHI','RENE','MOYAKI'];
 
@@ -338,8 +338,12 @@ footer a:hover{color:var(--pink);}
   }
   function shortAddr(a){ return a ? a.slice(0,6)+'…'+a.slice(-4) : ''; }
   function tokenLogo(tok){
-    if (tok.logo) return '<img src="'+tok.logo+'" alt="'+tok.symbol+'">';
-    return '<span style="color:#fff;font-family:Bungee,sans-serif;">'+(tok.symbol||'?').slice(0,1)+'</span>';
+    if (tok.logo){
+      // onerror falls back to the letter chip if the image fails to load
+      return '<img src="' + tok.logo + '" alt="' + (tok.symbol||'?') + '" '
+           + 'onerror="this.outerHTML=\'<span style=&quot;color:#fff;font-family:Bungee,sans-serif;font-size:13px;&quot;>' + (tok.symbol||'?').slice(0,1) + '</span>\'">';
+    }
+    return '<span style="color:#fff;font-family:Bungee,sans-serif;font-size:13px;">' + (tok.symbol||'?').slice(0,1) + '</span>';
   }
 
   function paintPickers(){
@@ -577,8 +581,19 @@ footer a:hover{color:var(--pink);}
       if (known) return renderTokenList([known], 'MATCH');
       $('resultsLabel').textContent = 'RESOLVING…';
       try{
-        const info = await T.tokenInfo(addr);
-        const tok = { address: addr, symbol: info.symbol, name: info.name, decimals: info.decimals, logo: null };
+        // Pull on-chain info AND Monorail metadata in parallel — Monorail
+        // returns an image_uri for most tokens (inherits from nad.fun).
+        const [info, monorailJson] = await Promise.all([
+          T.tokenInfo(addr),
+          fetch('https://api.monorail.xyz/v2/token/' + addr).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+        const tok = {
+          address: addr,
+          symbol: info.symbol,
+          name: info.name,
+          decimals: info.decimals,
+          logo: (monorailJson && monorailJson.image_uri) || null,
+        };
         renderTokenList([tok], 'RESOLVED FROM CHAIN');
       }catch(e){
         renderTokenList([], 'NOT FOUND');
