@@ -674,6 +674,23 @@ footer a:hover{color:var(--pink);}
           logo: t.image_uri || null,
         })).filter(t => /^0x[a-f0-9]{40}$/i.test(t.address));
         renderTokenList(normalized, normalized.length ? 'MONORAIL RESULTS' : 'NO MATCHES');
+
+        // Backfill missing image_uris from /v2/token/{addr} in parallel — the
+        // search endpoint sometimes returns null/missing logos even when the
+        // token has one. Re-renders after enrichment so letter chips upgrade
+        // to real PFPs progressively.
+        const needLogo = normalized.filter(t => !t.logo);
+        if (needLogo.length){
+          await Promise.allSettled(needLogo.map(async (t) => {
+            try{
+              const r = await fetch('https://api.monorail.xyz/v2/token/' + t.address);
+              if (!r.ok) return;
+              const j = await r.json();
+              if (j && j.image_uri) t.logo = j.image_uri;
+            }catch(e){}
+          }));
+          renderTokenList(normalized, 'MONORAIL RESULTS');
+        }
       }catch(e){
         renderTokenList([], 'SEARCH FAILED');
       }
