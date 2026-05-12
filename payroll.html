@@ -920,7 +920,12 @@ main, header{position:relative;z-index:2}
     'function patronTier(address) view returns (uint8)',
     'function assetCount() view returns (uint256)',
     'function assetList(uint256) view returns (address)',
-    'function assets(address) view returns (bool accepted, uint128 weightPerWei, uint256 totalDeposited, uint256 strandedFees)'
+    'function assets(address) view returns (bool accepted, uint128 weightPerWei, uint256 totalDeposited, uint256 strandedFees)',
+    // Events — required for contract.filters.X() to generate filter objects
+    'event Staked(address indexed user, uint256 indexed posIdx, address indexed token, uint256 amount, uint256 weight, uint8 tier, uint256 fee)',
+    'event Unstaked(address indexed user, uint256 indexed posIdx, uint256 returned, uint256 termFee, uint256 reward, bool vested)',
+    'event Donated(address indexed patron, uint256 amount, uint256 lifetime)',
+    'event SwapFeeReceived(uint256 amount)'
   ];
   var ERC20_ABI = [
     'function balanceOf(address) view returns (uint256)',
@@ -1593,52 +1598,80 @@ main, header{position:relative;z-index:2}
   }
 
   /* ─── on-chain ticker (replaces fake hardcoded entries) ─── */
+  // Monad's public RPC caps eth_getLogs at a 100-block range. We chunk the
+  // lookback into multiple windows and run them in parallel. Total coverage =
+  // WINDOWS × 100 blocks (~ WINDOWS × 100 seconds at 1s block time).
+  const TICKER_WINDOWS = 6;          // 6 × 100 = 600 blocks ≈ 10 minutes
+  const TICKER_WINDOW_SIZE = 100;
+  let _tickerLastSuccess = 0;
+
   async function loadTickerEvents(){
     ensureContracts();
     if(PAYROLL_ADDRESS === ZERO || !payroll) return;
     const row = $('tickerRow');
     if(!row) return;
     try{
-      // Pull last ~10k blocks. Monad blocks are fast (~1s), so this covers
-      // roughly the last 2-3 hours of activity. Drop further back if quiet.
       const latest = await provider.getBlockNumber();
-      const lookback = 10_000;
-      const fromBlock = latest > lookback ? latest - lookback : 0;
-      // Parallel fetch all event types we want to surface
-      const [stakedLogs, unstakedLogs, donatedLogs, swapFeeLogs] = await Promise.all([
-        payroll.queryFilter(payroll.filters.Staked(),         fromBlock, latest).catch(()=>[]),
-        payroll.queryFilter(payroll.filters.Unstaked(),       fromBlock, latest).catch(()=>[]),
-        payroll.queryFilter(payroll.filters.Donated(),        fromBlock, latest).catch(()=>[]),
-        payroll.queryFilter(payroll.filters.SwapFeeReceived(),fromBlock, latest).catch(()=>[]),
-      ]);
-      // Merge + sort by block, newest first
-      const events = [
-        ...stakedLogs.map(l   => ({kind:'staked',   log:l})),
-        ...unstakedLogs.map(l => ({kind:'unstaked', log:l})),
-        ...donatedLogs.map(l  => ({kind:'donated', log:l})),
-        ...swapFeeLogs.map(l  => ({kind:'swapfee',  log:l})),
-      ].sort((a,b)=> (b.log.blockNumber - a.log.blockNumber));
+      // Build window list: newest → oldest. queryFilter is inclusive of both
+      // ends so each window spans 99 blocks worth of range; from/to enforces
+      // the ≤100 cap.
+      const windows = [];
+      for (let i = 0; i < TICKER_WINDOWS; i++){
+        const to   = latest - (i * TICKER_WINDOW_SIZE);
+        const from = Math.max(0, to - (TICKER_WINDOW_SIZE - 1));
+        if (to < from) break;
+        windows.push([from, to]);
+      }
+
+      // Per window: fetch all 4 event types in parallel. Across windows: also
+      // parallel. Total = WINDOWS × 4 in-flight, all hitting the bucket-free
+      // public RPC. Each window returns 0..N logs; we merge after.
+      const filters = [
+        payroll.filters.Staked(),
+        payroll.filters.Unstaked(),
+        payroll.filters.Donated(),
+        payroll.filters.SwapFeeReceived(),
+      ];
+      const kindByIdx = ['staked','unstaked','donated','swapfee'];
+      const fetches = [];
+      for (const [from, to] of windows){
+        for (let fi = 0; fi < filters.length; fi++){
+          fetches.push(
+            payroll.queryFilter(filters[fi], from, to)
+              .then(logs => logs.map(log => ({kind: kindByIdx[fi], log})))
+              .catch(()=>[])
+          );
+        }
+      }
+      const batches = await Promise.all(fetches);
+      const events = batches.flat().sort((a, b) => {
+        const ab = a.log.blockNumber, bb = b.log.blockNumber;
+        if (ab !== bb) return bb - ab;
+        return (b.log.transactionIndex || 0) - (a.log.transactionIndex || 0);
+      });
 
       if (!events.length){
         row.innerHTML = '<span class="ticker-loading">🟢 STAFFROOM QUIET — first staker gets bragging rights</span>';
+        _tickerLastSuccess = Date.now();
         return;
       }
 
-      const items = events.slice(0, 20).map(({kind, log})=>{
+      const items = events.slice(0, 20).map(({kind, log}) => {
         const args = log.args || {};
         const short = a => a ? (a.slice(0,5)+'…'+a.slice(-4)) : '0x?';
         const amt = v => fmtBal(v || 0n);
+        // tier comes back as bigint in ethers v6; nullish coalesce won't fire
+        // for 0n so we test undefined explicitly.
+        const tierIdx = (args.tier !== undefined) ? Number(args.tier) : 0;
         if (kind === 'staked'){
-          const tierName = ['STAFF','MGR','PARTNER','C-SUITE'][Number(args.tier ?? 0)] || '?';
+          const tierName = ['STAFF','MGR','PARTNER','C-SUITE'][tierIdx] || '?';
           return `<span><b>${short(args.user)}</b> joined as <b class="amt">${tierName}</b> · <b class="amt">${amt(args.amount)}</b></span>`;
         }
         if (kind === 'unstaked'){
-          const vested = args.vested;
-          if (vested){
+          if (args.vested){
             return `<span><b>${short(args.user)}</b> cashed out · <b class="amt">${amt(args.returned)}</b> + <b class="amt">${amt(args.reward)}</b> CHOGI</span>`;
-          } else {
-            return `<span>EARLY RESIGN · <b class="amt">${amt(args.termFee)}</b> clawed back · <b class="amt">${amt(args.reward)}</b> forfeited</span>`;
           }
+          return `<span>EARLY RESIGN · <b class="amt">${amt(args.termFee)}</b> clawed back · <b class="amt">${amt(args.reward)}</b> forfeited</span>`;
         }
         if (kind === 'donated'){
           return `<span><b>${short(args.patron)}</b> dropped <b class="amt">${amt(args.amount)}</b> bonus</span>`;
@@ -1651,9 +1684,16 @@ main, header{position:relative;z-index:2}
 
       // Duplicate for seamless marquee scroll
       row.innerHTML = items + items;
+      _tickerLastSuccess = Date.now();
     }catch(e){
       console.warn('loadTickerEvents:', e);
-      // Don't replace the row on error — keep whatever was there (or the loading state)
+      // Audit NEW-LOW: don't leave the user stuck on "scanning…" forever if
+      // the RPC is degraded. After 30s of no successful refresh, swap to an
+      // explicit error state so they can tell "offline" from "no activity".
+      const stale = (Date.now() - _tickerLastSuccess) > 30_000;
+      if (stale && row){
+        row.innerHTML = '<span class="ticker-loading" style="opacity:.6;">⚠ ticker offline — RPC unreachable, retrying every 60s</span>';
+      }
     }
   }
 
