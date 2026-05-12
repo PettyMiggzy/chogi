@@ -62,6 +62,54 @@ function makeProvider(){
   return new JsonRpcProvider(cfg.rpcUrls[0]);
 }
 
+// ────── Monad RPC compatibility ──────
+// Monad's public RPC returns the literal STRING "undefined" for the nonce
+// field of an unmined transaction response, which makes ethers v6's
+// TransactionResponse parser throw BigInt('undefined'). Same pathology as
+// the bug we hit in payroll.html. Bypass by signing locally and using
+// raw eth_sendRawTransaction + raw eth_getTransactionReceipt.
+async function sendRawTx(wallet, txParams){
+  const provider = wallet.provider;
+  const addr = await wallet.getAddress();
+  const [nonce, gasPriceHex] = await Promise.all([
+    provider.getTransactionCount(addr, 'pending'),
+    provider.send('eth_gasPrice', []),
+  ]);
+  const tx = {
+    chainId: 143,  // Monad mainnet
+    nonce,
+    to: txParams.to,
+    data: txParams.data || '0x',
+    value: txParams.value ? BigInt(txParams.value) : 0n,
+    gasLimit: txParams.gasLimit ? BigInt(txParams.gasLimit) : 500000n,
+    gasPrice: BigInt(gasPriceHex),  // legacy type-0; avoids EIP-1559 quirks
+  };
+  const signedHex = await wallet.signTransaction(tx);
+  const hash = await provider.send('eth_sendRawTransaction', [signedHex]);
+  return { hash, wait: () => waitForReceipt(provider, hash) };
+}
+
+async function waitForReceipt(provider, hash, timeoutMs = 180_000){
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline){
+    try {
+      const r = await provider.send('eth_getTransactionReceipt', [hash]);
+      if (r){
+        // r.status is "0x1" success or "0x0" revert in raw RPC form
+        if (r.status === '0x0' || r.status === 0) {
+          throw new Error(`reverted: ${hash}`);
+        }
+        return r;
+      }
+    } catch(e){
+      if (String(e).includes('reverted')) throw e;
+      // parse / network errors — keep polling
+    }
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  throw new Error(`timeout waiting for ${hash}`);
+}
+
 // Simple log helpers
 function log(msg, data){
   const line = JSON.stringify({ ts: new Date().toISOString(), msg, ...data }) + '\n';
@@ -119,11 +167,10 @@ async function executeSwap(wallet, quote){
     value: tx.value || '0x0',
     gasLimit: BigInt(tx.gas_estimate || 500000),
   };
-  const sent = await wallet.sendTransaction(txParams);
+  const sent = await sendRawTx(wallet, txParams);
   log('swap sent', { hash: sent.hash, input: quote.input_formatted, output: quote.output_formatted });
   const rec = await sent.wait();
-  if (rec.status !== 1) throw new Error(`swap reverted: ${sent.hash}`);
-  log('swap mined', { hash: sent.hash, gas_used: rec.gasUsed.toString() });
+  log('swap mined', { hash: sent.hash, gas_used: rec.gasUsed });
   return sent.hash;
 }
 
@@ -133,9 +180,8 @@ async function transferToken(wallet, tokenAddr, to, amount){
     return null;
   }
   const data = erc20Iface.encodeFunctionData('transfer', [to, amount]);
-  const sent = await wallet.sendTransaction({ to: tokenAddr, data });
+  const sent = await sendRawTx(wallet, { to: tokenAddr, data, gasLimit: 120_000n });
   const rec = await sent.wait();
-  if (rec.status !== 1) throw new Error(`transfer reverted: ${sent.hash}`);
   log('transfer mined', { hash: sent.hash, token: tokenAddr, to, amount: amount.toString() });
   return sent.hash;
 }
