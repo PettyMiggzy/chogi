@@ -42,27 +42,37 @@ const tokenIface = new ethers.Interface([
   'function name() view returns (string)',
 ]);
 
-// ────── Raw RPC fallback ──────
+// Try ALL RPC URLs in parallel via Promise.any. Resilient to ad-blockers
+// blocking one URL, Vercel function cold starts, and regional flakiness.
+// First valid response wins; only fails if every URL fails.
 async function rpcCall(method, params){
-  let lastErr;
-  for (const url of RPC_URLS){
+  const body = JSON.stringify({jsonrpc:'2.0', id:Date.now(), method, params});
+  const errors = [];
+  const tries = RPC_URLS.map(url => new Promise(async (resolve, reject) => {
     try{
       const ctrl = new AbortController();
-      const t = setTimeout(()=>ctrl.abort(), 10000);
+      const t = setTimeout(() => ctrl.abort(), 8000);
       const r = await fetch(url, {
-        method:'POST',
-        headers:{'content-type':'application/json'},
-        body: JSON.stringify({jsonrpc:'2.0',id:Date.now(),method,params}),
-        signal: ctrl.signal
+        method: 'POST',
+        headers: {'content-type':'application/json'},
+        body,
+        signal: ctrl.signal,
       });
       clearTimeout(t);
-      if (!r.ok) throw new Error('http '+r.status);
+      if (!r.ok){ errors.push(url + ' http ' + r.status); return reject(); }
       const j = await r.json();
-      if (j.error) throw new Error(j.error.message || 'rpc error');
-      return j.result;
-    }catch(e){ lastErr = e; }
+      if (j.error){ errors.push(url + ' rpc ' + (j.error.message || '?')); return reject(); }
+      resolve(j.result);
+    }catch(e){
+      errors.push(url + ' ' + (e && e.message ? e.message : String(e)));
+      reject();
+    }
+  }));
+  try{
+    return await Promise.any(tries);
+  }catch(e){
+    throw new Error('RPC unreachable: ' + errors.join(' | '));
   }
-  throw lastErr || new Error('all RPCs failed');
 }
 async function ethCall(to, data){ return rpcCall('eth_call', [{to, data}, 'latest']); }
 
@@ -108,10 +118,15 @@ async function monorailQuote({from, to, amount, sender, slippageBps, deadlineSec
   const url = `${MONORAIL.QUOTE}?${params.toString()}`;
   let j;
   try{
-    const r = await fetch(url, {cache:'no-cache'});
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 10000);
+    const r = await fetch(url, {cache:'no-cache', signal: ctrl.signal});
+    clearTimeout(t);
+    if (!r.ok) throw new Error('Monorail HTTP ' + r.status);
     j = await r.json();
   }catch(e){
-    throw new Error('Network: cannot reach Monorail');
+    if (e && e.name === 'AbortError') throw new Error('Monorail quote timed out — slow network');
+    throw new Error('Monorail unreachable: ' + (e && e.message ? e.message : 'network error'));
   }
   if (j.message && !j.transaction){
     throw new Error(j.message);  // e.g. "no valid routes found"
