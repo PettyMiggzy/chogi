@@ -86,34 +86,6 @@ body::after{
 }
 .nav-back:hover{background:rgba(255,20,147,.14);}
 
-/* ─── LIVE TICKER ─── */
-.ticker-wrap{
-  position:sticky;top:64px;z-index:55;
-  background:rgba(8,0,18,.88);backdrop-filter:blur(10px);
-  border-bottom:1px solid rgba(255,20,147,.22);
-  overflow:hidden;
-  padding:9px 0;
-}
-.ticker-strip{
-  display:flex;gap:32px;white-space:nowrap;
-  animation:tickerScroll 20s linear infinite;
-  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.5px;
-  will-change:transform;
-}
-.ticker-strip:hover{animation-play-state:paused;}
-.ticker-item{display:inline-flex;align-items:center;gap:10px;}
-.ticker-tkr{color:#fff;font-weight:700;}
-.ticker-px{color:var(--mute);}
-.ticker-chg{font-weight:700;}
-.ticker-chg.up{color:var(--green);}
-.ticker-chg.down{color:var(--red);}
-.ticker-chg.flat{color:var(--mute);}
-.ticker-sep{color:rgba(255,20,147,.35);}
-@keyframes tickerScroll{
-  0%{transform:translateX(0);}
-  100%{transform:translateX(-50%);}
-}
-
 /* ─── BANNER ─── */
 .banner{
   position:relative;width:100%;max-width:1180px;margin:18px auto 0;
@@ -962,13 +934,6 @@ body::after{
   <a class="nav-back" href="/">◄ HOME</a>
 </nav>
 
-<!-- LIVE TICKER -->
-<div class="ticker-wrap" id="tickerWrap">
-  <div class="ticker-strip" id="tickerStrip">
-    <span class="ticker-item"><span class="ticker-tkr">— loading live market feed —</span></span>
-  </div>
-</div>
-
 <!-- BANNER -->
 <div class="banner">
   <div class="banner-inner">
@@ -1068,7 +1033,7 @@ body::after{
   <div class="tab-head">
     <div>
       <div class="tab-title">🔥 TRENDING MEMES</div>
-      <div class="tab-sub">all Monad memes · live USD prices · sorted by holders · powered by Monorail</div>
+      <div class="tab-sub">all Monad memes · live USD prices · sorted by market cap · powered by Monorail</div>
     </div>
     <div class="tab-tools" id="trendingTools">
       <button class="btn trending-sort active" data-sort="mcap">📊 MCAP</button>
@@ -1187,7 +1152,7 @@ const SEED_TOKENS = [
   {address:'0x5E1b1A14c8758104B8560514e94ab8320e587777', symbol:'CHOGI'  , decimals:18, native:true},
   {address:'0xB744F5CDb792d8187640214C4A1c9aCE29af7777', symbol:'MONSHI' , decimals:18},
   {address:'0xaCA86430cCCEdbedB35910fC8A5AFEF07dA37777', symbol:'RENE'   , decimals:18},
-  {address:'0x148a3a811979e5BF8366FC279B2d67742Fe17777', symbol:'PHUCK'  , decimals:18},
+  {address:'0x148a3a811979e5BF8366FC279B2d67742Fe17777', symbol:'PHUCKMC', decimals:18},
   {address:'0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A', symbol:'WMON'   , decimals:18},
 ];
 
@@ -1440,27 +1405,8 @@ function renderBreach(){
       TOKENS = TOKENS.filter(t => lc(t.address) !== lc(addr));
       saveWatchlist();
       renderBreach();
-      renderTicker();
     };
   });
-}
-
-/* ── TICKER ───────────────────────────────────────────────── */
-function renderTicker(){
-  const strip = $('#tickerStrip');
-  if (!strip) return;
-  const items = TOKENS.map(t=>{
-    const m = MARKET[lc(t.address)] || {};
-    const cls = chgClass(m.change24).replace('chg-','');
-    return `<span class="ticker-item">
-      <span class="ticker-tkr">$${t.symbol}</span>
-      <span class="ticker-px">${m.price!=null?'$'+num(m.price,m.price>=1?2:6):'—'}</span>
-      <span class="ticker-chg ${cls}">${pct(m.change24)}</span>
-    </span>
-    <span class="ticker-sep">·</span>`;
-  }).join('');
-  // double the strip for seamless loop
-  strip.innerHTML = items + items;
 }
 
 /* ── BREACH ACTIONS ───────────────────────────────────────── */
@@ -1469,7 +1415,6 @@ async function refreshBreach(){
   const m = await fetchMarket(TOKENS);
   MARKET = m;
   renderBreach();
-  renderTicker();
 }
 
 function addToken(addr){
@@ -1491,7 +1436,6 @@ function addToken(addr){
         MARKET[lc(addr)] = rec;
         saveWatchlist();
         renderBreach();
-        renderTicker();
       }
     }
   });
@@ -2042,8 +1986,9 @@ function bindTabs(){
    ────────────────────────────────────────────────────────────── */
 const TREND = {
   rows: [], sort: 'mcap', search: '',
-  enriched:    new Map(),  // addr  → {source, creator, holders, supply, image, isCto, isGrad, twitter, telegram, website, mcap, pct24}
-  creatorPos:  new Map(),  // creator → [token positions array] (one fetch per creator)
+  enriched:    new Map(),
+  inflight:    new Set(),  // addrs currently being fetched — dedupe to stop 429s
+  creatorPos:  new Map(),
   visible: 30, observer: null
 };
 
@@ -2078,7 +2023,11 @@ async function fetchTrending(){
 // Enrich currently-visible cards in parallel via nad.fun (primary) + Monorail (fallback)
 async function enrichVisibleTrending(){
   const rows = sortedTrending().slice(0, TREND.visible);
-  await Promise.allSettled(rows.map(r => enrichOneTrending(r)));
+  // Concurrency-limited fan-out so nad.fun doesn't 429 us. Max 4 in flight.
+  // Skips addresses already enriched OR currently being enriched.
+  await runWithConcurrency(rows.filter(r => !TREND.enriched.has(r.address) && !TREND.inflight.has(r.address)),
+                           4,
+                           r => enrichOneTrending(r));
   // After per-token enrichment, batch-fetch creator positions for unique creators
   const creators = new Set();
   for (const r of rows){
@@ -2087,13 +2036,27 @@ async function enrichVisibleTrending(){
       creators.add(e.creator.toLowerCase());
     }
   }
-  await Promise.allSettled([...creators].map(c => fetchCreatorPositions(c)));
+  await runWithConcurrency([...creators], 4, c => fetchCreatorPositions(c));
   // Re-render with the now-loaded DEV % data
   renderTrending();
 }
 
+// Generic concurrency-limited iterator. Resolves when all done.
+async function runWithConcurrency(items, n, work){
+  const queue = items.slice();
+  const workers = Array(Math.min(n, queue.length)).fill(0).map(async ()=>{
+    while (queue.length){
+      const it = queue.shift();
+      try{ await work(it); }catch(_){}
+    }
+  });
+  await Promise.all(workers);
+}
+
 async function enrichOneTrending(r){
   if (TREND.enriched.has(r.address)) return;
+  if (TREND.inflight.has(r.address))  return;
+  TREND.inflight.add(r.address);
   // primary: nad.fun (richer data + CTO flag + creator)
   try{
     const res = await fetch(`${NADFUN_API_BASE}/token/${r.address}`);
@@ -2109,10 +2072,12 @@ async function enrichOneTrending(r){
         twitter:  ti.twitter  || null,
         telegram: ti.telegram || null,
         website:  ti.website  || null,
-        // supply + holders come from Monorail (richer for already-trading tokens)
       });
+    } else if (res.status === 429){
+      // Rate-limited — leave undefined so a future tick can retry. Don't poison.
+      TREND.inflight.delete(r.address);
+      return;
     } else {
-      // off-pad = not indexed on nad.fun
       TREND.enriched.set(r.address, { source: 'offpad' });
     }
   }catch(e){
@@ -2128,6 +2093,7 @@ async function enrichOneTrending(r){
     cur.mcap = cur.supply * r.price;
     TREND.enriched.set(r.address, cur);
   }catch(e){}
+  TREND.inflight.delete(r.address);
 }
 
 // One call per unique creator returns ALL their created tokens with balances
@@ -2470,18 +2436,22 @@ async function init(){
   await refreshBreach();
 
   // ── faster live refresh loops ──
-  setInterval(refreshBreach, 8_000);  // was 30s → now 8s for visible price ticks
+  setInterval(refreshBreach, 8_000);  // 8s price tick for PRICES
   setInterval(()=>{
     const tabActive = document.getElementById('tab-launches').classList.contains('active');
-    if (tabActive && !LNCH.loading){ LNCH.page = 1; LNCH.rows = []; fetchLaunches(false); }
-  }, 30_000);  // was 60s
+    // Only auto-refresh if user is at page 1. If they've paginated, leave their
+    // state alone — auto-refresh used to wipe page state every 30s.
+    if (tabActive && !LNCH.loading && LNCH.page === 1){
+      fetchLaunches(false);
+    }
+  }, 30_000);
   setInterval(()=>{
     const tabActive = document.getElementById('tab-trending').classList.contains('active');
-    if (tabActive && TREND.rows.length){ enrichTopTrending(); }
-  }, 45_000);  // trending detail enrichment refresh
+    if (tabActive && TREND.rows.length){ enrichVisibleTrending(); }
+  }, 45_000);
   PACK_TIMER = setInterval(()=>{
     PACK.forEach(p => rescanOne(p.address));
-  }, 60_000);  // was 90s
+  }, 60_000);
 
   // ── LIVE ENGINE — ticker, flashes, toasts, WS events ──
   LiveEngine.init();
@@ -2605,12 +2575,19 @@ const LiveEngine = {
     const html = items.map(t => {
       const first = this.sessionFirst.get(t.addr) || t.price;
       const pct = first > 0 ? ((t.price - first) / first) * 100 : 0;
+      // Only render the change pill if there's been a meaningful tick.
+      // Showing '+0.00%' on every token at page load was the auditor's flag —
+      // it implied real 24h data when we only had 0 since-load delta.
+      const showPct = Math.abs(pct) >= 0.1;
       const isUp = pct >= 0;
       const sign = isUp ? '+' : '';
+      const chHtml = showPct
+        ? `<span class="ch ${isUp?'up':'down'}">${sign}${pct.toFixed(2)}%</span>`
+        : '';
       return `<span class="ticker-item" data-token-addr="${t.addr}">
         <span class="sym">$${t.sym}</span>
         <span class="px">${fmtPx(t.price)}</span>
-        <span class="ch ${isUp?'up':'down'}">${sign}${pct.toFixed(2)}%</span>
+        ${chHtml}
       </span>`;
     }).join('');
     el.innerHTML = html + html;  // duplicate for seamless scroll

@@ -467,6 +467,34 @@ async function loadToken(){
   if (!data){
     data = {token_info:{token_id:ADDR, symbol:ADDR.slice(0,6), name:'Unknown', is_graduated:false}, market_info:{}};
   }
+  // Always also pull Monorail — fills price/holders/supply/symbol even when
+  // nad.fun has incomplete bonding-curve data, and supplies the canonical
+  // upstream symbol so the hero matches what the rest of the ecosystem sees.
+  try{
+    const mr = await fetch(`https://api.monorail.xyz/v2/token/${ADDR}`);
+    if (mr.ok){
+      const m = await mr.json();
+      const ti = data.token_info || (data.token_info = {});
+      const mi = data.market_info || (data.market_info = {});
+      // Symbol/name — use Monorail's canonical version
+      if (m.symbol)   ti.symbol   = m.symbol;
+      if (m.name)     ti.name     = m.name;
+      if (m.image_uri && !ti.image_uri) ti.image_uri = m.image_uri;
+      // Fill any missing market fields
+      if (!mi.price_usd && m.usd_per_token)        mi.price_usd     = m.usd_per_token;
+      if (!mi.holder_count && m.holders)           mi.holder_count  = parseInt(m.holders);
+      // Supply: nad.fun stores raw (with 18 decimals), Monorail returns adjusted decimal.
+      // Convert Monorail's decimal supply back into raw form so tokAmt(mi.total_supply,18) produces the right number.
+      if (!mi.total_supply && m.supply){
+        const s = parseFloat(m.supply);
+        if (s > 0){
+          try{ mi.total_supply = (BigInt(Math.round(s)) * 10n**18n).toString(); }
+          catch(_){ mi.total_supply = String(Math.round(s * 1e18)); }
+        }
+      }
+      data._monorail = m;  // keep for downstream use if needed
+    }
+  }catch(e){}
   return data;
 }
 
