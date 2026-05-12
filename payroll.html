@@ -1006,20 +1006,27 @@ main, header{position:relative;z-index:2}
   var stakeToken = null, stakeTokenWrite = null;
   var assetCache = {};   // address → { symbol, decimals, weight }
 
-  /* Poll our QuickNode JsonRpcProvider for the receipt instead of using
-     tx.wait(), which polls through MetaMask's RPC and can choke on a
-     malformed `nonce` field returned by some Monad RPCs. */
+  /* Poll for receipt via raw eth_getTransactionReceipt. We don't use
+     ethers v6's provider.getTransactionReceipt because it may invoke
+     internal helpers (e.g. enriching with block info via getTransaction)
+     that hit Monad's malformed-nonce response. The raw receipt body has
+     no nonce field at all — just status, blockNumber, gasUsed, logs —
+     so there's nothing for ethers v6's strict parser to choke on. */
   async function waitForTx(hash, timeoutMs){
     var deadline = Date.now() + (timeoutMs || 120000);
     while (Date.now() < deadline) {
       try {
-        var r = await provider.getTransactionReceipt(hash);
+        var r = await provider.send('eth_getTransactionReceipt', [hash]);
         if (r) {
-          if (r.status === 0) throw new Error('Transaction reverted: ' + hash);
+          // status is "0x1" success, "0x0" failure
+          if (r.status === '0x0' || r.status === 0) {
+            throw new Error('Transaction reverted: ' + hash);
+          }
           return r;
         }
       } catch(e) {
         if (String(e).indexOf('reverted') !== -1) throw e;
+        // Other errors (parse, network) — just retry; this is a poll loop
       }
       await new Promise(function(r){ setTimeout(r, 1500); });
     }
@@ -1564,7 +1571,7 @@ main, header{position:relative;z-index:2}
       if(msg && !confirm(msg)) return;
       toast('CONFIRM RESIGN…');
       var tx2 = await sendTx(payrollWrite, "unstake", [idx]);
-      await tx2.wait();
+      await waitForTx(tx2.hash);
       toast('RESIGNED');
       await loadBalances();
       await loadPositions();
