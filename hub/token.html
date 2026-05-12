@@ -233,13 +233,13 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
     <div class="split">
 
       <div>
-        <div class="stats-grid">
+        <div class="stats-grid" id="statsGrid">
           <div class="stat-card"><div class="lbl">PRICE USD</div><div class="val" id="sPrice">—</div></div>
           <div class="stat-card"><div class="lbl">MARKET CAP</div><div class="val" id="sMcap">—</div></div>
           <div class="stat-card"><div class="lbl">HOLDERS</div><div class="val" id="sHolders">—</div></div>
-          <div class="stat-card"><div class="lbl">OFF ATH</div><div class="val" id="sAth">—</div></div>
-          <div class="stat-card"><div class="lbl">TOTAL VOL</div><div class="val" id="sVol">—</div></div>
-          <div class="stat-card"><div class="lbl">ATH USD</div><div class="val" id="sAthPx">—</div></div>
+          <div class="stat-card stat-dex-only" id="statAth"><div class="lbl">OFF ATH</div><div class="val" id="sAth">—</div></div>
+          <div class="stat-card stat-dex-only" id="statVol"><div class="lbl">TOTAL VOL</div><div class="val" id="sVol">—</div></div>
+          <div class="stat-card stat-dex-only" id="statAthPx"><div class="lbl">ATH USD</div><div class="val" id="sAthPx">—</div></div>
         </div>
 
         <div class="bc-box" id="bcBox" style="display:none;">
@@ -418,10 +418,17 @@ function isPreGradMarket(t){
 }
 function bcProgress(t){
   if (!isPreGradMarket(t)) return 1;
-  if (!t.market_info) return 0;
-  const sup = t.market_info.total_supply ? BigInt(t.market_info.total_supply) : 0n;
-  const rem = t.market_info.reserve_token ? BigInt(t.market_info.reserve_token) : 0n;
-  if (sup === 0n) return 0;
+  if (!t.market_info) return null;  // unknown, not 0
+  // Critical: if upstream didn't return reserve_token, we CANNOT compute
+  // progress. Previously this code treated missing reserve_token as 0n,
+  // which inverted to 100% (sold = supply - 0 = supply). Result: every
+  // pre-grad token whose /order/market_cap fallback fired showed
+  // '100% TO GRADUATION' next to text saying 'curve is still active'.
+  if (!t.market_info.reserve_token) return null;
+  if (!t.market_info.total_supply)  return null;
+  const sup = BigInt(t.market_info.total_supply);
+  const rem = BigInt(t.market_info.reserve_token);
+  if (sup === 0n) return null;
   const sold = sup > rem ? sup - rem : 0n;
   const num = Number(sold * 1000000n / sup) / 1000000;
   return Math.max(0, Math.min(1, num / 0.8));
@@ -547,14 +554,30 @@ function renderToken(t){
     athEl.classList.add(offAth > -5 ? 'up' : 'down');
   }
 
+  // Hide ATH / VOL tiles on bonding-curve tokens — nad.fun doesn't track
+  // those for pre-grad and showing three '—' tiles makes the page look
+  // half-broken. Auditor flagged this in re-audit.
+  if (STATE.isPreGrad){
+    ['statAth','statVol','statAthPx'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  }
+
   // bonding curve box
   if (STATE.isPreGrad){
     const p = bcProgress(t);
-    const pct100 = Math.round(p*100);
     $('#bcBox').style.display = '';
-    $('#bcFill').style.width = pct100 + '%';
-    $('#bcText').textContent = pct100 + '% TO GRADUATION';
-    if (p >= 0.6) $('#bcFill').classList.add('about-to-grad');
+    if (p == null){
+      // upstream didn't return reserve_token — can't compute. Don't lie.
+      $('#bcFill').style.width = '0%';
+      $('#bcText').textContent = '— curve data unavailable';
+    } else {
+      const pct100 = Math.round(p*100);
+      $('#bcFill').style.width = pct100 + '%';
+      $('#bcText').textContent = pct100 + '% TO GRADUATION';
+      if (p >= 0.6) $('#bcFill').classList.add('about-to-grad');
+    }
   }
 
   // chart
@@ -982,8 +1005,23 @@ function initNativeChart(){
   $('#chartSource').style.display  = '';
   $('#chartCanvas').innerHTML = '';
 
-  // Build the chart
+  // CRITICAL: defer createChart to the next animation frame so the
+  // container has measurable layout width. Calling createChart while
+  // container.clientWidth === 0 (which happens when init runs before
+  // first paint) locks the chart at 0×N forever — the auditor caught
+  // this on graduated tokens where the chart area was entirely black.
+  requestAnimationFrame(() => buildChart());
+}
+
+function buildChart(){
   const container = $('#chartCanvas');
+  if (!container) return;
+  // If somehow we're still 0-width, try once more after another frame
+  if (container.clientWidth === 0){
+    requestAnimationFrame(() => buildChart());
+    return;
+  }
+
   CHART.chart = LightweightCharts.createChart(container, {
     width: container.clientWidth,
     height: 480,
@@ -1012,6 +1050,22 @@ function initNativeChart(){
       horzLine: { color: '#FF1493', width: 1, style: 3, labelBackgroundColor: '#FF1493' },
     },
   });
+
+  // Keep chart in sync with container size — handles viewport resize,
+  // orientation change, devtools open/close, anything that affects layout.
+  if ('ResizeObserver' in window){
+    CHART.resizeObserver = new ResizeObserver(entries => {
+      const w = entries[0]?.contentRect?.width;
+      if (w && CHART.chart) CHART.chart.applyOptions({ width: w });
+    });
+    CHART.resizeObserver.observe(container);
+  } else {
+    // Older Safari fallback: window resize listener
+    window.addEventListener('resize', ()=>{
+      if (CHART.chart) CHART.chart.applyOptions({ width: container.clientWidth });
+    });
+  }
+
   CHART.series = CHART.chart.addCandlestickSeries({
     upColor:   '#22d36f',
     downColor: '#ff4d6d',
@@ -1035,11 +1089,6 @@ function initNativeChart(){
       <span class="stat">L <b>${fmtPrice(d.low)}</b></span>
       <span class="stat">C <b>${fmtPrice(d.close)}</b></span>
       <span class="stat">Δ <b class="${cls}">${pct>=0?'+':''}${pct.toFixed(2)}%</b></span>`;
-  });
-
-  // resize
-  window.addEventListener('resize', ()=>{
-    if (CHART.chart) CHART.chart.applyOptions({ width: container.clientWidth });
   });
 
   // wire resolution pills

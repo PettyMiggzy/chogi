@@ -1210,7 +1210,23 @@ function loadWatchlist(){
     const raw = localStorage.getItem(LS.watch);
     if (raw){
       const list = JSON.parse(raw);
-      if (Array.isArray(list) && list.length) return list;
+      if (Array.isArray(list) && list.length){
+        // One-time migration: existing users had {symbol:'PHUCK'} stored
+        // before we updated SEED_TOKENS to PHUCKMC. Rewrite stale entry
+        // so the PRICES row + ticker show the canonical upstream symbol.
+        const PHUCK_ADDR = '0x148a3a811979e5bf8366fc279b2d67742fe17777';
+        let migrated = false;
+        for (const t of list){
+          if ((t.address||'').toLowerCase() === PHUCK_ADDR && t.symbol === 'PHUCK'){
+            t.symbol = 'PHUCKMC';
+            migrated = true;
+          }
+        }
+        if (migrated){
+          try{ localStorage.setItem(LS.watch, JSON.stringify(list)); }catch(_){}
+        }
+        return list;
+      }
     }
   }catch(e){}
   return [...SEED_TOKENS];
@@ -1746,7 +1762,7 @@ async function fetchLaunches(append){
   if (!append) grid.innerHTML = `<div class="empty">⏳ pulling live launches from nad.fun…</div>`;
   try{
     const url = `${NADFUN_API}/order/${LNCH.sort}?page=${LNCH.page}&limit=24`;
-    const r = await fetch(url, {cache:'no-cache'});
+    const r = await nadfunFetch(url, {cache:'no-cache'});
     if (!r.ok) throw new Error('http '+r.status);
     const j = await r.json();
     const incoming = j.tokens || j.order_token || [];
@@ -2053,13 +2069,83 @@ async function runWithConcurrency(items, n, work){
   await Promise.all(workers);
 }
 
+// Token-bucket rate limiter for nad.fun.
+// nad.fun limits PER-SECOND ACROSS ALL ENDPOINTS, not per-connection.
+// The naive 4-parallel cap from the first re-audit still 429'd because
+// multiple overlapping calls (initial fetch + LOAD MORE + filter chip +
+// 45s tick + creator-fetch fan-out) stacked into the same second.
+//
+// This bucket holds 4 tokens, refills 4/sec. Every fetch from any
+// nad.fun endpoint must acquire a token first. If empty, the call
+// waits. Single bucket → shared budget across /token/{addr},
+// /profile/tokens/created/{addr}, /order/{sort}, anything else.
+const NADFUN_BUCKET = {
+  tokens: 4,
+  max: 4,
+  refillPerSec: 4,
+  lastRefill: Date.now(),
+  waiters: [],
+
+  refill(){
+    const now = Date.now();
+    const elapsed = (now - this.lastRefill) / 1000;
+    if (elapsed > 0){
+      this.tokens = Math.min(this.max, this.tokens + elapsed * this.refillPerSec);
+      this.lastRefill = now;
+    }
+    // wake waiters
+    while (this.tokens >= 1 && this.waiters.length){
+      this.tokens -= 1;
+      const w = this.waiters.shift();
+      w();
+    }
+  },
+
+  acquire(){
+    this.refill();
+    if (this.tokens >= 1){
+      this.tokens -= 1;
+      return Promise.resolve();
+    }
+    return new Promise(resolve => {
+      this.waiters.push(resolve);
+      // schedule a refill check
+      const ms = Math.ceil(1000 / this.refillPerSec) + 10;
+      setTimeout(()=>this.refill(), ms);
+    });
+  }
+};
+
+// Wrapped fetch with rate limit + exponential backoff on 429.
+// Returns Response or throws on permanent failure.
+async function nadfunFetch(url, opts={}, maxRetries=3){
+  let backoff = 800;
+  for (let attempt = 0; attempt <= maxRetries; attempt++){
+    await NADFUN_BUCKET.acquire();
+    try{
+      const res = await fetch(url, opts);
+      if (res.status !== 429) return res;
+      // 429 — back off and retry. Don't consume the next attempt's token yet;
+      // the backoff itself naturally throttles us.
+      await new Promise(r => setTimeout(r, backoff + Math.random()*400));
+      backoff *= 2;
+    }catch(e){
+      if (attempt === maxRetries) throw e;
+      await new Promise(r => setTimeout(r, backoff));
+      backoff *= 2;
+    }
+  }
+  // exhausted — return a fake 429 so callers can branch on .status
+  return new Response('', { status: 429 });
+}
+
 async function enrichOneTrending(r){
   if (TREND.enriched.has(r.address)) return;
   if (TREND.inflight.has(r.address))  return;
   TREND.inflight.add(r.address);
   // primary: nad.fun (richer data + CTO flag + creator)
   try{
-    const res = await fetch(`${NADFUN_API_BASE}/token/${r.address}`);
+    const res = await nadfunFetch(`${NADFUN_API_BASE}/token/${r.address}`);
     if (res.ok){
       const j = await res.json();
       const ti = j.token_info || {};
@@ -2100,7 +2186,7 @@ async function enrichOneTrending(r){
 async function fetchCreatorPositions(creator){
   if (!creator || TREND.creatorPos.has(creator)) return;
   try{
-    const res = await fetch(`${NADFUN_API_BASE}/profile/tokens/created/${creator}?page=1&limit=50`);
+    const res = await nadfunFetch(`${NADFUN_API_BASE}/profile/tokens/created/${creator}?page=1&limit=50`);
     if (!res.ok) { TREND.creatorPos.set(creator, []); return; }
     const j = await res.json();
     TREND.creatorPos.set(creator, j.tokens || []);
@@ -2475,7 +2561,7 @@ const LiveEngine = {
     '0x5e1b1a14c8758104b8560514e94ab8320e587777',  // CHOGI
     '0xb744f5cdb792d8187640214c4a1c9ace29af7777',  // MONSHI
     '0xaca86430cccedbedb35910fc8a5afef07da37777',  // RENE
-    '0x148a3a811979e5bf8366fc279b2d67742fe17777',  // PHUCK
+    '0x148a3a811979e5bf8366fc279b2d67742fe17777',  // PHUCKMC
   ],
 
   init(){
