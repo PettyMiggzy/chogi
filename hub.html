@@ -2003,10 +2003,80 @@ function bindTabs(){
 const TREND = {
   rows: [], sort: 'mcap', search: '',
   enriched:    new Map(),
-  inflight:    new Set(),  // addrs currently being fetched — dedupe to stop 429s
+  inflight:    new Set(),  // addrs currently being fetched (tokens)
   creatorPos:  new Map(),
+  creatorInflight: new Set(),  // creators currently being fetched — stops 8-10× dupe storms
   visible: 30, observer: null
 };
+
+// Persistent enrichment cache. Auditor flagged that repeated tab switches
+// re-trigger the 429 storm because in-memory TREND.enriched is lost on
+// reload. 5-min TTL is short enough that prices stay current-ish, long
+// enough to absorb a normal browsing session.
+const TREND_CACHE_KEY = 'chogi.hub.trend.cache.v1';
+const TREND_CACHE_TTL = 5 * 60 * 1000;  // 5 min
+const CREATOR_CACHE_KEY = 'chogi.hub.creator.cache.v1';
+const CREATOR_CACHE_TTL = 5 * 60 * 1000;
+
+function loadTrendCache(){
+  try{
+    const raw = localStorage.getItem(TREND_CACHE_KEY);
+    if (!raw) return;
+    const j = JSON.parse(raw);
+    const now = Date.now();
+    if (!j || !Array.isArray(j.entries)) return;
+    for (const [addr, payload, ts] of j.entries){
+      if (now - ts < TREND_CACHE_TTL){
+        TREND.enriched.set(addr, payload);
+      }
+    }
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(CREATOR_CACHE_KEY);
+    if (!raw) return;
+    const j = JSON.parse(raw);
+    const now = Date.now();
+    if (!j || !Array.isArray(j.entries)) return;
+    for (const [creator, positions, ts] of j.entries){
+      if (now - ts < CREATOR_CACHE_TTL){
+        TREND.creatorPos.set(creator, positions);
+      }
+    }
+  }catch(e){}
+}
+
+let _trendCacheSaveScheduled = false;
+function saveTrendCache(){
+  if (_trendCacheSaveScheduled) return;
+  _trendCacheSaveScheduled = true;
+  // Batch writes — saving on every enrichment would be N×localStorage I/O.
+  setTimeout(()=>{
+    _trendCacheSaveScheduled = false;
+    try{
+      const now = Date.now();
+      const entries = [];
+      for (const [addr, payload] of TREND.enriched){
+        // Skip rate-limit-pending entries (they carry _rl marker)
+        if (payload && payload._rl) continue;
+        entries.push([addr, payload, now]);
+      }
+      // Cap at 300 most-recent to keep payload small
+      const trimmed = entries.slice(-300);
+      localStorage.setItem(TREND_CACHE_KEY, JSON.stringify({entries: trimmed}));
+    }catch(e){}
+    try{
+      const now = Date.now();
+      const entries = [];
+      for (const [creator, positions] of TREND.creatorPos){
+        // skip empty (sentinels for failed fetches)
+        if (!positions || !positions.length) continue;
+        entries.push([creator, positions, now]);
+      }
+      const trimmed = entries.slice(-150);
+      localStorage.setItem(CREATOR_CACHE_KEY, JSON.stringify({entries: trimmed}));
+    }catch(e){}
+  }, 2000);
+}
 
 const NADFUN_API_BASE = 'https://api.nadapp.net';
 
@@ -2039,21 +2109,35 @@ async function fetchTrending(){
 // Enrich currently-visible cards in parallel via nad.fun (primary) + Monorail (fallback)
 async function enrichVisibleTrending(){
   const rows = sortedTrending().slice(0, TREND.visible);
-  // Concurrency-limited fan-out so nad.fun doesn't 429 us. Max 4 in flight.
-  // Skips addresses already enriched OR currently being enriched.
-  await runWithConcurrency(rows.filter(r => !TREND.enriched.has(r.address) && !TREND.inflight.has(r.address)),
-                           4,
-                           r => enrichOneTrending(r));
+  const now = Date.now();
+  // Eligible if not already enriched AND not currently being fetched AND
+  // not rate-limit-cooling. Rate-limit markers carry _rl=expiry timestamp;
+  // once expiry passes the address becomes eligible again automatically.
+  const eligible = rows.filter(r => {
+    if (TREND.inflight.has(r.address)) return false;
+    const e = TREND.enriched.get(r.address);
+    if (!e) return true;
+    if (e._rl && now < e._rl) return false;  // cool-down still active
+    if (e._rl && now >= e._rl){
+      // expired — clear so we can refetch
+      TREND.enriched.delete(r.address);
+      return true;
+    }
+    return false;  // already enriched
+  });
+  // Concurrency matched to bucket rate so we don't over-queue waiters.
+  await runWithConcurrency(eligible, 2, r => enrichOneTrending(r));
   // After per-token enrichment, batch-fetch creator positions for unique creators
   const creators = new Set();
   for (const r of rows){
     const e = TREND.enriched.get(r.address);
-    if (e && e.creator && !TREND.creatorPos.has(e.creator.toLowerCase())){
+    if (e && e.creator && !TREND.creatorPos.has(e.creator.toLowerCase()) && !TREND.creatorInflight.has(e.creator.toLowerCase())){
       creators.add(e.creator.toLowerCase());
     }
   }
-  await runWithConcurrency([...creators], 4, c => fetchCreatorPositions(c));
-  // Re-render with the now-loaded DEV % data
+  await runWithConcurrency([...creators], 2, c => fetchCreatorPositions(c));
+  // Final render — debouncer already covered per-card updates, but this
+  // ensures the last batch settles correctly even if RAF didn't fire.
   renderTrending();
 }
 
@@ -2070,19 +2154,14 @@ async function runWithConcurrency(items, n, work){
 }
 
 // Token-bucket rate limiter for nad.fun.
-// nad.fun limits PER-SECOND ACROSS ALL ENDPOINTS, not per-connection.
-// The naive 4-parallel cap from the first re-audit still 429'd because
-// multiple overlapping calls (initial fetch + LOAD MORE + filter chip +
-// 45s tick + creator-fetch fan-out) stacked into the same second.
-//
-// This bucket holds 4 tokens, refills 4/sec. Every fetch from any
-// nad.fun endpoint must acquire a token first. If empty, the call
-// waits. Single bucket → shared budget across /token/{addr},
-// /profile/tokens/created/{addr}, /order/{sort}, anything else.
+// Re-audit found 95% of /token requests were 429ing at 4/sec. nad.fun's
+// actual quota is lower than that, so we drop to 2/sec — and add a
+// localStorage cache + in-flight creator dedupe so we stop redundantly
+// re-fetching addresses we've already seen.
 const NADFUN_BUCKET = {
-  tokens: 4,
-  max: 4,
-  refillPerSec: 4,
+  tokens: 2,
+  max: 2,
+  refillPerSec: 2,
   lastRefill: Date.now(),
   waiters: [],
 
@@ -2140,7 +2219,12 @@ async function nadfunFetch(url, opts={}, maxRetries=3){
 }
 
 async function enrichOneTrending(r){
-  if (TREND.enriched.has(r.address)) return;
+  // Treat short-TTL rate-limit markers as "skip for now"
+  const existing = TREND.enriched.get(r.address);
+  if (existing){
+    if (existing._rl && Date.now() < existing._rl){ return; }
+    if (!existing._rl) return;  // fully enriched, nothing to do
+  }
   if (TREND.inflight.has(r.address))  return;
   TREND.inflight.add(r.address);
   // primary: nad.fun (richer data + CTO flag + creator)
@@ -2160,10 +2244,14 @@ async function enrichOneTrending(r){
         website:  ti.website  || null,
       });
     } else if (res.status === 429){
-      // Rate-limited — leave undefined so a future tick can retry. Don't poison.
+      // 429 exhausted after backoff. Mark with short-TTL so we don't
+      // immediately re-attempt on the next 45s tick. 60s should be enough
+      // for nad.fun's quota window to reset.
+      TREND.enriched.set(r.address, { _rl: Date.now() + 60_000 });
       TREND.inflight.delete(r.address);
       return;
     } else {
+      // 4xx other than 429 — permanent. Cache as offpad so we don't retry.
       TREND.enriched.set(r.address, { source: 'offpad' });
     }
   }catch(e){
@@ -2180,16 +2268,16 @@ async function enrichOneTrending(r){
     TREND.enriched.set(r.address, cur);
   }catch(e){}
   TREND.inflight.delete(r.address);
-  // Progressive render — auditor caught that cards waited 25s for the
-  // whole batch to drain. Now we schedule a render per card; RAF debounce
-  // means rapid enrichments coalesce into one paint per frame instead of
-  // 90+ DOM rebuilds.
+  saveTrendCache();
   renderTrendingDebounced();
 }
 
 // One call per unique creator returns ALL their created tokens with balances
 async function fetchCreatorPositions(creator){
-  if (!creator || TREND.creatorPos.has(creator)) return;
+  if (!creator) return;
+  if (TREND.creatorPos.has(creator)) return;
+  if (TREND.creatorInflight.has(creator)) return;  // dedupe parallel callers
+  TREND.creatorInflight.add(creator);
   try{
     const res = await nadfunFetch(`${NADFUN_API_BASE}/profile/tokens/created/${creator}?page=1&limit=50`);
     if (!res.ok) { TREND.creatorPos.set(creator, []); return; }
@@ -2197,9 +2285,10 @@ async function fetchCreatorPositions(creator){
     TREND.creatorPos.set(creator, j.tokens || []);
   }catch(e){
     TREND.creatorPos.set(creator, []);
+  }finally{
+    TREND.creatorInflight.delete(creator);
   }
-  // Creator data populates DEV % across all that creator's cards — schedule
-  // a render so those cards flip from … to the real % within a frame.
+  saveTrendCache();
   renderTrendingDebounced();
 }
 
@@ -2448,6 +2537,7 @@ function bindSort(){
 
 /* ── INIT ─────────────────────────────────────────────────── */
 async function init(){
+  loadTrendCache();  // hydrate enrichment + creator caches from prior session
   bindTabs();
   bindSort();
   bindLaunches();

@@ -414,7 +414,26 @@ function ageOf(unixSec){
 }
 function isPreGradMarket(t){
   const mt = (t.market_info && t.market_info.market_type) || '';
-  return mt.includes('CURVE') || (t.token_info && t.token_info.is_graduated === false);
+  // Explicit signals from nad.fun win when present
+  if (mt.includes('DEX')) return false;
+  if (mt.includes('CURVE')) return true;
+  if (t.token_info && t.token_info.is_graduated === true)  return false;
+  // CRITICAL: when nad.fun 429s and we only have the default fallback
+  // (is_graduated:false), we used to assume CURVE. That misclassified
+  // $CHOGI as pre-grad whenever nad.fun rate-limited us. Trust Monorail's
+  // tradeable signal here: if it has a usd_per_token > 0 AND non-trivial
+  // supply, the token has a DEX pair → graduated.
+  const m = t._monorail;
+  if (m){
+    const px  = parseFloat(m.usd_per_token || 0);
+    const sup = parseFloat(m.supply || 0);
+    if (px > 0 && sup > 0) return false;
+    // Monorail also exposes bonding_curve_progress; >= 100 = graduated
+    const bcp = parseFloat(m.bonding_curve_progress);
+    if (!isNaN(bcp) && bcp >= 100) return false;
+  }
+  // No DEX signal anywhere — fall through to nad.fun's flag
+  return (t.token_info && t.token_info.is_graduated === false);
 }
 function bcProgress(t){
   if (!isPreGradMarket(t)) return 1;
