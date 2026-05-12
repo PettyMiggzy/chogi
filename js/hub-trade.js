@@ -319,38 +319,59 @@ async function executeBuy({token, amountHuman, slippageBps, account}){
 
 // ────── SELL (token → native MON) ──────
 async function executeSell({token, amountHuman, slippageBps, account, onApproveStarted, onApproveConfirmed}){
+  return executeSwap({
+    from: token, to: NATIVE_ZERO,
+    amountHuman, slippageBps, account, onApproveStarted, onApproveConfirmed
+  });
+}
+
+// ────── ANY-TO-ANY SWAP ──────
+// Handles all four cases: MON→token, token→MON, token→token (Monorail
+// auto-routes via WMON or whichever intermediary it picks), and is the
+// real workhorse — executeBuy/executeSell are thin wrappers.
+async function executeSwap({from, to, amountHuman, slippageBps, account, onApproveStarted, onApproveConfirmed}){
+  // Normalize: empty/missing = native MON sentinel
+  const fromAddr = (from && from !== NATIVE_ZERO) ? from : NATIVE_ZERO;
+  const toAddr   = (to && to !== NATIVE_ZERO)     ? to   : NATIVE_ZERO;
+  if (fromAddr.toLowerCase() === toAddr.toLowerCase()){
+    throw new Error('From and To tokens are the same.');
+  }
   const q = await quoteRoute({
-    from: token,
-    to: NATIVE_ZERO,
-    amount: amountHuman,
-    sender: account,
-    slippageBps,
+    from: fromAddr, to: toAddr,
+    amount: amountHuman, sender: account, slippageBps,
   });
   if (!q.transaction) throw new Error('No transaction returned');
 
-  // Sells require token approval to Monorail's router
-  const spender = q.transaction.to;
-  const amountInWei = BigInt(q.input);
-  const current = await tokenAllowance(token, account, spender);
-  if (current < amountInWei){
-    if (onApproveStarted) onApproveStarted();
-    const approveData = tokenIface.encodeFunctionData('approve', [spender, (2n**256n - 1n)]);
-    const simA = await simulateCall(token, approveData, account, null);
-    if (!simA.ok) throw new Error('Approve will fail: ' + explainRevert(simA.error));
-    const approveTx = await sendTx({ from: account, to: token, data: approveData });
-    const rec = await waitReceipt(approveTx, 90000);
-    if (!rec) throw new Error('Approve tx not confirmed in 90s — try again');
-    if (onApproveConfirmed) onApproveConfirmed(approveTx);
+  const isNativeFrom = fromAddr === NATIVE_ZERO;
+
+  // ERC20 swaps require approval to the router. Native MON swaps don't —
+  // value rides on the tx itself.
+  if (!isNativeFrom){
+    const spender = q.transaction.to;
+    const amountInWei = BigInt(q.input);
+    const current = await tokenAllowance(fromAddr, account, spender);
+    if (current < amountInWei){
+      if (onApproveStarted) onApproveStarted();
+      const approveData = tokenIface.encodeFunctionData('approve', [spender, (2n**256n - 1n)]);
+      const simA = await simulateCall(fromAddr, approveData, account, null);
+      if (!simA.ok) throw new Error('Approve will fail: ' + explainRevert(simA.error));
+      const approveTx = await sendTx({ from: account, to: fromAddr, data: approveData });
+      const rec = await waitReceipt(approveTx, 90000);
+      if (!rec) throw new Error('Approve tx not confirmed in 90s — try again');
+      if (onApproveConfirmed) onApproveConfirmed(approveTx);
+    }
   }
 
-  const sim = await simulateCall(q.transaction.to, q.transaction.data, account, '0x0');
+  // Simulate the swap before signing — surfaces revert reasons cleanly
+  const valueForSim = isNativeFrom ? q.transaction.value : '0x0';
+  const sim = await simulateCall(q.transaction.to, q.transaction.data, account, valueForSim);
   if (!sim.ok) throw new Error(explainRevert(sim.error));
 
   const txHash = await sendTx({
     from: account,
     to: q.transaction.to,
     data: q.transaction.data,
-    value: '0x0',
+    value: isNativeFrom ? q.transaction.value : '0x0',
   });
   return { txHash, quote: q };
 }
@@ -371,7 +392,7 @@ window.ChogiTrade = {
   monorailQuote, quoteRoute, nadfunQuote, searchTokens,
   connect, isConnected, ensureMonadChain,
   tokenBalance, tokenAllowance, nativeBalance, tokenInfo,
-  executeBuy, executeSell, waitReceipt,
+  executeBuy, executeSell, executeSwap, waitReceipt,
   rpcCall, ethCall, explainRevert,
 };
 

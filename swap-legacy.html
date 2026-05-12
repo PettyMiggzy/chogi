@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SWAP · $CHOGI · Every Trade Burns</title>
+<meta name="description" content="Swap MON ↔ $CHOGI on chogi.xyz. Every swap automatically burns $CHOGI to the dead address. Permanent buyback baked into the UI.">
+<meta property="og:title" content="🔁 SWAP $CHOGI · Every Trade Burns">
+<meta property="og:description" content="Buy or sell $CHOGI directly on chogi.xyz. A % of every swap is burned automatically — supply only goes down.">
+<meta property="og:image" content="https://www.chogi.xyz/chogi.png">
+<meta property="og:url" content="https://www.chogi.xyz/swap">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="chogi.xyz">
+<meta name="twitter:url" content="https://www.chogi.xyz/swap">
+<meta name="twitter:image" content="https://www.chogi.xyz/chogi.png">
+<link rel="icon" type="image/png" href="/chogi.png">
+<meta name="theme-color" content="#FF1493">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chogi">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF1493;
+  --pink-glow:rgba(255,20,147,.5);
+  --purple:#A855F7;
+  --gold:#FCD34D;
+  --green:#4ADE80;
+  --fire:#FF4500;
+  --fire-glow:rgba(255,69,0,.55);
+  --bg:#0a0118;
+  --ink:#FFE9F4;
+  --muted:rgba(255,233,244,.6);
+}
+html,body{overflow-x:hidden;}
+body{min-height:100vh;background:var(--bg);font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);position:relative;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;z-index:-3;background:radial-gradient(ellipse at 50% 0%,rgba(255,20,147,.16),transparent 60%),radial-gradient(ellipse at 100% 80%,rgba(168,85,247,.16),transparent 55%),radial-gradient(ellipse at 0% 60%,rgba(255,69,0,.1),transparent 50%);}
+body::after{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;background-image:repeating-linear-gradient(0deg,rgba(255,20,147,.025) 0,rgba(255,20,147,.025) 1px,transparent 1px,transparent 4px);}
+
+.wrap{max-width:560px;margin:0 auto;padding:18px 18px 60px;}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;margin-bottom:24px;border-bottom:1px solid rgba(255,20,147,.18);}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);}
+.brand-img{width:42px;height:42px;border-radius:50%;border:2px solid var(--pink);overflow:hidden;box-shadow:0 0 18px var(--pink-glow);background:#000;}
+.brand-img img{width:100%;height:100%;object-fit:cover;}
+.brand-text .n{font-family:'Bungee',sans-serif;font-size:16px;letter-spacing:2.5px;color:#fff;}
+.brand-text .s{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--pink);margin-top:1px;}
+.back{font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;text-decoration:none;color:#fff;padding:9px 14px;border:1.5px solid rgba(255,255,255,.18);border-radius:8px;}
+.back:hover{border-color:var(--pink);box-shadow:0 0 14px var(--pink-glow);}
+
+.hero{text-align:center;margin:14px 0 22px;}
+.hero h1{font-family:'Bungee',sans-serif;font-size:clamp(34px,8vw,58px);letter-spacing:3px;line-height:.95;background:linear-gradient(135deg,var(--pink) 0%,var(--purple) 50%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 22px var(--pink-glow));margin-bottom:10px;}
+.hero p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;color:var(--muted);}
+
+.meter-strip{
+  margin-bottom:18px;padding:14px 18px;
+  background:linear-gradient(180deg,rgba(255,69,0,.08),rgba(255,20,147,.04));
+  border:1.5px solid rgba(255,69,0,.32);border-radius:14px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+}
+.meter-strip .l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--fire);}
+.meter-strip .v{font-family:'Bungee',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--fire);text-shadow:0 0 14px var(--fire-glow);}
+.meter-strip .v small{font-size:.45em;letter-spacing:2px;color:var(--ink);margin-left:4px;}
+.meter-strip .pct{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;color:var(--gold);font-weight:700;}
+
+.card{
+  padding:22px 20px 20px;
+  background:rgba(10,1,24,.55);
+  border:1.5px solid rgba(255,20,147,.4);border-radius:18px;
+  box-shadow:0 0 36px rgba(255,20,147,.12),inset 0 0 60px rgba(255,20,147,.04);
+}
+
+.tabs{display:flex;gap:8px;margin-bottom:16px;}
+.tab{
+  flex:1;padding:11px;text-align:center;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;cursor:pointer;
+  font-family:'Bungee',sans-serif;font-size:12px;letter-spacing:2px;color:#fff;
+  transition:all .15s;
+}
+.tab.active.buy{background:linear-gradient(135deg,rgba(74,222,128,.18),rgba(74,222,128,.05));border-color:var(--green);color:var(--green);box-shadow:0 0 20px rgba(74,222,128,.3);}
+.tab.active.sell{background:linear-gradient(135deg,rgba(255,20,147,.18),rgba(255,20,147,.05));border-color:var(--pink);color:var(--pink);box-shadow:0 0 20px var(--pink-glow);}
+
+.swap-row{
+  background:rgba(255,255,255,.03);
+  border:1.5px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:14px 16px;margin-bottom:8px;
+}
+.swap-row .lbl-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.swap-row .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);}
+.swap-row .bal{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--ink);cursor:pointer;}
+.swap-row .bal:hover{color:var(--gold);}
+.swap-row .input-row{display:flex;align-items:center;gap:10px;}
+.swap-row input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:#fff;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;
+  padding:0;
+  -moz-appearance:textfield;
+}
+.swap-row input::-webkit-outer-spin-button,
+.swap-row input::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0; }
+.swap-row .token{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);border-radius:10px;
+  font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;
+}
+.swap-row .token-emoji{font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center;}
+.swap-row .token-emoji img{width:22px;height:22px;border-radius:50%;display:block;object-fit:cover;}
+.swap-row.out input{color:var(--gold);}
+
+/* connected pill */
+.connect-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:20px;
+  background:rgba(74,222,128,.12);
+  border:1px solid rgba(74,222,128,.4);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  color:var(--green);
+  margin-bottom:14px;
+}
+.connect-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.connect-pill.off{background:rgba(255,69,0,.08);border-color:rgba(255,69,0,.4);color:var(--fire);}
+.connect-pill.off .dot{background:var(--fire);box-shadow:0 0 8px var(--fire);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+.flip-btn{
+  display:block;margin:6px auto;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,20,147,.12);border:1.5px solid rgba(255,20,147,.4);
+  color:var(--pink);cursor:pointer;font-size:18px;
+  transition:transform .25s,background .15s;
+}
+.flip-btn:hover{background:rgba(255,20,147,.22);transform:rotate(180deg);}
+
+.details{margin-top:14px;padding:12px 14px;background:rgba(255,69,0,.05);border:1px solid rgba(255,69,0,.2);border-radius:10px;font-size:11px;line-height:1.7;}
+.details .row{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;letter-spacing:.4px;color:var(--muted);}
+.details .row b{color:var(--ink);font-weight:700;}
+.details .row.fire b{color:var(--fire);}
+.details .row.gold b{color:var(--gold);}
+
+.slip-row{display:flex;align-items:center;gap:8px;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-wrap:wrap;}
+.slip-row .pill{padding:9px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;cursor:pointer;color:#fff;font-size:11px;letter-spacing:.5px;min-height:36px;display:inline-flex;align-items:center;}
+.slip-row .pill.active{border-color:var(--pink);color:var(--pink);background:rgba(255,20,147,.1);}
+
+.action-btn{
+  display:block;width:100%;margin-top:16px;padding:18px;
+  background:linear-gradient(135deg,var(--fire),var(--pink),var(--purple));
+  color:#fff;border:none;cursor:pointer;
+  font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:3px;
+  border-radius:12px;
+  box-shadow:0 0 24px var(--fire-glow);
+  transition:transform .15s,box-shadow .15s,opacity .2s;
+}
+.action-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 36px var(--fire-glow);}
+.action-btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.4);}
+
+.note{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.7;}
+.note .warn{color:var(--fire);}
+
+.status{margin-top:16px;padding:14px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;border:1px solid;display:none;line-height:1.5;}
+.status.show{display:block;}
+.status.info{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.4);color:var(--purple);}
+.status.success{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.45);color:var(--green);}
+.status.error{background:rgba(255,69,0,.1);border-color:rgba(255,69,0,.45);color:var(--fire);}
+.status a{color:inherit;text-decoration:underline;word-break:break-all;}
+
+footer{text-align:center;padding-top:22px;margin-top:30px;border-top:1px solid rgba(255,20,147,.15);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);}
+footer a{color:var(--pink);text-decoration:none;}
+.credit-pill{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 18px;background:linear-gradient(135deg,rgba(255,20,147,.14),rgba(252,211,77,.14));border:1.5px solid rgba(255,20,147,.45);border-radius:30px;text-decoration:none;color:#fff;font-family:'Bungee',sans-serif;font-size:11px;letter-spacing:2px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="topbar">
+  <a href="/" class="brand">
+    <div class="brand-img"><img src="/chogi.png" alt="Chogi"></div>
+    <div class="brand-text"><div class="n">CHOGI</div><div class="s">EXPERIMENT 7777</div></div>
+  </a>
+  <a href="/" class="back">← HOME</a>
+</div>
+
+<section class="hero">
+  <h1>🔁 SWAP</h1>
+  <p>EVERY TRADE BURNS $CHOGI · ON-CHAIN · AUTOMATIC</p>
+</section>
+
+<div class="meter-strip">
+  <div>
+    <div class="l">🔥 BURNED BY THIS ENGINE</div>
+    <div class="v"><span id="engineBurned">—</span><small>CHOGI</small></div>
+  </div>
+  <div style="text-align:right;">
+    <div class="l">CURRENT BURN</div>
+    <div class="pct"><span id="burnPctDisp">—</span> per swap</div>
+  </div>
+</div>
+
+<div class="card">
+
+  <div id="connectPill" class="connect-pill off">
+    <span class="dot"></span>
+    <span id="connectText">WALLET NOT CONNECTED · TAP BELOW</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab buy active" data-mode="buy">BUY $CHOGI</div>
+    <div class="tab sell" data-mode="sell">SELL $CHOGI</div>
+  </div>
+
+  <div class="swap-row" id="rowIn">
+    <div class="lbl-row">
+      <span class="lbl">YOU PAY</span>
+      <span class="bal" id="balIn">balance: —</span>
+    </div>
+    <div class="input-row">
+      <input type="text" id="amountIn" placeholder="0.0" inputmode="decimal" autocomplete="off">
+      <span class="token"><span class="token-emoji" id="emojiIn"><img src="/monad-logo.png" alt="MON"></span><span id="tokenIn">MON</span></span>
+    </div>
+  </div>
+
+  <button class="flip-btn" id="flipBtn" type="button" title="Flip direction">⇅</button>
+
+  <div class="swap-row out" id="rowOut">
+    <div class="lbl-row">
+      <span class="lbl">YOU RECEIVE (estimate)</span>
+      <span class="bal" id="balOut">balance: —</span>
+    </div>
+    <div class="input-row">
+      <input type="text" id="amountOut" placeholder="0.0" readonly>
+      <span class="token"><span class="token-emoji" id="emojiOut"><img src="/chogi.png" alt="CHOGI"></span><span id="tokenOut">CHOGI</span></span>
+    </div>
+  </div>
+
+  <div class="slip-row">
+    <span>SLIPPAGE</span>
+    <div class="pill" data-slip="50">0.5%</div>
+    <div class="pill" data-slip="100">1%</div>
+    <div class="pill" data-slip="300">3%</div>
+    <div class="pill active" data-slip="500">5%</div>
+    <div class="pill" data-slip="1000">10%</div>
+  </div>
+
+  <div id="impactWarn" style="display:none;margin-top:10px;padding:12px 14px;border-radius:10px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;letter-spacing:.3px;"></div>
+  <div class="details" id="detailsBox" style="display:none;">
+    <div class="row"><span>route</span><b id="dRoute">—</b></div>
+    <div class="row"><span>min received</span><b id="dMin">—</b></div>
+    <div class="row fire"><span>🔥 burned this swap</span><b id="dBurn">—</b></div>
+    <div class="row gold"><span>price impact</span><b id="dImpact">—</b></div>
+  </div>
+
+  <button class="action-btn" id="actionBtn" disabled>CONNECT WALLET</button>
+
+  <div class="status" id="status"></div>
+
+  <p class="note">Every swap routes through <span class="warn">ChogiSwapBurner</span>. A % of $CHOGI is sent to the dead address automatically. <span class="warn">Permanent.</span> Counter at top updates after each swap.</p>
+</div>
+
+<footer>
+  <div>monad mainnet · supply only goes down</div>
+  <div style="margin-top:6px;">
+    <a href="/burn">/burn</a> ·
+    <a href="/mint">/mint</a> ·
+    <a href="/lab">/lab</a> ·
+    <a href="https://x.com/chogicto" target="_blank" rel="noopener">X</a> ·
+    <a href="https://t.me/chogicto" target="_blank" rel="noopener">TG</a>
+  </div>
+  <a href="https://x.com/miggzyonbase" target="_blank" rel="noopener" class="credit-pill">
+    <span style="font-size:14px;">👑</span>
+    <span>A KING PETTY BUILD</span>
+  </a>
+</footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script src="/js/safety-disclaimer.js" defer></script>
+<script src="/js/wallet-helper.js" defer></script>
+<script src="/js/connect-pill.js" defer></script>
+<script src="/js/blocklist.js" defer></script>
+<script src="/js/pwa.js" defer></script>
+<script>
+(function(){
+  // ─── CONFIG ─────────────────────────────────────────
+  // ChogiSwapBurner v2 (slippage + reentrancy fixed, payroll-wired) deployed 2026-05-08
+  var BURNER     = '0x9Db6552ab771d57E108c77371c128FCc466291e9';
+  var CHOGI      = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
+  var WMON       = '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A';
+  var POOL       = '0x75C3Ab752e313544f00F08fC945FCe7d22EF4F0D'; // Capricorn V3 CHOGI/WMON 1%
+  var POOL_FEE   = 10000;  // 1%
+  var CHAIN_HEX  = '0x8f';
+  var RPC        = location.origin + '/api/rpc';
+  var EXPLORER   = 'https://monadexplorer.com/tx/';
+
+  var $ = function(id){ return document.getElementById(id); };
+  var rp = new ethers.JsonRpcProvider(RPC, { chainId: 143, name: "monad" }, { staticNetwork: true });
+  var signer = null;
+  var wallet = null;
+  var mode = 'buy';
+  var slipBps = 500n; // default 5% — accounts for Capricorn V3 price impact on non-trivial trades
+  var burnBps = 100n;
+  var bestQuote = null;
+
+  var POOL_ABI = [
+    'function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)',
+    'function liquidity() view returns (uint128)',
+    'function token0() view returns (address)',
+    'function token1() view returns (address)'
+  ];
+  var BURNER_ABI = [
+    'function buyChogiAndBurn(uint24 fee,uint256 minOutToUser) payable returns (uint256)',
+    'function sellChogiAndBurn(uint256 amountIn,uint24 fee,uint256 minOutToUser) returns (uint256)',
+    'function totalBurned() view returns (uint256)',
+    'function burnBps() view returns (uint16)',
+    'function stats() view returns (uint16, uint256)'
+  ];
+  var ERC20_ABI = [
+    'function balanceOf(address) view returns (uint256)',
+    'function allowance(address,address) view returns (uint256)',
+    'function approve(address,uint256) returns (bool)'
+  ];
+
+  function validBurner(){
+    return /^0x[0-9a-fA-F]{40}$/.test(BURNER) && BURNER !== '0x0000000000000000000000000000000000000000';
+  }
+  function fmt(n){
+    n = Number(n);
+    if(!isFinite(n)) return '—';
+    if(n >= 1e9) return (n/1e9).toFixed(2)+'B';
+    if(n >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if(n >= 1e3) return (n/1e3).toFixed(2)+'K';
+    if(n >= 1)   return n.toFixed(4);
+    if(n > 0)    return n.toFixed(6);
+    return '0';
+  }
+  function fmtBig(big){ return fmt(Number(big)/1e18); }
+  function fmtPct(bps){ return (Number(bps)/100).toFixed(2)+'%'; }
+
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      mode = t.getAttribute('data-mode');
+      paintTokens();
+      $('amountIn').value = '';
+      $('amountOut').value = '';
+      onAmountChange();
+    });
+  });
+
+  function paintTokens(){
+    var monLogo   = '<img src="/monad-logo.png" alt="MON">';
+    var chogiLogo = '<img src="/chogi.png" alt="CHOGI">';
+    if(mode === 'buy'){
+      $('tokenIn').textContent = 'MON';   $('emojiIn').innerHTML  = monLogo;
+      $('tokenOut').textContent = 'CHOGI'; $('emojiOut').innerHTML = chogiLogo;
+    } else {
+      $('tokenIn').textContent = 'CHOGI'; $('emojiIn').innerHTML  = chogiLogo;
+      $('tokenOut').textContent = 'MON';  $('emojiOut').innerHTML = monLogo;
+    }
+    paintBalances();
+  }
+
+  $('flipBtn').addEventListener('click', function(){
+    var t = mode === 'buy' ? 'sell' : 'buy';
+    document.querySelectorAll('.tab').forEach(function(x){
+      x.classList.toggle('active', x.getAttribute('data-mode') === t);
+    });
+    mode = t;
+    paintTokens();
+    $('amountIn').value = '';
+    $('amountOut').value = '';
+    onAmountChange();
+  });
+
+  document.querySelectorAll('.slip-row .pill').forEach(function(p){
+    p.addEventListener('click', function(){
+      document.querySelectorAll('.slip-row .pill').forEach(function(x){x.classList.remove('active');});
+      p.classList.add('active');
+      slipBps = BigInt(p.getAttribute('data-slip'));
+      onAmountChange();
+    });
+  });
+
+  async function loadMeter(){
+    if(!validBurner()){
+      $('engineBurned').textContent = '—';
+      $('burnPctDisp').textContent = '1.00%';
+      return;
+    }
+    try{
+      var c = new ethers.Contract(BURNER, BURNER_ABI, rp);
+      var s = await c.stats();
+      burnBps = BigInt(s[0]);
+      var lifetime = BigInt(s[1]);
+      $('engineBurned').textContent = fmtBig(lifetime);
+      $('burnPctDisp').textContent = fmtPct(burnBps);
+    }catch(e){ console.warn('meter', e.message); }
+  }
+
+  async function paintBalances(){
+    if(!wallet){ $('balIn').textContent = $('balOut').textContent = 'connect wallet'; return; }
+    try{
+      var monBal = await rp.getBalance(wallet);
+      var chogiC = new ethers.Contract(CHOGI, ERC20_ABI, rp);
+      var chogiBal = await chogiC.balanceOf(wallet);
+      if(mode === 'buy'){
+        $('balIn').textContent = 'balance: '+fmtBig(monBal)+' MON';
+        $('balOut').textContent = 'balance: '+fmtBig(chogiBal)+' CHOGI';
+        $('balIn').dataset.raw = monBal.toString();
+        $('balOut').dataset.raw = chogiBal.toString();
+      } else {
+        $('balIn').textContent = 'balance: '+fmtBig(chogiBal)+' CHOGI';
+        $('balOut').textContent = 'balance: '+fmtBig(monBal)+' MON';
+        $('balIn').dataset.raw = chogiBal.toString();
+        $('balOut').dataset.raw = monBal.toString();
+      }
+    }catch(e){ console.warn('bal', e.message); }
+  }
+  $('balIn').addEventListener('click', function(){
+    if(!$('balIn').dataset.raw) return;
+    var b = BigInt($('balIn').dataset.raw);
+    if(mode === 'buy') b = b > 5n*10n**16n ? b - 5n*10n**16n : b;
+    $('amountIn').value = ethers.formatUnits(b, 18);
+    onAmountChange();
+  });
+
+  var quoteSeq = 0;
+  // Get quote from Monorail aggregator. Routes through the same Capricorn V3 pool
+  // the burner uses, but returns IMPACT-AWARE output (not just spot price). This
+  // is what the previous slot0-based quote got wrong — for any trade that moves
+  // the pool even slightly, spot price over-estimates the delivered amount,
+  // causing the contract's slippage check to revert with the cryptic
+  // 'execution reverted (no data present)' error.
+  async function quote(amountInBig){
+    if(amountInBig === 0n) return null;
+    var seq = ++quoteSeq;
+
+    // For sells the burner contract burns burnBps from input BEFORE swap
+    var swapAmt = mode === 'buy' ? amountInBig : (amountInBig - (amountInBig * burnBps) / 10000n);
+    if(swapAmt === 0n) return null;
+
+    var fromTok = mode === 'buy' ? '0x0000000000000000000000000000000000000000' : CHOGI;
+    var toTok   = mode === 'buy' ? CHOGI : '0x0000000000000000000000000000000000000000';
+    var human   = ethers.formatUnits(swapAmt, 18);
+    var sender  = wallet || '0x0000000000000000000000000000000000000001';
+    var url     = 'https://pathfinder.monorail.xyz/v4/quote?from='+fromTok+'&to='+toTok+
+                  '&amount='+encodeURIComponent(human)+'&sender='+sender+'&slippage=100';
+    try{
+      var r = await fetch(url, {cache:'no-cache'});
+      var j = await r.json();
+      if(seq !== quoteSeq) return null;
+      if(j.message && !j.transaction){
+        console.warn('Monorail quote:', j.message);
+        return null;
+      }
+      // Use Monorail's gross output as the realistic estimate
+      var gross = BigInt(j.output);
+      // Confirm the route went through capricorn-v3 (same pool the burner uses).
+      // If a different route was returned, the burner's actual swap may deliver less.
+      // We still proceed but the user is warned via the impact field.
+      var protocol = '';
+      try{ protocol = j.routes[0][0].splits[0].protocol; }catch(e){}
+      if(protocol && protocol !== 'capricorn-v3'){
+        console.warn('Monorail routed via', protocol, '— burner uses capricorn-v3 directly');
+      }
+      return { fee: POOL_FEE, amountOut: gross, impact: parseFloat(j.compound_impact||0)*100 };
+    }catch(e){
+      console.warn('quote failed:', e.message);
+      return null;
+    }
+  }
+
+  function paintAction(){
+    var btn = $('actionBtn');
+    if(!signer){
+      btn.textContent = '🟣 CONNECT WALLET';
+      btn.disabled = false;
+      btn.dataset.role = 'connect';
+      return;
+    }
+    btn.dataset.role = 'swap';
+    if(!validBurner()){ btn.textContent = 'CONTRACT NOT DEPLOYED'; btn.disabled = true; return; }
+    if(!bestQuote){ btn.textContent = mode === 'buy' ? 'ENTER MON AMOUNT' : 'ENTER CHOGI AMOUNT'; btn.disabled = true; return; }
+    btn.disabled = false;
+    btn.textContent = mode === 'buy' ? '🔁 BUY $CHOGI · BURN ON' : '🔁 SELL $CHOGI · BURN ON';
+  }
+
+  async function onAmountChange(){
+    var raw = $('amountIn').value.trim().replace(/[, _]/g,'');
+    if(!raw || isNaN(Number(raw)) || Number(raw) <= 0){
+      $('amountOut').value = '';
+      $('detailsBox').style.display = 'none';
+      bestQuote = null;
+      paintAction();
+      return;
+    }
+    var amountInBig;
+    try{ amountInBig = ethers.parseUnits(raw, 18); }catch(e){ return; }
+
+    var q = await quote(amountInBig);
+    if(!q){
+      $('amountOut').value = '';
+      $('detailsBox').style.display = 'none';
+      bestQuote = null;
+      paintAction();
+      return;
+    }
+    bestQuote = q;
+
+    var burnAmt, userOut;
+    if(mode === 'buy'){
+      burnAmt = (q.amountOut * burnBps) / 10000n;
+      userOut = q.amountOut - burnAmt;
+    } else {
+      burnAmt = (amountInBig * burnBps) / 10000n;
+      userOut = q.amountOut;
+    }
+
+    var minOut = userOut - (userOut * slipBps) / 10000n;
+
+    $('amountOut').value = ethers.formatUnits(userOut, 18);
+
+    $('detailsBox').style.display = 'block';
+    $('dRoute').textContent  = (q.fee/10000) + '% pool · '+ (mode === 'buy' ? 'WMON → CHOGI' : 'CHOGI → WMON → MON');
+    $('dMin').textContent    = fmtBig(minOut) + ' ' + (mode === 'buy' ? 'CHOGI' : 'MON');
+    $('dBurn').textContent   = fmtBig(burnAmt) + ' CHOGI';
+    var impactPct = (q.impact != null ? q.impact : 0);
+    $('dImpact').textContent = impactPct.toFixed(3) + '%';
+    // Show impact as info only — Monorail's compound_impact includes gas
+    // and is unreliable as a slippage warning. Slippage tolerance is the
+    // real safety: tx auto-reverts if execution is worse than minOut.
+    var dImpEl = $('dImpact');
+    dImpEl.style.color = impactPct < 3 ? '#22d36f' : impactPct < 10 ? '#ffaa33' : '#ff4d6d';
+
+    // Warning banner only fires on TRULY massive trades w/ extreme impact.
+    // For everything else the slippage tolerance is the safety net.
+    var amtIn = parseFloat(raw || '0');
+    var isBuy = (mode === 'buy');
+    var isMassive = isBuy ? (amtIn >= 100) : (amtIn >= 1000000);  // ~$4 / $90 — only real liquidity stress
+    var warnEl = $('impactWarn');
+    if(warnEl){
+      if(isMassive && impactPct >= 30){
+        warnEl.style.display = 'block';
+        warnEl.style.background = 'rgba(255,77,109,.16)';
+        warnEl.style.borderColor = 'rgba(255,77,109,.5)';
+        warnEl.style.color = '#ff4d6d';
+        warnEl.innerHTML = '⚠ MASSIVE TRADE: <b>'+impactPct.toFixed(1)+'%</b> impact at this size. Split into smaller swaps or raise slippage if you want to force it through.';
+      } else {
+        warnEl.style.display = 'none';
+      }
+    }
+
+    bestQuote.minOut = minOut;
+    bestQuote.userOut = userOut;
+    bestQuote.burnAmt = burnAmt;
+    paintAction();
+  }
+  $('amountIn').addEventListener('input', onAmountChange);
+
+  async function connect(){
+    if(!window.ethereum){
+      if(window.ChogiWallet) ChogiWallet.requireWallet();
+      else alert('No wallet detected. Install MetaMask, Rabby, or open in a wallet browser.');
+      return;
+    }
+    try {
+      var accs = await window.ethereum.request({method:'eth_requestAccounts'});
+      var chain = await window.ethereum.request({method:'eth_chainId'});
+      if(chain !== CHAIN_HEX){
+        try{
+          await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
+        }catch(e){
+          if(e.code===4902){
+            await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+              chainId:CHAIN_HEX,chainName:'Monad',
+              nativeCurrency:{name:'MON',symbol:'MON',decimals:18},
+              rpcUrls:['https://rpc.monad.xyz'],blockExplorerUrls:['https://monadexplorer.com']
+            }]});
+          } else { throw e; }
+        }
+      }
+      var bp = new ethers.BrowserProvider(window.ethereum);
+      signer = await bp.getSigner();
+      wallet = accs[0];
+      // paint connected pill
+      var pill = $('connectPill');
+      pill.classList.remove('off');
+      $('connectText').textContent = 'CONNECTED · ' + wallet.slice(0,6) + '…' + wallet.slice(-4);
+      paintBalances();
+      paintAction();
+    } catch(e) {
+      console.error('[connect] err', e);
+      alert('Connect failed: ' + (e.shortMessage || e.message || 'unknown error'));
+    }
+  }
+
+  function status(kind, html){
+    var el = $('status');
+    el.className = 'status show '+kind;
+    el.innerHTML = html;
+  }
+
+  // nad.fun DEX_ROUTER on Monad mainnet (wraps the same Capricorn V3 pool, no burn).
+  // Used as a fallback route when the burner reverts so users always have a way to trade.
+  var NADFUN_DEX_ROUTER = '0x0B79d71AE99528D1dB24A4148b5f4F865cc2b137';
+  var NADFUN_ROUTER_IFACE = new ethers.Interface([
+    'function buy((uint256 amountOutMin,address token,address to,uint256 deadline) params) payable returns (uint256)',
+    'function sell((uint256 amountIn,uint256 amountOutMin,address token,address to,uint256 deadline) params) returns (uint256)'
+  ]);
+
+  // ABI Interface for manual tx construction (bypasses any contract-proxy quirks)
+  var BURNER_IFACE = new ethers.Interface(BURNER_ABI);
+  var ERC20_IFACE  = new ethers.Interface(ERC20_ABI);
+
+  async function execute(){
+    if(!signer){ await connect(); return; }
+    if(!validBurner()) return;
+    if(!bestQuote) return;
+    var raw = $('amountIn').value.trim().replace(/[, _]/g,'');
+    var amountInBig;
+    try{ amountInBig = ethers.parseUnits(raw, 18); }
+    catch(e){ status('error', 'Invalid amount'); return; }
+
+    // ABSOLUTE GUARD: contract reverts with ZeroAmount() (selector 0x1f2a2005)
+    // when msg.value is 0. Refuse to send anything that would hit this revert.
+    if(amountInBig <= 0n){ status('error', 'Amount must be greater than 0'); return; }
+    if(mode === 'buy' && amountInBig === 0n){
+      status('error', 'Buy requires MON value attached. Got 0. Check the amount field.');
+      return;
+    }
+
+    var btn = $('actionBtn');
+    btn.disabled = true;
+
+    try{
+      if(mode === 'buy'){
+        // Manually construct buy tx — guarantees msg.value is attached.
+        var data = BURNER_IFACE.encodeFunctionData('buyChogiAndBurn', [bestQuote.fee, bestQuote.minOut]);
+        var hexValue = '0x' + amountInBig.toString(16);
+        var txParams = { to: BURNER, data: data, value: hexValue };
+        console.log('[CHOGI BUY tx params]', JSON.stringify({to: BURNER, valueHex: hexValue, valueMon: ethers.formatUnits(amountInBig,18), fee: bestQuote.fee, minOut: bestQuote.minOut.toString()}, null, 2));
+
+        status('info','Confirm buy in wallet · MON attached: '+ethers.formatUnits(amountInBig,18));
+        var tx = await signer.sendTransaction(txParams);
+        status('info','Swapping… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
+        var rec = await tx.wait();
+        if(rec.status === 1){
+          status('success','✅ Bought ~'+fmtBig(bestQuote.userOut)+' CHOGI · '+fmtBig(bestQuote.burnAmt)+' burned · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
+        } else {
+          status('error','Transaction failed.');
+          showFallbackButton(amountInBig);
+        }
+      } else {
+        // Sell — check allowance, approve if needed, then sell
+        var chogiC = new ethers.Contract(CHOGI, ERC20_ABI, signer);
+        var allowance = await chogiC.allowance(wallet, BURNER);
+        if(allowance < amountInBig){
+          status('info','Approving CHOGI…');
+          var approveData = ERC20_IFACE.encodeFunctionData('approve', [BURNER, ethers.MaxUint256]);
+          var atx = await signer.sendTransaction({ to: CHOGI, data: approveData });
+          await atx.wait();
+        }
+
+        var sellData = BURNER_IFACE.encodeFunctionData('sellChogiAndBurn', [amountInBig, bestQuote.fee, bestQuote.minOut]);
+        console.log('[CHOGI SELL tx params]', { to: BURNER, amountIn: amountInBig.toString(), fee: bestQuote.fee, minOut: bestQuote.minOut.toString() });
+
+        status('info','Confirm sell in wallet…');
+        var tx = await signer.sendTransaction({ to: BURNER, data: sellData });
+        status('info','Swapping… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
+        var rec = await tx.wait();
+        if(rec.status === 1){
+          status('success','✅ Sold '+fmtBig(amountInBig)+' CHOGI for ~'+fmtBig(bestQuote.userOut)+' MON · '+fmtBig(bestQuote.burnAmt)+' burned · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
+        } else {
+          status('error','Transaction failed.');
+          showFallbackButton(amountInBig);
+        }
+      }
+      await paintBalances();
+      await loadMeter();
+    }catch(e){
+      console.error(e);
+      var msg = e.shortMessage || e.message || 'Transaction rejected';
+      var low = msg.toLowerCase();
+      var raw = (e.info && e.info.error && e.info.error.data) || e.data || '';
+      if(raw === '0x1f2a2005' || low.includes('zeroamount')){
+        msg = 'Burner rejected the call (ZeroAmount): the swap was sent with no MON attached. Hard-refresh the page (Ctrl+Shift+R) and try again.';
+      } else if(low.includes('no data') || low.includes('require') || low.includes('execution reverted')){
+        msg = 'Trade reverted via burner. Try the nad.fun fallback route below.';
+        showFallbackButton(amountInBig);
+      } else if(low.includes('insufficient funds')){
+        msg = 'Not enough MON for trade + gas.';
+      } else if(low.includes('user rejected') || low.includes('user denied')){
+        msg = 'Signature cancelled.';
+      }
+      if(msg.length > 240) msg = msg.slice(0,240)+'…';
+      status('error', msg);
+    } finally {
+      btn.disabled = false;
+      paintAction();
+    }
+  }
+
+  // Fallback: route through nad.fun's DEX router (same Capricorn V3 pool, no burn).
+  function showFallbackButton(amountInBig){
+    var el = $('status');
+    if(!el || el.querySelector('.fallback-btn')) return;
+    var btn = document.createElement('button');
+    btn.className = 'fallback-btn';
+    btn.style.cssText = 'margin-top:10px;padding:10px 16px;background:linear-gradient(135deg,#22d3ee,#A855F7);color:#fff;border:none;border-radius:8px;font-family:Bungee,sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;';
+    btn.textContent = '🚀 RETRY VIA NAD.FUN (NO BURN)';
+    btn.onclick = function(){ btn.disabled=true; btn.textContent='ROUTING…'; executeNadfun(amountInBig).catch(function(e){ console.error(e); }); };
+    el.appendChild(btn);
+  }
+
+  async function executeNadfun(amountInBig){
+    if(!signer || !bestQuote) return;
+    try{
+      if(mode === 'buy'){
+        var data = NADFUN_ROUTER_IFACE.encodeFunctionData('buy', [{
+          amountOutMin: bestQuote.minOut,
+          token: CHOGI,
+          to: wallet,
+          deadline: BigInt(Math.floor(Date.now()/1000) + 1200)
+        }]);
+        status('info','Routing via nad.fun · confirm in wallet…');
+        var tx = await signer.sendTransaction({ to: NADFUN_DEX_ROUTER, data, value: '0x'+amountInBig.toString(16) });
+        status('info','Swapping via nad.fun… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
+        var rec = await tx.wait();
+        if(rec.status === 1){
+          status('success','✅ Bought CHOGI via nad.fun (no burn) · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
+        } else { status('error','nad.fun route also reverted.'); }
+      } else {
+        // approve nad.fun router for CHOGI
+        var chogiC = new ethers.Contract(CHOGI, ERC20_ABI, signer);
+        var allowance = await chogiC.allowance(wallet, NADFUN_DEX_ROUTER);
+        if(allowance < amountInBig){
+          status('info','Approving nad.fun router…');
+          var approveData = ERC20_IFACE.encodeFunctionData('approve', [NADFUN_DEX_ROUTER, ethers.MaxUint256]);
+          var atx = await signer.sendTransaction({ to: CHOGI, data: approveData });
+          await atx.wait();
+        }
+        var data = NADFUN_ROUTER_IFACE.encodeFunctionData('sell', [{
+          amountIn: amountInBig,
+          amountOutMin: bestQuote.minOut,
+          token: CHOGI,
+          to: wallet,
+          deadline: BigInt(Math.floor(Date.now()/1000) + 1200)
+        }]);
+        status('info','Selling via nad.fun · confirm in wallet…');
+        var tx = await signer.sendTransaction({ to: NADFUN_DEX_ROUTER, data });
+        status('info','Swapping via nad.fun… <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">'+tx.hash.slice(0,10)+'…'+tx.hash.slice(-6)+'</a>');
+        var rec = await tx.wait();
+        if(rec.status === 1){
+          status('success','✅ Sold CHOGI via nad.fun (no burn) · <a href="'+EXPLORER+tx.hash+'" target="_blank" rel="noopener">view tx</a>');
+        } else { status('error','nad.fun route also reverted.'); }
+      }
+      await paintBalances();
+    }catch(e){
+      console.error('nadfun fallback err', e);
+      status('error', 'nad.fun route failed: ' + (e.shortMessage || e.message));
+    }
+  }
+  $('actionBtn').addEventListener('click', async function(){
+    var btn = $('actionBtn');
+    if(btn.dataset.role === 'connect' || !signer){
+      await connect();
+      return;
+    }
+    await execute();
+  });
+
+  loadMeter();
+  setInterval(loadMeter, 60000);
+  paintTokens();
+
+  if(window.ethereum){
+    window.ethereum.request({method:'eth_accounts'}).then(function(a){
+      if(a && a.length){
+        // already authorized — restore connected state without re-prompting
+        connect().catch(function(e){ console.warn('auto-connect:', e?.message); });
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
