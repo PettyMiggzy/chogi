@@ -297,8 +297,11 @@ function explainRevert(err){
     return 'Enter an amount to swap.';
   if (low.includes('insufficient balance') || low.includes('insufficient funds'))
     return 'Not enough balance in your wallet to cover this trade + gas.';
-  if (low.includes('insufficient_output_amount') || low.includes('amount_out_min') || low.includes('slippage'))
-    return 'Slippage too tight — price moved between quote and execution. Try 3% or 5%.';
+  // Match ONLY real on-chain output-amount reverts. The bare word
+  // 'slippage' previously matched Monorail's own quote-side errors
+  // ('slippage out of range' etc) and masked the real cause.
+  if (low.includes('insufficient_output_amount') || low.includes('amount_out_min'))
+    return 'Slippage too tight — price moved between quote and execution. Try 5% or 10%.';
   if (low.includes('expired') || low.includes('deadline'))
     return 'Tx deadline passed. Retry the trade.';
   if (low.includes('transfer_failed') || low.includes('transfer failed'))
@@ -311,24 +314,14 @@ function explainRevert(err){
 }
 
 // ────── BUY (native MON → token) ──────
-async function executeBuy({token, amountHuman, slippageBps, account}){
-  const q = await quoteRoute({
-    from: NATIVE_ZERO,
-    to: token,
-    amount: amountHuman,
-    sender: account,
-    slippageBps,
+// Delegates to executeSwap so the auto-wrap fallback for thin-pool tokens
+// (MONI, MOYAKI, etc.) kicks in transparently.
+async function executeBuy({token, amountHuman, slippageBps, account, onApproveStarted, onApproveConfirmed}){
+  return executeSwap({
+    from: NATIVE_ZERO, to: token,
+    amountHuman, slippageBps, account,
+    onApproveStarted, onApproveConfirmed,
   });
-  if (!q.transaction) throw new Error('No transaction returned');
-  const sim = await simulateCall(q.transaction.to, q.transaction.data, account, q.transaction.value);
-  if (!sim.ok) throw new Error(explainRevert(sim.error));
-  const txHash = await sendTx({
-    from: account,
-    to: q.transaction.to,
-    data: q.transaction.data,
-    value: q.transaction.value,
-  });
-  return { txHash, quote: q };
 }
 
 // ────── SELL (token → native MON) ──────
@@ -343,6 +336,8 @@ async function executeSell({token, amountHuman, slippageBps, account, onApproveS
 // Handles all four cases: MON→token, token→MON, token→token (Monorail
 // auto-routes via WMON or whichever intermediary it picks), and is the
 // real workhorse — executeBuy/executeSell are thin wrappers.
+const WMON_ADDRESS_INTERNAL = '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A';
+
 async function executeSwap({from, to, amountHuman, slippageBps, account, onApproveStarted, onApproveConfirmed}){
   // Normalize: empty/missing = native MON sentinel
   const fromAddr = (from && from !== NATIVE_ZERO) ? from : NATIVE_ZERO;
@@ -350,26 +345,80 @@ async function executeSwap({from, to, amountHuman, slippageBps, account, onAppro
   if (fromAddr.toLowerCase() === toAddr.toLowerCase()){
     throw new Error('From and To tokens are the same.');
   }
-  const q = await quoteRoute({
+
+  // Quote what Monorail picks natively first
+  let q = await quoteRoute({
     from: fromAddr, to: toAddr,
     amount: amountHuman, sender: account, slippageBps,
   });
+  console.log('[chogi-swap] initial quote', { hops: q.routes?.[0]?.length, protocols: q.routes?.[0]?.map(s=>s.splits?.[0]?.protocol) });
+
+  let usedSrc = fromAddr;
+  let usedDst = toAddr;
+  let didWrap = false;
+  let needsUnwrap = false;
+  const baseHops = (q.routes?.[0]?.length) ?? 1;
+
+  // FORWARD auto-rewrite: MON → thin-pool token, multi-hop → use WMON path
+  if (fromAddr === NATIVE_ZERO && baseHops >= 2){
+    try {
+      const alt = await quoteRoute({
+        from: WMON_ADDRESS_INTERNAL, to: toAddr,
+        amount: amountHuman, sender: account, slippageBps,
+      });
+      const altHops = alt.routes?.[0]?.length ?? 99;
+      if (altHops < baseHops){
+        console.log('[chogi-swap] using WMON forward route', { hops: altHops });
+        q = alt; usedSrc = WMON_ADDRESS_INTERNAL; didWrap = true;
+      }
+    } catch(e){ console.warn('[chogi-swap] forward WMON quote failed', e); }
+  }
+
+  // REVERSE auto-rewrite: thin-pool token → MON, multi-hop → use WMON path + unwrap
+  if (toAddr === NATIVE_ZERO && baseHops >= 2){
+    try {
+      const alt = await quoteRoute({
+        from: fromAddr, to: WMON_ADDRESS_INTERNAL,
+        amount: amountHuman, sender: account, slippageBps,
+      });
+      const altHops = alt.routes?.[0]?.length ?? 99;
+      if (altHops < baseHops){
+        console.log('[chogi-swap] using WMON reverse route + unwrap', { hops: altHops });
+        q = alt; usedDst = WMON_ADDRESS_INTERNAL; needsUnwrap = true;
+      }
+    } catch(e){ console.warn('[chogi-swap] reverse WMON quote failed', e); }
+  }
+
   if (!q.transaction) throw new Error('No transaction returned');
 
-  const isNativeFrom = fromAddr === NATIVE_ZERO;
+  const isNativeFrom = usedSrc === NATIVE_ZERO;
+
+  // PRE-STEP (silent): if forward path was rewritten to WMON, wrap MON first
+  if (didWrap){
+    const amountWei = parseUnitsBig(amountHuman, 18);
+    if (onApproveStarted) onApproveStarted();
+    const wrapTx = await sendTx({
+      from: account, to: WMON_ADDRESS_INTERNAL,
+      data: '0xd0e30db0', value: '0x' + amountWei.toString(16),
+      gas: '0x13880',
+    });
+    const wrapRec = await waitReceipt(wrapTx, 90000);
+    if (!wrapRec) throw new Error('First step not confirmed in 90s — try again');
+    if (onApproveConfirmed) onApproveConfirmed(wrapTx);
+  }
 
   // ERC20 swaps require approval to the router. Native MON swaps don't —
   // value rides on the tx itself.
   if (!isNativeFrom){
     const spender = q.transaction.to;
     const amountInWei = BigInt(q.input);
-    const current = await tokenAllowance(fromAddr, account, spender);
+    const current = await tokenAllowance(usedSrc, account, spender);
     if (current < amountInWei){
       if (onApproveStarted) onApproveStarted();
       const approveData = tokenIface.encodeFunctionData('approve', [spender, (2n**256n - 1n)]);
-      const simA = await simulateCall(fromAddr, approveData, account, null);
-      if (!simA.ok) throw new Error('Approve will fail: ' + explainRevert(simA.error));
-      const approveTx = await sendTx({ from: account, to: fromAddr, data: approveData });
+      const simA = await simulateCall(usedSrc, approveData, account, null);
+      if (!simA.ok){ console.error('[chogi-swap] approve sim failed', simA.error); throw new Error('Approve will fail: ' + explainRevert(simA.error)); }
+      const approveTx = await sendTx({ from: account, to: usedSrc, data: approveData });
       const rec = await waitReceipt(approveTx, 90000);
       if (!rec) throw new Error('Approve tx not confirmed in 90s — try again');
       if (onApproveConfirmed) onApproveConfirmed(approveTx);
@@ -379,7 +428,7 @@ async function executeSwap({from, to, amountHuman, slippageBps, account, onAppro
   // Simulate the swap before signing — surfaces revert reasons cleanly
   const valueForSim = isNativeFrom ? q.transaction.value : '0x0';
   const sim = await simulateCall(q.transaction.to, q.transaction.data, account, valueForSim);
-  if (!sim.ok) throw new Error(explainRevert(sim.error));
+  if (!sim.ok){ console.error('[chogi-swap] main sim failed', sim.error); throw new Error(explainRevert(sim.error)); }
 
   const txHash = await sendTx({
     from: account,
@@ -387,7 +436,29 @@ async function executeSwap({from, to, amountHuman, slippageBps, account, onAppro
     data: q.transaction.data,
     value: isNativeFrom ? q.transaction.value : '0x0',
   });
-  return { txHash, quote: q };
+
+  // POST-STEP (silent): if reverse path was rewritten to WMON, unwrap to MON
+  if (needsUnwrap){
+    const swapRec = await waitReceipt(txHash, 120000);
+    if (swapRec){
+      try{
+        const wmonBal = await rpcCall('eth_call', [{
+          to: WMON_ADDRESS_INTERNAL,
+          data: tokenIface.encodeFunctionData('balanceOf', [account]),
+        }, 'latest']);
+        const wmonBalBig = BigInt(wmonBal);
+        if (wmonBalBig > 0n){
+          const withdrawData = '0x2e1a7d4d' + wmonBalBig.toString(16).padStart(64, '0');
+          await sendTx({
+            from: account, to: WMON_ADDRESS_INTERNAL,
+            data: withdrawData, gas: '0x13880',
+          });
+        }
+      }catch(e){ console.warn('[chogi-swap] auto-unwrap WMON failed (user has WMON, can unwrap manually)', e); }
+    }
+  }
+
+  return { txHash, quote: q, viaWrap: didWrap, viaUnwrap: needsUnwrap };
 }
 
 // ────── Token search (Monorail catalog) ──────
