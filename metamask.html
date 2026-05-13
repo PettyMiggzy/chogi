@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CHOGI MetaMask Terminal · Bridge & Trade on Monad</title>
+<meta name="description" content="A hot-pink CHOGI MetaMask terminal for bridging into Monad and trading Monad tokens. One-click onboarding from ETH or any L2." />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="https://metamask.chogi.xyz/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="CHOGI MetaMask Terminal" />
+<meta property="og:url" content="https://metamask.chogi.xyz/" />
+<meta property="og:title" content="CHOGI MetaMask Terminal" />
+<meta property="og:description" content="Bridge in, buy $CHOGI, trade Monad tokens — all from MetaMask in your browser." />
+<meta property="og:image" content="https://metamask.chogi.xyz/chogi.png" />
+<meta property="og:image:alt" content="CHOGI MetaMask terminal" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="CHOGI MetaMask Terminal" />
+<meta name="twitter:description" content="Bridge and trade Monad tokens from MetaMask." />
+<meta name="twitter:image" content="https://metamask.chogi.xyz/chogi.png" />
+<meta name="theme-color" content="#FF1493" />
+<link rel="icon" href="/chogi.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --pink: #FF1493;
+  --pink-soft: #FF8DC7;
+  --purple: #A855F7;
+  --cyan: #22d3ee;
+  --green: #22d36f;
+  --red: #ff4d6d;
+  --amber: #ffaa33;
+  --cream: #FFF4D6;
+  --bg: #0a0118;
+  --bg-2: #1a0436;
+  --ink: #FFE9F4;
+  --ink-dim: #b9a8d8;
+  --mute: #9a8bb3;
+  --panel: rgba(20, 8, 40, .55);
+  --card-stroke: rgba(255, 20, 147, .25);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  color: var(--ink); background: var(--bg);
+  background-image:
+    radial-gradient(1400px 800px at 20% -10%, rgba(255, 20, 147, .35), transparent 60%),
+    radial-gradient(900px 600px at 90% 30%, rgba(168, 85, 247, .25), transparent 60%),
+    radial-gradient(700px 500px at 50% 110%, rgba(34, 211, 238, .18), transparent 60%);
+  min-height: 100vh; line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input, select { font-family: inherit; }
+
+.shell { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; }
+
+.hero {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.brand-lockup { display: flex; align-items: center; gap: 14px; }
+.brand-lockup img {
+  width: 64px; height: 64px; border-radius: 18px;
+  border: 2px solid var(--pink); object-fit: cover;
+  box-shadow: 0 0 28px rgba(255, 20, 147, .55);
+}
+.eyebrow {
+  font-family: 'Bungee', sans-serif; font-size: 10px;
+  letter-spacing: 3px; color: var(--cream);
+  text-transform: uppercase; margin: 0 0 4px;
+}
+h1 {
+  font-family: 'Bungee', sans-serif;
+  font-size: clamp(20px, 3vw, 26px);
+  letter-spacing: 1.5px; margin: 0; color: #fff;
+}
+.wallet-card {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 14px 18px; border-radius: 14px;
+  background: var(--panel); border: 1.5px solid var(--card-stroke);
+  min-width: 280px;
+}
+.wallet-card p { margin: 4px 0 0; color: var(--ink-dim); font-size: 12px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(255, 20, 147, .14);
+  border: 1px solid rgba(255, 20, 147, .35);
+  font-size: 11px; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--pink-soft);
+}
+.pill.connected {
+  background: rgba(34, 211, 111, .14);
+  border-color: rgba(34, 211, 111, .4);
+  color: var(--green);
+}
+
+button {
+  cursor: pointer; transition: transform .15s, box-shadow .15s, opacity .15s;
+  border: none; font-weight: 700;
+}
+button:active { transform: translateY(1px); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.primary {
+  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+  color: #fff;
+  padding: 12px 22px; border-radius: 12px;
+  font-family: 'Bungee', sans-serif; font-size: 12px; letter-spacing: 2px;
+  box-shadow: 0 10px 28px rgba(255, 20, 147, .45);
+}
+.primary:hover:not(:disabled) {
+  box-shadow: 0 14px 36px rgba(255, 20, 147, .6);
+  transform: translateY(-2px);
+}
+.secondary {
+  background: rgba(255, 255, 255, .04);
+  color: var(--ink);
+  padding: 11px 18px; border-radius: 11px;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+  font-size: 13px;
+  border: 1.5px solid rgba(255, 20, 147, .3);
+}
+.secondary:hover:not(:disabled) { border-color: var(--pink); }
+.ghost {
+  background: transparent; color: var(--ink-dim);
+  border: 1px solid rgba(255, 255, 255, .12);
+  padding: 8px 14px; border-radius: 10px; font-size: 12px;
+}
+.ghost:hover { border-color: var(--pink); color: var(--ink); }
+
+.workspace {
+  display: grid; gap: 18px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 880px) {
+  .workspace { grid-template-columns: 1fr 320px; }
+  .tabs, .panel { grid-column: 1; }
+  .quote-board { grid-column: 2; grid-row: 1 / span 3; }
+}
+
+.tabs {
+  display: flex; gap: 6px; padding: 6px;
+  background: rgba(20, 8, 40, .55);
+  border-radius: 14px; border: 1.5px solid var(--card-stroke);
+  width: fit-content;
+}
+.tab {
+  background: transparent; color: var(--ink-dim);
+  padding: 10px 18px; border-radius: 9px;
+  font-family: 'Bungee', sans-serif; font-size: 11px;
+  letter-spacing: 2px; border: none; cursor: pointer;
+}
+.tab.is-active {
+  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(255, 20, 147, .35);
+}
+
+.panel {
+  display: none;
+  padding: 22px;
+  background: var(--panel);
+  border-radius: 18px;
+  border: 1.5px solid var(--card-stroke);
+}
+.panel.is-active { display: block; }
+.panel-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 14px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.panel-head h2 {
+  margin: 0; font-family: 'Bungee', sans-serif;
+  font-size: 18px; letter-spacing: 1px; color: #fff;
+}
+.segmented {
+  display: inline-flex; padding: 3px;
+  background: rgba(0, 0, 0, .35); border-radius: 10px;
+}
+.segment {
+  background: transparent; color: var(--ink-dim);
+  padding: 7px 14px; border-radius: 7px; border: none;
+  font-family: 'Bungee', sans-serif; font-size: 10px;
+  letter-spacing: 1.5px; cursor: pointer;
+}
+.segment.is-active {
+  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+  color: #fff;
+}
+
+.form-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 16px;
+}
+.form-grid label { display: flex; flex-direction: column; gap: 5px; }
+.form-grid label span {
+  font-size: 10px; letter-spacing: 1.6px;
+  color: var(--cream); text-transform: uppercase;
+  font-weight: 700;
+}
+.form-grid input, .form-grid select {
+  background: rgba(0, 0, 0, .35);
+  border: 1px solid rgba(255, 255, 255, .1);
+  color: var(--ink);
+  padding: 11px 13px; border-radius: 10px;
+  font-size: 14px;
+}
+.form-grid input:focus, .form-grid select:focus {
+  outline: none; border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(255, 20, 147, .15);
+}
+
+.custom-token-drawer {
+  grid-column: 1 / -1;
+  padding: 12px;
+  background: rgba(0, 0, 0, .25);
+  border: 1px dashed rgba(255, 20, 147, .3);
+  border-radius: 10px;
+}
+.custom-token-drawer p {
+  margin: 6px 0 0; font-size: 11px; color: var(--ink-dim);
+}
+.custom-token-input {
+  width: 100%; background: rgba(0, 0, 0, .4);
+  border: 1px solid rgba(255, 255, 255, .12);
+  color: var(--ink); padding: 10px 12px;
+  border-radius: 8px; font-size: 12px; font-family: monospace;
+}
+
+.token-card {
+  padding: 14px; margin-bottom: 14px;
+  background: rgba(255, 20, 147, .06);
+  border: 1px solid rgba(255, 20, 147, .25);
+  border-radius: 12px;
+}
+.token-card p { margin: 6px 0 0; font-size: 12px; color: var(--ink-dim); }
+
+.actions {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;
+}
+
+.quote-board {
+  padding: 18px; border-radius: 18px;
+  background: var(--panel);
+  border: 1.5px solid var(--card-stroke);
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: 600px;
+}
+.quote-head {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.icon-button {
+  background: transparent; color: var(--ink-dim);
+  border: 1px solid rgba(255, 255, 255, .12);
+  padding: 5px 10px; border-radius: 7px; font-size: 10px;
+}
+.icon-button:hover { border-color: var(--pink); color: var(--ink); }
+.quote-box {
+  padding: 14px; background: rgba(0, 0, 0, .3);
+  border-radius: 10px; font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, .06);
+  min-height: 80px;
+}
+.quote-box p { margin: 0; color: var(--ink-dim); }
+.quote-box .qline { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+.quote-box .qline b { color: var(--cream); }
+.activity-log {
+  flex: 1; overflow-y: auto;
+  font-family: monospace; font-size: 11px;
+  color: var(--ink-dim);
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  padding-top: 10px; line-height: 1.6;
+  max-height: 220px;
+}
+.activity-log .log-ok { color: var(--green); }
+.activity-log .log-err { color: var(--red); }
+.activity-log .log-info { color: var(--cyan); }
+
+.footer-strip {
+  margin-top: 28px; padding: 16px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap;
+  font-size: 11px; color: var(--ink-dim);
+}
+.footer-strip a { color: var(--cream); }
+.powered-by {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 14px; border-radius: 10px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+.powered-by img { height: 14px; filter: brightness(1.15); }
+</style>
+</head>
+<body>
+
+<main class="shell">
+
+  <section class="hero" aria-labelledby="page-title">
+    <div class="brand-lockup">
+      <img src="/chogi.png" alt="Chogi the painter mascot" />
+      <div>
+        <p class="eyebrow">$CHOGI METAMASK TERMINAL</p>
+        <h1 id="page-title">Bridge in. Buy $CHOGI. Trade Monad.</h1>
+      </div>
+    </div>
+    <div class="wallet-card">
+      <div>
+        <span id="network-pill" class="pill">Wallet offline</span>
+        <p id="wallet-line">Connect MetaMask to quote and send trades.</p>
+      </div>
+      <button id="connect-wallet" class="primary">Connect MetaMask</button>
+    </div>
+  </section>
+
+  <div class="workspace">
+
+    <nav class="tabs" aria-label="Terminal modes">
+      <button class="tab is-active" data-panel="bridge-panel">🌉 Bridge</button>
+      <button class="tab" data-panel="trade-panel">⚡ Trade</button>
+    </nav>
+
+    <!-- BRIDGE PANEL -->
+    <section id="bridge-panel" class="panel is-active" aria-label="Bridge in and out of Monad">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">MOVE LIQUIDITY</p>
+          <h2>Bridge in or out</h2>
+        </div>
+        <button id="open-bridge" class="ghost">Open Monad Bridge ↗</button>
+      </div>
+
+      <p style="margin: 0 0 14px; color: var(--ink-dim); font-size: 13px;">
+        New to Monad? Bridge ETH, USDC, or USDT from Ethereum or any major L2 →
+        you'll land with MON to buy $CHOGI. Official bridge below — opens in a new tab.
+      </p>
+
+      <div class="actions">
+        <a id="bridge-link" href="https://bridge.monad.xyz" target="_blank" rel="noopener" class="primary" style="text-decoration: none; display: inline-flex; align-items: center;">
+          🌉 LAUNCH BRIDGE
+        </a>
+        <a href="#" id="back-to-trade" class="secondary">↓ Already have MON? Trade $CHOGI</a>
+      </div>
+
+      <div style="margin-top: 22px; padding: 14px; background: rgba(0,0,0,.3); border-radius: 10px; border: 1px solid rgba(255,255,255,.06);">
+        <p class="eyebrow" style="margin-bottom: 8px;">SUPPORTED SOURCE CHAINS</p>
+        <p style="margin: 0; font-size: 12px; color: var(--ink-dim);">
+          Ethereum · Arbitrum · Optimism · Base · BNB Chain · Polygon · And more via the official Monad bridge.
+        </p>
+      </div>
+    </section>
+
+    <!-- TRADE PANEL -->
+    <section id="trade-panel" class="panel" aria-label="Buy and sell $CHOGI on Monad">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">MONAD MARKET</p>
+          <h2>Trade $CHOGI</h2>
+        </div>
+        <div class="segmented" role="group" aria-label="Trade direction">
+          <button class="segment is-active" type="button" data-side="buy">Buy</button>
+          <button class="segment" type="button" data-side="sell">Sell</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span id="trade-token-label">Token to buy</span>
+          <select id="trade-token-select">
+            <option value="0x5E1b1A14c8758104B8560514e94ab8320e587777">CHOGI · The Painter</option>
+            <option value="0x0CC9B2e2AcD7BACfF79eb7dB48F5662B622E7777">MONI · The Yeti</option>
+            <option value="0xDe22b2d5B92364fEc7065c638aD82509949f7777">MOYAKI · The Moyaking</option>
+            <option value="0xB744F5CDb792d8187640214C4A1c9aCE29af7777">MONSHI</option>
+            <option value="0xaCA86430cCCEdbedB35910fC8A5AFEF07dA37777">RENE</option>
+            <option value="custom">+ Add custom token</option>
+          </select>
+        </label>
+        <label>
+          <span id="trade-amount-label">MON amount</span>
+          <input id="trade-amount" inputmode="decimal" placeholder="0.00" />
+        </label>
+        <div id="trade-custom-token-wrap" class="custom-token-drawer" hidden>
+          <label>
+            <span>Paste Monad token address</span>
+            <input id="trade-token-address" class="custom-token-input" placeholder="0x..." />
+          </label>
+          <p>Loaded tokens stay in this dropdown for the current session.</p>
+        </div>
+        <label>
+          <span>Slippage</span>
+          <select id="trade-slippage">
+            <option value="100">1%</option>
+            <option value="300" selected>3%</option>
+            <option value="500">5%</option>
+            <option value="1000">10%</option>
+            <option value="2000">20%</option>
+          </select>
+        </label>
+        <label>
+          <span>&nbsp;</span>
+          <button id="max-btn" class="secondary" style="height: 41px;">MAX</button>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="quote-trade" class="secondary">Get Quote</button>
+        <button id="execute-trade" class="primary" disabled>Review & Confirm</button>
+      </div>
+    </section>
+
+    <!-- QUOTE BOARD -->
+    <aside class="quote-board" aria-live="polite">
+      <div class="quote-head">
+        <p class="eyebrow">ROUTE PREVIEW</p>
+        <button id="clear-log" class="icon-button">Clear</button>
+      </div>
+      <div id="quote-box" class="quote-box">
+        <p>Quotes will show estimated output, route hops, and approval steps here.</p>
+      </div>
+      <div id="activity-log" class="activity-log"></div>
+    </aside>
+
+  </div>
+
+  <div class="footer-strip">
+    <a href="https://monorail.xyz" target="_blank" rel="noopener" class="powered-by">
+      <span style="font-size: 9px; letter-spacing: 1.5px; color: var(--ink-dim); text-transform: uppercase;">Powered by</span>
+      <img src="/monorail-logo.svg" alt="Monorail" />
+    </a>
+    <span>·</span>
+    <a href="https://chogi.xyz" target="_blank" rel="noopener">chogi.xyz</a>
+    <span>·</span>
+    <a href="https://x.com/chog_xyz" target="_blank" rel="noopener">𝕏</a>
+    <span>·</span>
+    <span>1% of every trade → $CHOGI treasury</span>
+  </div>
+
+</main>
+
+<!-- ETHERS UMD for wallet/RPC interactions -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+'use strict';
+
+const CFG = {
+  CHAIN_ID: 143,
+  CHAIN_HEX: '0x8f',
+  CHAIN_NAME: 'Monad',
+  EXPLORER: 'https://monadscan.com/tx/',
+  RPC: 'https://rpc.monad.xyz',
+  NATIVE_ZERO: '0x0000000000000000000000000000000000000000',
+  WMON: '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A',
+  MONORAIL: {
+    QUOTE: 'https://pathfinder.monorail.xyz/v4/quote',
+    TOKEN_INFO: 'https://api.monorail.xyz/v2/token',
+    APP_ID: '1176408161625',  // 1% fee → hub treasury 0x4601a7f665ca13c40d2236b8b9ff1e4b87226351
+  },
+};
+
+const $ = (id) => document.getElementById(id);
+const STATE = { account: null, side: 'buy', customToken: null, lastQuote: null };
+
+// ───────── log ─────────
+function log(msg, kind) {
+  const el = $('activity-log');
+  const line = document.createElement('div');
+  line.className = 'log-' + (kind || 'info');
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  el.prepend(line);
+  while (el.children.length > 50) el.removeChild(el.lastChild);
+}
+
+// ───────── wallet ─────────
+async function ensureMonadChain(eth) {
+  const cur = await eth.request({ method: 'eth_chainId' });
+  if (cur === CFG.CHAIN_HEX) return;
+  try {
+    await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CFG.CHAIN_HEX }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await eth.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: CFG.CHAIN_HEX, chainName: CFG.CHAIN_NAME,
+          nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+          rpcUrls: [CFG.RPC], blockExplorerUrls: ['https://monadscan.com'],
+        }],
+      });
+    } else throw e;
+  }
+}
+
+async function connect() {
+  const eth = window.ethereum;
+  if (!eth) {
+    log('No MetaMask detected. Install at metamask.io', 'err');
+    alert('MetaMask not found. Install from https://metamask.io');
+    return;
+  }
+  try {
+    const accts = await eth.request({ method: 'eth_requestAccounts' });
+    STATE.account = accts[0];
+    await ensureMonadChain(eth);
+    const short = STATE.account.slice(0, 6) + '…' + STATE.account.slice(-4);
+    $('connect-wallet').textContent = '🟢 ' + short;
+    $('network-pill').textContent = 'Connected · Monad';
+    $('network-pill').classList.add('connected');
+    $('wallet-line').textContent = 'Ready to trade. Auto-wrap kicks in for thin-pool tokens.';
+    log('Connected: ' + short, 'ok');
+  } catch (e) {
+    log('Connect failed: ' + (e.message || e), 'err');
+  }
+}
+
+// ───────── RPC helpers ─────────
+async function rpcCall(method, params) {
+  const r = await fetch(CFG.RPC, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
+  });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message);
+  return j.result;
+}
+
+async function ethSend(tx) {
+  return window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: STATE.account, ...tx }] });
+}
+
+async function waitMined(hash, timeoutMs = 90000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const r = await rpcCall('eth_getTransactionReceipt', [hash]);
+      if (r && r.blockNumber) return r.status === '0x1' || r.status === 1;
+    } catch (_) {}
+    await new Promise(res => setTimeout(res, 2500));
+  }
+  throw new Error('Confirmation timed out');
+}
+
+// ───────── Monorail quote ─────────
+async function quoteRoute({ from, to, amount, slippageBps }) {
+  const params = new URLSearchParams({
+    from, to, amount: String(amount),
+    sender: STATE.account || CFG.NATIVE_ZERO,
+    slippage: String(slippageBps || 300),
+    source: CFG.MONORAIL.APP_ID,
+  });
+  const r = await fetch(CFG.MONORAIL.QUOTE + '?' + params.toString());
+  const j = await r.json();
+  if (j.message && !j.transaction) {
+    console.error('[chogi-mm] monorail rejected:', j);
+    throw new Error('Monorail: ' + j.message);
+  }
+  return j;
+}
+
+// ───────── tokens / balances ─────────
+function approveCalldata(spender, amount) {
+  return '0x095ea7b3' +
+    spender.slice(2).toLowerCase().padStart(64, '0') +
+    amount.toString(16).padStart(64, '0');
+}
+
+async function readAllowance(token, owner, spender) {
+  const data = '0xdd62ed3e' +
+    owner.slice(2).toLowerCase().padStart(64, '0') +
+    spender.slice(2).toLowerCase().padStart(64, '0');
+  const r = await rpcCall('eth_call', [{ to: token, data }, 'latest']);
+  return BigInt(r);
+}
+
+async function readBalance(token, owner) {
+  if (token === CFG.NATIVE_ZERO) {
+    const r = await rpcCall('eth_getBalance', [owner, 'latest']);
+    return BigInt(r);
+  }
+  const data = '0x70a08231' + owner.slice(2).toLowerCase().padStart(64, '0');
+  const r = await rpcCall('eth_call', [{ to: token, data }, 'latest']);
+  return BigInt(r);
+}
+
+async function fetchTokenInfo(addr) {
+  try {
+    const r = await fetch(CFG.MONORAIL.TOKEN_INFO + '/' + addr);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) { return null; }
+}
+
+// ───────── execute swap (auto-wrap + reverse-unwrap) ─────────
+async function executeSwap({ from, to, amountHuman, slippageBps }) {
+  const fromAddr = from === CFG.NATIVE_ZERO ? CFG.NATIVE_ZERO : from;
+  const toAddr   = to   === CFG.NATIVE_ZERO ? CFG.NATIVE_ZERO : to;
+  if (fromAddr.toLowerCase() === toAddr.toLowerCase()) throw new Error('Same token both sides');
+
+  let q = await quoteRoute({ from: fromAddr, to: toAddr, amount: amountHuman, slippageBps });
+  log('Initial route: ' + (q.routes?.[0]?.length ?? '?') + ' hops via ' + (q.routes?.[0]?.map(s => s.splits?.[0]?.protocol).join(' → ') || 'unknown'));
+
+  let usedSrc = fromAddr, didWrap = false, needsUnwrap = false;
+  const baseHops = q.routes?.[0]?.length ?? 1;
+
+  // FORWARD: MON → token, multi-hop → use WMON
+  if (fromAddr === CFG.NATIVE_ZERO && baseHops >= 2) {
+    try {
+      const alt = await quoteRoute({ from: CFG.WMON, to: toAddr, amount: amountHuman, slippageBps });
+      const altHops = alt.routes?.[0]?.length ?? 99;
+      if (altHops < baseHops) {
+        q = alt; usedSrc = CFG.WMON; didWrap = true;
+        log('Cleaner WMON route found · ' + altHops + ' hop. Will pre-wrap.', 'info');
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  // REVERSE: token → MON, multi-hop → use WMON then auto-unwrap
+  if (toAddr === CFG.NATIVE_ZERO && baseHops >= 2) {
+    try {
+      const alt = await quoteRoute({ from: fromAddr, to: CFG.WMON, amount: amountHuman, slippageBps });
+      const altHops = alt.routes?.[0]?.length ?? 99;
+      if (altHops < baseHops) {
+        q = alt; needsUnwrap = true;
+        log('Cleaner WMON route found · will auto-unwrap WMON to MON after.', 'info');
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  if (!q.transaction) throw new Error('No transaction returned');
+
+  // PRE-WRAP
+  if (didWrap) {
+    const wei = ethers.parseUnits(amountHuman, 18);
+    log('Step 1/3 · Wrap MON → WMON. Sign in wallet…');
+    const wrapTx = await ethSend({
+      to: CFG.WMON, data: '0xd0e30db0', value: '0x' + wei.toString(16), gas: '0x13880',
+    });
+    log('Wrap tx: ' + wrapTx.slice(0, 10) + '… waiting…');
+    await waitMined(wrapTx);
+    log('Wrap confirmed ✓', 'ok');
+  }
+
+  // APPROVE if needed
+  const isNativeFrom = usedSrc === CFG.NATIVE_ZERO;
+  if (!isNativeFrom) {
+    const spender = q.transaction.to;
+    const need = BigInt(q.input);
+    const cur = await readAllowance(usedSrc, STATE.account, spender);
+    if (cur < need) {
+      log(didWrap ? 'Step 2/3 · Approve WMON to router. Sign…' : 'Approve token. Sign in wallet…');
+      const apprTx = await ethSend({
+        to: usedSrc, data: approveCalldata(spender, BigInt('0x' + 'f'.repeat(64))), gas: '0x11170',
+      });
+      log('Approve tx: ' + apprTx.slice(0, 10) + '… waiting…');
+      await waitMined(apprTx);
+      log('Approve confirmed ✓', 'ok');
+    }
+  }
+
+  // EXECUTE SWAP
+  log((didWrap ? 'Step 3/3 · ' : '') + 'Sign the swap…');
+  const swapGas = q.gas_estimate ? '0x' + Math.floor(q.gas_estimate * 1.3).toString(16) : '0x186A00';
+  const swapTx = await ethSend({
+    to: q.transaction.to, data: q.transaction.data,
+    value: isNativeFrom ? q.transaction.value : '0x0',
+    gas: swapGas,
+  });
+  log('Swap tx: ' + swapTx.slice(0, 10) + '… <a href="' + CFG.EXPLORER + swapTx + '" target="_blank">view</a>');
+
+  // POST-UNWRAP
+  if (needsUnwrap) {
+    log('Waiting for swap to mine before unwrap…');
+    await waitMined(swapTx);
+    const wmonBal = await readBalance(CFG.WMON, STATE.account);
+    if (wmonBal > 0n) {
+      log('Auto-unwrap WMON → MON. Sign…');
+      const wd = '0x2e1a7d4d' + wmonBal.toString(16).padStart(64, '0');
+      await ethSend({ to: CFG.WMON, data: wd, gas: '0x13880' });
+    }
+  }
+
+  return swapTx;
+}
+
+// ───────── UI wiring ─────────
+function showPanel(panelId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.panel === panelId));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('is-active', p.id === panelId));
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => showPanel(tab.dataset.panel));
+});
+
+$('back-to-trade').addEventListener('click', (e) => {
+  e.preventDefault();
+  showPanel('trade-panel');
+});
+
+document.querySelectorAll('.segment').forEach(seg => {
+  seg.addEventListener('click', () => {
+    document.querySelectorAll('.segment').forEach(s => s.classList.toggle('is-active', s === seg));
+    STATE.side = seg.dataset.side;
+    if (STATE.side === 'buy') {
+      $('trade-token-label').textContent = 'Token to buy';
+      $('trade-amount-label').textContent = 'MON amount';
+    } else {
+      $('trade-token-label').textContent = 'Token to sell';
+      $('trade-amount-label').textContent = 'Token amount';
+    }
+  });
+});
+
+$('trade-token-select').addEventListener('change', (e) => {
+  if (e.target.value === 'custom') {
+    $('trade-custom-token-wrap').hidden = false;
+  } else {
+    $('trade-custom-token-wrap').hidden = true;
+    STATE.customToken = null;
+  }
+});
+
+$('trade-token-address').addEventListener('change', async (e) => {
+  const addr = e.target.value.trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+    log('Invalid token address', 'err');
+    return;
+  }
+  const info = await fetchTokenInfo(addr);
+  STATE.customToken = addr;
+  if (info && info.symbol) {
+    const opt = document.createElement('option');
+    opt.value = addr; opt.textContent = info.symbol + ' · ' + (info.name || 'custom');
+    opt.selected = true;
+    $('trade-token-select').insertBefore(opt, $('trade-token-select').lastElementChild);
+    log('Loaded ' + info.symbol + ' from Monorail catalog', 'ok');
+  } else {
+    log('Token added (no metadata)', 'info');
+  }
+});
+
+$('connect-wallet').addEventListener('click', connect);
+$('clear-log').addEventListener('click', () => { $('activity-log').innerHTML = ''; });
+
+$('max-btn').addEventListener('click', async () => {
+  if (!STATE.account) { log('Connect wallet first', 'err'); return; }
+  try {
+    const token = $('trade-token-select').value === 'custom' ? STATE.customToken : $('trade-token-select').value;
+    if (STATE.side === 'buy') {
+      const bal = await readBalance(CFG.NATIVE_ZERO, STATE.account);
+      // leave 0.05 MON for gas
+      const usable = bal > ethers.parseUnits('0.05', 18) ? bal - ethers.parseUnits('0.05', 18) : 0n;
+      $('trade-amount').value = ethers.formatUnits(usable, 18);
+    } else {
+      const bal = await readBalance(token, STATE.account);
+      $('trade-amount').value = ethers.formatUnits(bal, 18);
+    }
+  } catch (e) { log('Max failed: ' + e.message, 'err'); }
+});
+
+$('quote-trade').addEventListener('click', async () => {
+  if (!STATE.account) { log('Connect wallet first', 'err'); return; }
+  const tokenSel = $('trade-token-select').value;
+  const token = tokenSel === 'custom' ? STATE.customToken : tokenSel;
+  if (!token) { log('Pick a token', 'err'); return; }
+  const amount = $('trade-amount').value;
+  if (!amount || parseFloat(amount) <= 0) { log('Enter an amount', 'err'); return; }
+  const slip = parseInt($('trade-slippage').value, 10);
+
+  try {
+    log('Quoting ' + STATE.side + ' …');
+    const from = STATE.side === 'buy' ? CFG.NATIVE_ZERO : token;
+    const to   = STATE.side === 'buy' ? token : CFG.NATIVE_ZERO;
+    const q = await quoteRoute({ from, to, amount, slippageBps: slip });
+    STATE.lastQuote = { from, to, amount, slip };
+    const hops = q.routes?.[0]?.length ?? '?';
+    const out = q.output_formatted || '?';
+    const min = q.min_output_formatted || '?';
+    $('quote-box').innerHTML = `
+      <div class="qline"><span>Estimated output</span><b>${out}</b></div>
+      <div class="qline"><span>Min received (slippage)</span><b>${min}</b></div>
+      <div class="qline"><span>Route hops</span><b>${hops}</b></div>
+      <div class="qline"><span>1% fee → CHOGI treasury</span><b>✓</b></div>
+    `;
+    $('execute-trade').disabled = false;
+    log('Quote ready ✓', 'ok');
+  } catch (e) {
+    log('Quote failed: ' + e.message, 'err');
+    $('quote-box').innerHTML = '<p style="color: var(--red);">' + e.message + '</p>';
+  }
+});
+
+$('execute-trade').addEventListener('click', async () => {
+  if (!STATE.lastQuote) { log('Get a quote first', 'err'); return; }
+  $('execute-trade').disabled = true;
+  try {
+    const { from, to, amount, slip } = STATE.lastQuote;
+    await executeSwap({ from, to, amountHuman: amount, slippageBps: slip });
+    log('Swap submitted ✓ See explorer link above', 'ok');
+  } catch (e) {
+    log('Swap failed: ' + e.message, 'err');
+  } finally {
+    $('execute-trade').disabled = false;
+  }
+});
+
+// auto-connect if previously authorized
+(async () => {
+  if (window.ethereum) {
+    try {
+      const accts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accts && accts.length) connect();
+    } catch (_) {}
+  }
+})();
+
+log('Chogi MetaMask Terminal · ready', 'info');
+</script>
+
+</body>
+</html>
