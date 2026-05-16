@@ -1,13 +1,11 @@
 // /api/rpc.js — server-side JSON-RPC proxy to Monad
 //
 // All client-side ethers / fetch calls go through here so the QuickNode
-// key (or whatever upstream we use) never reaches the browser.
-// Set MONAD_RPC=<your full RPC URL with key> in Vercel env vars.
-//
-// Same-origin only (chogi.xyz → /api/rpc → upstream). The browser sees
-// `/api/rpc`; the upstream URL with the secret stays server-side.
+// key never reaches the browser.
+// MONAD_RPC env var overrides; default is the project's QuickNode endpoint.
 
-const UPSTREAM = process.env.MONAD_RPC || 'https://rpc.monad.xyz';
+const UPSTREAM = process.env.MONAD_RPC ||
+  'https://attentive-magical-sanctuary.monad-mainnet.quiknode.pro/63002c717b0ee2930197c2d560150d561db9ed7f/';
 
 // JSON-RPC methods we will NOT forward (state-changing or abusive).
 // Reads + tx-broadcast are allowed; subscription/filter creation isn't

@@ -248,6 +248,16 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
             <div class="bc-fill" id="bcFill" style="width:0%;"></div>
             <div class="bc-text" id="bcText">0% TO GRADUATION</div>
           </div>
+          <div class="bc-stats" id="bcStats" style="display:none;margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;color:var(--mute);text-transform:uppercase;">TOKENS TO GRAD</div>
+              <div id="bcTokensLeft" style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#fff;margin-top:4px;">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;color:var(--mute);text-transform:uppercase;">MON TO GRAD</div>
+              <div id="bcMonLeft" style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--pink);margin-top:4px;">—</div>
+            </div>
+          </div>
         </div>
 
         <div class="chart-box" id="chartBox">
@@ -259,7 +269,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
               <button class="chart-pill active" data-res="60">1H</button>
               <button class="chart-pill" data-res="240">4H</button>
               <button class="chart-pill" data-res="1D">1D</button>
-              <button class="chart-pill" data-res="7D">7D</button>
             </div>
             <div class="chart-stats" id="chartStats"></div>
           </div>
@@ -267,7 +276,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
             <div class="chart-fallback" id="chartFallback">⏳ loading chart…</div>
           </div>
           <div class="chart-source" id="chartSource" style="display:none;">
-            <span>OHLC DATA · MONORAIL</span>
+            <span>OHLC DATA · NAD.FUN</span>
             <a href="https://monorail.xyz" target="_blank" rel="noopener">powered by Monorail ↗</a>
           </div>
         </div>
@@ -376,6 +385,20 @@ const ADDR = (PARAMS.get('addr') || '').toLowerCase();
 const PRE_AMOUNT = PARAMS.get('amount') || '';
 const PRE_SIDE = (PARAMS.get('side') || 'buy').toLowerCase();
 const NADFUN_API = '/api/nad';  // Vercel proxy — auto-injects key, rotates pool, edge-caches
+const RPC_URL    = '/api/rpc';  // Server-side QuickNode proxy (key never reaches browser)
+
+// nad.fun V3 mainnet contracts (see Naddotfun/contract-v3-abi)
+const LENS_ADDR  = '0x7e78A8DE94f21804F7a17F4E8BF9EC2c872187ea';
+const BC_ROUTER  = '0x6F6B8F1a20703309951a5127c45B49b1CD981A22';  // pre-grad swaps
+const DEX_ROUTER = '0x0B79d71AE99528D1dB24A4148b5f4F865cc2b137';  // post-grad swaps
+// Lens consolidates all view methods — one contract, every read.
+const LENS_ABI = [
+  'function isGraduated(address _token) external view returns (bool)',
+  'function isLocked(address _token) external view returns (bool)',
+  'function getProgress(address _token) external view returns (uint256)',
+  'function availableBuyTokens(address _token) external view returns (uint256 availableBuyToken, uint256 requiredMonAmount)',
+  'function getAmountOut(address _token, uint256 _amountIn, bool _isBuy) external view returns (address router, uint256 amountOut)',
+];
 
 if (!ADDR || !/^0x[0-9a-f]{40}$/.test(ADDR)) location.href = '/hub';
 
@@ -474,16 +497,48 @@ function parseUnits(str, decimals=18){
   return neg ? -v : v;
 }
 
+// ── LENS READS ──────────────────────────────────────────────
+// Pulls live curve state from nad.fun's Lens contract via /api/rpc.
+// Returns { isGraduated, isLocked, progressBps, tokensLeft, monRequired } or null.
+async function loadLensState(token){
+  if (!window.ethers) return null;
+  try{
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const lens = new ethers.Contract(LENS_ADDR, LENS_ABI, provider);
+    // Fire all three reads in parallel — Lens is a view-only contract,
+    // QuickNode handles batching cleanly under the hood.
+    const [isGrad, isLocked, progress, avail] = await Promise.all([
+      lens.isGraduated(token).catch(() => null),
+      lens.isLocked(token).catch(() => null),
+      lens.getProgress(token).catch(() => null),
+      lens.availableBuyTokens(token).catch(() => null),
+    ]);
+    return {
+      isGraduated: isGrad === true,
+      isLocked:    isLocked === true,
+      progressBps: progress != null ? Number(progress) : null,
+      tokensLeft:  avail ? avail[0].toString() : null,
+      monRequired: avail ? avail[1].toString() : null,
+    };
+  }catch(e){
+    console.warn('lens read failed', e);
+    return null;
+  }
+}
+
 // ── LOAD ────────────────────────────────────
 async function loadToken(){
-  // Fire all three calls in parallel:
-  //   /token/{addr}          → token_info (always available)
-  //   /trade/market/{addr}   → market_info (price, ATH, volume, holders, reserves) — KEY data
-  //   monorail v2/token      → fallback for symbol/image/supply where above is incomplete
-  // /trade/market is the source of OFF ATH / TOTAL VOL / ATH USD — without it those tiles render '—'.
-  const [tokenRes, marketRes, monoRes] = await Promise.allSettled([
+  // Fire all calls in parallel:
+  //   /token/{addr}            → token_info
+  //   /trade/market/{addr}     → market_info (price, ATH, volume, holders, reserves)
+  //   /trade/metrics/{addr}    → swap counts per timeframe (used to tier the chart)
+  //   Lens contract calls      → on-chain progress + availableBuyTokens (most accurate)
+  //   monorail v2/token        → fallback for symbol/image/supply
+  const [tokenRes, marketRes, metricsRes, lensRes, monoRes] = await Promise.allSettled([
     fetch(`${NADFUN_API}/token/${ADDR}`),
     fetch(`${NADFUN_API}/trade/market/${ADDR}`),
+    fetch(`${NADFUN_API}/trade/metrics/${ADDR}?timeframes=1D`),
+    loadLensState(ADDR),
     fetch(`https://api.monorail.xyz/v2/token/${ADDR}`),
   ]);
 
@@ -503,7 +558,23 @@ async function loadToken(){
     } catch(_){}
   }
 
-  // Fallback scan of /order/market_cap (covers top-50 tokens if /trade/market missed)
+  // Pull 1D trade count for tier-aware rendering decisions downstream
+  if (metricsRes.status === 'fulfilled' && metricsRes.value.ok){
+    try {
+      const mj = await metricsRes.value.json();
+      const m = (mj.metrics || []).find(r => r.timeframe === '1D') || {};
+      data = data || { token_info: { token_id: ADDR }, market_info: {} };
+      data._swapCount = (m.transactions && m.transactions.total) || 0;
+    } catch(_){}
+  }
+
+  // Lens contract state — the most accurate source of truth for curve progress
+  if (lensRes.status === 'fulfilled' && lensRes.value){
+    data = data || { token_info: { token_id: ADDR }, market_info: {} };
+    data._lens = lensRes.value;
+  }
+
+  // Fallback scan of /order/market_cap
   if (data && !data.market_info){
     try{
       const r2 = await fetch(`${NADFUN_API}/order/market_cap?page=1&limit=50`);
@@ -600,29 +671,43 @@ function renderToken(t){
     });
   }
 
-  // bonding curve box
+  // bonding curve box — use Lens data when available (most accurate), fallback to derived
   if (STATE.isPreGrad){
-    const p = bcProgress(t);
     $('#bcBox').style.display = '';
+    const lens = t._lens;
+
+    // Lens.getProgress returns bps (10000 = 100%). Trust this above derived math.
+    let p = null;
+    if (lens && lens.progressBps != null){
+      p = lens.progressBps / 10000;  // bps → 0..1
+    } else {
+      p = bcProgress(t);  // fallback to derived from reserves
+    }
+
     if (p == null){
-      // upstream didn't return reserve_token — can't compute. Don't lie.
       $('#bcFill').style.width = '0%';
       $('#bcText').textContent = '— curve data unavailable';
     } else {
-      const pct100 = Math.round(p*100);
+      const pct100 = Math.min(100, Math.round(p*100));
       $('#bcFill').style.width = pct100 + '%';
       $('#bcText').textContent = pct100 + '% TO GRADUATION';
       if (p >= 0.6) $('#bcFill').classList.add('about-to-grad');
     }
+
+    // Detail tiles — tokens remaining + MON required to graduate (from Lens.availableBuyTokens)
+    if (lens && lens.tokensLeft != null && lens.monRequired != null){
+      $('#bcStats').style.display = 'grid';
+      const tokensLeft = Number(lens.tokensLeft) / 1e18;
+      const monLeft    = Number(lens.monRequired) / 1e18;
+      $('#bcTokensLeft').textContent = fmt(tokensLeft, 1);
+      $('#bcMonLeft').textContent    = fmt(monLeft, 1) + ' MON';
+    }
   }
 
-  // chart
-  const chartBox = $('#chartBox');
-  if (STATE.isPreGrad){
-    $('#chartCanvas').innerHTML = `<div class="chart-fallback">📈 Chart unlocks at graduation.<br>Bonding curve is still active — trade above to push toward DEX listing at 80%.<br><br><a href="https://nad.fun/tokens/${ADDR}" target="_blank" rel="noopener">View on nad.fun ↗</a></div>`;
-  } else {
-    initNativeChart();
-  }
+  // chart — works for pre-grad AND graduated now that nad.fun's /trade/chart
+  // is the source. Pre-grad tokens with 0 swaps will get the empty-state
+  // fallback from loadBars; everything else gets candles.
+  initNativeChart();
 
   // contract row
   $('#caCopy').textContent = '📋 ' + ADDR.slice(0,8) + '…' + ADDR.slice(-6);
@@ -1161,7 +1246,10 @@ async function loadBars(reset){
   const now = Math.floor(Date.now() / 1000);
   const lookback = LOOKBACK[CHART.resolution] || (150 * 3600);
   const from = now - lookback;
-  const url = `https://api.monorail.xyz/tv/history?symbol=${encodeURIComponent(CHART.symbol)}&resolution=${CHART.resolution}&from=${from}&to=${now}`;
+  // nad.fun /trade/chart returns the same {t,o,h,l,c,s} shape as Monorail TV
+  // but works for BOTH pre-grad curve trades AND post-grad DEX swaps. The
+  // 's' status field reports 'ok' / 'no_data'. Routed through /api/nad proxy.
+  const url = `${NADFUN_API}/trade/chart/${ADDR}?resolution=${CHART.resolution}&from=${from}&to=${now}&countback=500`;
   try{
     const r = await fetch(url);
     const j = await r.json();
@@ -1169,13 +1257,9 @@ async function loadBars(reset){
       // Empty / no_data — visible message instead of silent empty chart.
       if (reset){
         const container = $('#chartCanvas');
-        // Remove the empty chart canvas and show a fallback. The chart
-        // library can still be reused if pills are clicked.
-        console.warn('[chart] no_data from Monorail TV:', CHART.symbol, j.s);
+        console.warn('[chart] no_data from nad.fun:', ADDR, j.s);
         if (container && !container.querySelector('.chart-fallback')){
-          container.innerHTML = `<div class="chart-fallback">📊 No chart history available yet for this pair.<br><span style="font-size:10px;opacity:.6;">Monorail TV returned: ${j.s || 'empty'}</span><br><br><a href="https://nad.fun/tokens/${ADDR}" target="_blank" rel="noopener">View on nad.fun ↗</a></div>`;
-          // The chart instance no longer has a backing canvas; null out
-          // so the next pill-click doesn't try to update a detached chart
+          container.innerHTML = `<div class="chart-fallback">📊 No chart history yet — this token hasn't seen enough trades.<br><span style="font-size:10px;opacity:.6;">${j.s || 'empty response'}</span><br><br><a href="https://nad.fun/token/${ADDR}" target="_blank" rel="noopener">View on nad.fun ↗</a></div>`;
           CHART.chart = null;
           CHART.series = null;
         }
