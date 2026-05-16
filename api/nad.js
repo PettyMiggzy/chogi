@@ -1,16 +1,6 @@
-// /api/nad/[...path].js
+// /api/nad.js
 // Server-side proxy for api.nadapp.net — Chogi edition.
-//
-// Why: nad.fun caps requests at 100 req/min per API key. With many concurrent
-// users on /hub, a single key in the browser exhausts the budget fast. This
-// proxy:
-//   1. Rotates across 3 API keys (random pick per request) = 300 req/min pool
-//   2. Caches GET responses at Vercel's edge (s-maxage=20, SWR=60)
-//   3. Keeps the keys server-side — never reach the browser
-//
-// Browser side calls /api/nad/order/creation_time?page=1
-// We forward to     https://api.nadapp.net/order/creation_time?page=1
-// with X-API-Key auto-injected from the rotation pool.
+// Routes /api/nad/* → https://api.nadapp.net/* with key rotation + edge cache.
 
 const NAD_KEYS = [
   'nadfun_VxihwpWj2euHYZUHfpSqBP1r8CLi39Dv',  // Chogi Hub
@@ -27,33 +17,43 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
   try {
-    const pathSegments = req.query.path || [];
-    const pathStr = Array.isArray(pathSegments) ? pathSegments.join('/') : String(pathSegments);
+    let upstreamPath, upstreamQuery = '';
 
-    const params = new URLSearchParams();
-    for (const [k, v] of Object.entries(req.query)) {
-      if (k === 'path') continue;
-      if (Array.isArray(v)) v.forEach(vv => params.append(k, vv));
-      else if (v !== undefined && v !== null) params.append(k, String(v));
+    if (req.query && req.query._p) {
+      upstreamPath = Array.isArray(req.query._p) ? req.query._p.join('/') : String(req.query._p);
+      const params = new URLSearchParams();
+      for (const [k, v] of Object.entries(req.query)) {
+        if (k === '_p') continue;
+        if (Array.isArray(v)) v.forEach(vv => params.append(k, vv));
+        else if (v !== undefined && v !== null) params.append(k, String(v));
+      }
+      upstreamQuery = params.toString();
+    } else {
+      const url = req.url || '';
+      const qIdx = url.indexOf('?');
+      const pathPart = qIdx >= 0 ? url.slice(0, qIdx) : url;
+      upstreamQuery = qIdx >= 0 ? url.slice(qIdx + 1) : '';
+      let rel = pathPart.replace(/^\/api\/nad\/?/, '');
+      rel = rel.replace(/^\/+/, '');
+      upstreamPath = rel;
     }
-    const qs = params.toString();
-    const targetUrl = `${BASE}/${pathStr}${qs ? '?' + qs : ''}`;
 
+    if (!upstreamPath) {
+      res.status(400).json({ error: 'missing nad.fun path. Use /api/nad/{endpoint}' });
+      return;
+    }
+
+    const targetUrl = `${BASE}/${upstreamPath}${upstreamQuery ? '?' + upstreamQuery : ''}`;
     const apiKey = NAD_KEYS[Math.floor(Math.random() * NAD_KEYS.length)];
 
     const upstreamOpts = {
       method: req.method,
-      headers: {
-        'X-API-Key': apiKey,
-        'Accept': 'application/json',
-      },
+      headers: { 'X-API-Key': apiKey, 'Accept': 'application/json' },
     };
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       upstreamOpts.headers['Content-Type'] = 'application/json';
       if (req.body !== undefined && req.body !== null) {
-        upstreamOpts.body = typeof req.body === 'string'
-          ? req.body
-          : JSON.stringify(req.body);
+        upstreamOpts.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
       }
     }
 

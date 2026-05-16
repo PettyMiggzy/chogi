@@ -10,6 +10,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/nad/:path*",
+      "destination": "/api/nad?_p=:path*"
+    },
+    {
       "source": "/game/breach",
       "destination": "/game/breach.html"
     },
