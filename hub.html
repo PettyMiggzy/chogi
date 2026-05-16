@@ -2127,13 +2127,10 @@ function saveTrendCache(){
   }, 2000);
 }
 
-const NADFUN_API_BASE = 'https://api.nadapp.net';
+const NADFUN_API_BASE = '/api/nad';  // Vercel proxy — rotates 3 keys, edge-caches 20s
 
-// API key for Chogi Hub — issued to deployer wallet 0xB9d4B73... · minted 2026-05-16
-// Bumps rate limit from anon (10 req/min) → keyed (100 req/min).
-// Sent as X-API-Key on every nadfunFetch call. To rotate: mint a new key at
-// nad.fun, replace below, push.
-const NADFUN_KEY = 'nadfun_VxihwpWj2euHYZUHfpSqBP1r8CLi39Dv';
+// API key now lives in api/nad/[...path].js (server-side). Browser never sees it.
+// Proxy auto-injects X-API-Key per request — nadfunFetch doesn't need to add it.
 
 async function fetchTrending(){
   try{
@@ -2250,20 +2247,15 @@ const NADFUN_BUCKET = {
 };
 
 // Wrapped fetch with rate limit + exponential backoff on 429.
-// Automatically injects X-API-Key on every request (100 req/min keyed ceiling).
-// Returns Response or throws on permanent failure.
+// Routes through /api/nad proxy which injects X-API-Key server-side from a
+// 3-key rotation pool + edge-caches GETs for 20s. 429s should be near-impossible
+// at this point, but backoff remains as defense in depth.
 async function nadfunFetch(url, opts={}, maxRetries=3){
   let backoff = 800;
-  // Merge X-API-Key into headers without clobbering caller's headers
-  const baseHeaders = NADFUN_KEY ? { 'X-API-Key': NADFUN_KEY } : {};
-  const mergedOpts = {
-    ...opts,
-    headers: { ...baseHeaders, ...(opts.headers || {}) }
-  };
   for (let attempt = 0; attempt <= maxRetries; attempt++){
     await NADFUN_BUCKET.acquire();
     try{
-      const res = await fetch(url, mergedOpts);
+      const res = await fetch(url, opts);
       if (res.status !== 429) return res;
       // 429 — back off and retry. Don't consume the next attempt's token yet;
       // the backoff itself naturally throttles us.
