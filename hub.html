@@ -1157,10 +1157,13 @@ const SEED_TOKENS = [
   {address:'0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A', symbol:'WMON'   , decimals:18},
 ];
 
-// RPC fallback chain — primary free RPC, then optional QuickNode from ChogiConfig
+// RPC fallback chain — /api/rpc is server-side proxy to QuickNode (when
+// MONAD_RPC env var is set in Vercel) → falls through to public RPCs.
+// Key/QuickNode URL stays server-side; browser only sees relative /api/rpc.
 const RPC_ENDPOINTS = [
-  {url:'https://rpc.monad.xyz',                label:'monad.xyz' },
-  {url:'https://monad-mainnet.public.blastapi.io', label:'blastapi'},
+  {url:'/api/rpc',                                  label:'quicknode-proxy' },
+  {url:'https://rpc.monad.xyz',                     label:'monad.xyz' },
+  {url:'https://monad-mainnet.public.blastapi.io',  label:'blastapi'},
 ];
 if (CFG.RPC) RPC_ENDPOINTS.push({url:CFG.RPC, label:'private'});
 
