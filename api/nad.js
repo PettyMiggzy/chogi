@@ -1,6 +1,9 @@
 // /api/nad.js
 // Server-side proxy for api.nadapp.net — Chogi edition.
 // Routes /api/nad/* → https://api.nadapp.net/* with key rotation + edge cache.
+//
+// NOTE: Chogi's package.json declares "type":"module" so this file must use
+// ES module syntax (export default). CommonJS module.exports won't run.
 
 const NAD_KEYS = [
   'nadfun_VxihwpWj2euHYZUHfpSqBP1r8CLi39Dv',  // Chogi Hub
@@ -10,7 +13,7 @@ const NAD_KEYS = [
 
 const BASE = 'https://api.nadapp.net';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -80,4 +83,4 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.status(502).json({ error: 'proxy failed', detail: e.message });
   }
-};
+}
