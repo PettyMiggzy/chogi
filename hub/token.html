@@ -74,6 +74,29 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
 .bc-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.85);}
 
 .chart-box{background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:0;margin-bottom:14px;overflow:hidden;position:relative;}
+
+/* Bonding curve panel — pre-grad visualization */
+.curve-panel{background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:18px;margin-bottom:14px;}
+.curve-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.curve-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.18em;color:#fff;text-transform:uppercase;}
+.curve-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--mute);text-transform:uppercase;}
+.curve-plot{width:100%;height:220px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.04);border-radius:8px;overflow:hidden;position:relative;}
+.curve-plot svg{display:block;width:100%;height:100%;}
+.curve-plot .curve-stroke{fill:none;stroke:url(#curveGrad);stroke-width:2;}
+.curve-plot .curve-stroke-future{fill:none;stroke:rgba(255,255,255,.15);stroke-width:1.5;stroke-dasharray:4 4;}
+.curve-plot .curve-fill{fill:url(#curveFill);opacity:.35;}
+.curve-plot .axis-line{stroke:rgba(255,255,255,.08);stroke-width:1;}
+.curve-plot .axis-label{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--mute);}
+.curve-plot .current-dot{fill:var(--pink);stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 8px var(--pink));}
+.curve-plot .grad-marker{stroke:var(--gold,#f5c242);stroke-width:1.5;stroke-dasharray:3 3;}
+.curve-plot .grad-label{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--gold,#f5c242);font-weight:700;letter-spacing:.1em;}
+.curve-plot .curve-tooltip{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#fff;pointer-events:none;}
+.curve-legend{display:flex;gap:18px;margin-top:10px;flex-wrap:wrap;}
+.leg-item{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase;}
+.leg-dot{display:inline-block;width:10px;height:10px;border-radius:50%;}
+.leg-dot.curve{background:linear-gradient(135deg,var(--pink),var(--cyan,#06d6f5));}
+.leg-dot.current{background:var(--pink);box-shadow:0 0 6px var(--pink);}
+.leg-dot.grad{background:var(--gold,#f5c242);}
 .chart-box iframe{width:100%;height:540px;border:none;display:block;background:#0a0118;}
 .chart-fallback{padding:36px 20px;text-align:center;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;}
 .chart-fallback a{color:var(--cyan);text-decoration:none;}
@@ -277,7 +300,21 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;bac
           </div>
           <div class="chart-source" id="chartSource" style="display:none;">
             <span>OHLC DATA · NAD.FUN</span>
-            <a href="https://monorail.xyz" target="_blank" rel="noopener">powered by Monorail ↗</a>
+            <a href="https://nad.fun" target="_blank" rel="noopener">powered by nad.fun ↗</a>
+          </div>
+        </div>
+
+        <!-- Bonding curve plot — visible for pre-grad only. Shows price-vs-supply-sold curve with current position marker. -->
+        <div class="curve-panel" id="curvePanel" style="display:none;">
+          <div class="curve-head">
+            <span class="curve-title">🌀 BONDING CURVE</span>
+            <span class="curve-sub">price · vs · tokens sold</span>
+          </div>
+          <div class="curve-plot" id="curvePlot"></div>
+          <div class="curve-legend">
+            <span class="leg-item"><span class="leg-dot curve"></span> curve</span>
+            <span class="leg-item"><span class="leg-dot current"></span> current price</span>
+            <span class="leg-item"><span class="leg-dot grad"></span> graduation</span>
           </div>
         </div>
 
@@ -497,6 +534,176 @@ function parseUnits(str, decimals=18){
   return neg ? -v : v;
 }
 
+// ── BONDING CURVE PLOT ──────────────────────────────────────
+// Math: constant-product with virtual reserves. price = virtualMon / virtualToken.
+// As tokens get bought, virtualToken decreases and virtualMon increases.
+// We plot price vs (virtualTokenSold), with current position marked.
+//
+// V3 mainnet config (from contract-v3-abi README):
+//   virtualMon_init   = 180,000 MON
+//   virtualToken_init = 1,073,000,191 tokens
+//   targetToken       = 279,900,191 tokens (graduation when reached)
+const CURVE_CFG = {
+  vMonInit:   180_000,
+  vTokenInit: 1_073_000_191,
+  vTokenTarget: 279_900_191,  // virtual remaining at graduation
+};
+
+function curvePriceAt(virtualToken){
+  // k = vMonInit * vTokenInit (constant)
+  const k = CURVE_CFG.vMonInit * CURVE_CFG.vTokenInit;
+  // current vMon = k / virtualToken, price = vMon / virtualToken = k / virtualToken^2
+  return k / (virtualToken * virtualToken);
+}
+
+function renderCurvePlot(token){
+  const panel = document.getElementById('curvePanel');
+  const host  = document.getElementById('curvePlot');
+  if (!panel || !host) return;
+
+  // Show panel only for pre-grad tokens
+  if (!STATE.isPreGrad){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+
+  // Current virtual token reserve — from market_info.reserve_token (raw 18-decimal)
+  const mi = token.market_info || {};
+  let currentVToken = null;
+  if (mi.reserve_token){
+    try { currentVToken = Number(BigInt(mi.reserve_token)) / 1e18; } catch(_){}
+  }
+  // If we don't have a current position, just show the curve without the dot
+
+  // Sample 60 points along the curve from start (vTokenInit) to target (vTokenTarget)
+  const N = 60;
+  const samples = [];
+  for (let i = 0; i <= N; i++){
+    const t = i / N;
+    // vToken decreases linearly in our sample plane (which puts price on log-ish y)
+    const vt = CURVE_CFG.vTokenInit - (CURVE_CFG.vTokenInit - CURVE_CFG.vTokenTarget) * t;
+    const price = curvePriceAt(vt);
+    const tokensSold = CURVE_CFG.vTokenInit - vt;
+    samples.push({ vt, price, tokensSold, pctSold: t });
+  }
+
+  // SVG dimensions
+  const W = 900, H = 220;
+  const padL = 60, padR = 16, padT = 14, padB = 28;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  // Y scale (log) — price range
+  const yMin = samples[0].price;
+  const yMax = samples[samples.length - 1].price;
+  const logMin = Math.log10(yMin);
+  const logMax = Math.log10(yMax);
+  const yOf = price => padT + plotH - ((Math.log10(price) - logMin) / (logMax - logMin)) * plotH;
+
+  // X scale — linear over % sold
+  const xOf = pctSold => padL + pctSold * plotW;
+
+  // Current position: where does the user sit on this curve?
+  let currentX = null, currentY = null, currentPct = null;
+  if (currentVToken != null){
+    const soldNow = CURVE_CFG.vTokenInit - currentVToken;
+    const totalToSell = CURVE_CFG.vTokenInit - CURVE_CFG.vTokenTarget;
+    currentPct = Math.max(0, Math.min(1, soldNow / totalToSell));
+    currentX = xOf(currentPct);
+    const priceNow = curvePriceAt(currentVToken);
+    currentY = yOf(priceNow);
+  }
+
+  // Build the path for the curve up to currentPct (filled/colored)
+  // and from currentPct → 100% (dashed/future)
+  const pathParts = [];
+  const futurePath = [];
+  for (let i = 0; i < samples.length; i++){
+    const s = samples[i];
+    const x = xOf(s.pctSold);
+    const y = yOf(s.price);
+    if (currentPct == null || s.pctSold <= currentPct){
+      pathParts.push((i===0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1));
+    } else {
+      if (futurePath.length === 0 && currentX != null){
+        futurePath.push('M' + currentX.toFixed(1) + ',' + currentY.toFixed(1));
+      }
+      futurePath.push('L' + x.toFixed(1) + ',' + y.toFixed(1));
+    }
+  }
+  const past = pathParts.join(' ');
+  const future = futurePath.join(' ');
+
+  // Fill path (area under curve to the X-axis)
+  let fill = '';
+  if (past){
+    fill = past + ' L' + (currentX != null ? currentX : xOf(1)).toFixed(1) + ',' + (padT + plotH) + ' L' + padL + ',' + (padT + plotH) + ' Z';
+  }
+
+  // Axis labels — 5 ticks on X (% sold), 4 on Y (price)
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map(p => ({
+    x: xOf(p), label: Math.round(p*100) + '%'
+  }));
+  const yTicks = [0, 0.33, 0.66, 1].map(p => {
+    const lp = logMin + (logMax - logMin) * p;
+    const price = Math.pow(10, lp);
+    return { y: yOf(price), label: fmtPriceShort(price) };
+  });
+
+  // Graduation marker — vertical line at x = 100% sold
+  const gradX = xOf(1);
+
+  host.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stop-color="#06d6f5"/>
+          <stop offset="50%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient>
+        <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#a855f7" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Grid lines -->
+      ${yTicks.map(t => `<line class="axis-line" x1="${padL}" x2="${W - padR}" y1="${t.y.toFixed(1)}" y2="${t.y.toFixed(1)}"/>`).join('')}
+
+      <!-- Curve area fill (past, up to current position) -->
+      ${fill ? `<path class="curve-fill" d="${fill}"/>` : ''}
+
+      <!-- Curve stroke past (current → 0%) -->
+      ${past ? `<path class="curve-stroke" d="${past}"/>` : ''}
+
+      <!-- Curve stroke future (dashed, current → 100%) -->
+      ${future ? `<path class="curve-stroke-future" d="${future}"/>` : ''}
+
+      <!-- Graduation marker -->
+      <line class="grad-marker" x1="${gradX}" x2="${gradX}" y1="${padT}" y2="${padT + plotH}"/>
+      <text class="grad-label" x="${gradX - 4}" y="${padT + 10}" text-anchor="end">GRAD</text>
+
+      <!-- Current position dot -->
+      ${currentX != null ? `<circle class="current-dot" cx="${currentX.toFixed(1)}" cy="${currentY.toFixed(1)}" r="6"/>` : ''}
+
+      <!-- Y axis labels -->
+      ${yTicks.map(t => `<text class="axis-label" x="${padL - 6}" y="${(t.y + 3).toFixed(1)}" text-anchor="end">${t.label}</text>`).join('')}
+
+      <!-- X axis labels -->
+      ${xTicks.map(t => `<text class="axis-label" x="${t.x.toFixed(1)}" y="${H - padB + 16}" text-anchor="middle">${t.label}</text>`).join('')}
+    </svg>
+  `;
+}
+
+// Compact price formatter for the y-axis (e.g., "1.8e-4 MON")
+function fmtPriceShort(p){
+  if (p == null || isNaN(p)) return '';
+  if (p >= 1) return p.toFixed(2);
+  if (p >= 1e-3) return p.toFixed(4);
+  return p.toExponential(1);
+}
+
 // ── LENS READS ──────────────────────────────────────────────
 // Pulls live curve state from nad.fun's Lens contract via /api/rpc.
 // Returns { isGraduated, isLocked, progressBps, tokensLeft, monRequired } or null.
@@ -708,6 +915,9 @@ function renderToken(t){
   // is the source. Pre-grad tokens with 0 swaps will get the empty-state
   // fallback from loadBars; everything else gets candles.
   initNativeChart();
+
+  // Bonding curve plot — shown only for pre-grad tokens (hides itself for graduated)
+  renderCurvePlot(t);
 
   // contract row
   $('#caCopy').textContent = '📋 ' + ADDR.slice(0,8) + '…' + ADDR.slice(-6);
