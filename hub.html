@@ -2129,6 +2129,12 @@ function saveTrendCache(){
 
 const NADFUN_API_BASE = 'https://api.nadapp.net';
 
+// API key for Chogi Hub — issued to deployer wallet 0xB9d4B73... · minted 2026-05-16
+// Bumps rate limit from anon (10 req/min) → keyed (100 req/min).
+// Sent as X-API-Key on every nadfunFetch call. To rotate: mint a new key at
+// nad.fun, replace below, push.
+const NADFUN_KEY = 'nadfun_VxihwpWj2euHYZUHfpSqBP1r8CLi39Dv';
+
 async function fetchTrending(){
   try{
     const r = await fetch('https://api.monorail.xyz/v2/tokens/category/meme');
@@ -2203,14 +2209,13 @@ async function runWithConcurrency(items, n, work){
 }
 
 // Token-bucket rate limiter for nad.fun.
-// Re-audit found 95% of /token requests were 429ing at 4/sec. nad.fun's
-// actual quota is lower than that, so we drop to 2/sec — and add a
-// localStorage cache + in-flight creator dedupe so we stop redundantly
-// re-fetching addresses we've already seen.
+// With X-API-Key the ceiling is 100 req/min. At 1.5 req/sec sustained
+// that's ~90 req/min — comfortable headroom under the cap. 429 backoff
+// below still defends against bursts and rolling-window edges.
 const NADFUN_BUCKET = {
-  tokens: 2,
-  max: 2,
-  refillPerSec: 2,
+  tokens: 3,
+  max: 3,
+  refillPerSec: 1.5,
   lastRefill: Date.now(),
   waiters: [],
 
@@ -2245,13 +2250,20 @@ const NADFUN_BUCKET = {
 };
 
 // Wrapped fetch with rate limit + exponential backoff on 429.
+// Automatically injects X-API-Key on every request (100 req/min keyed ceiling).
 // Returns Response or throws on permanent failure.
 async function nadfunFetch(url, opts={}, maxRetries=3){
   let backoff = 800;
+  // Merge X-API-Key into headers without clobbering caller's headers
+  const baseHeaders = NADFUN_KEY ? { 'X-API-Key': NADFUN_KEY } : {};
+  const mergedOpts = {
+    ...opts,
+    headers: { ...baseHeaders, ...(opts.headers || {}) }
+  };
   for (let attempt = 0; attempt <= maxRetries; attempt++){
     await NADFUN_BUCKET.acquire();
     try{
-      const res = await fetch(url, opts);
+      const res = await fetch(url, mergedOpts);
       if (res.status !== 429) return res;
       // 429 — back off and retry. Don't consume the next attempt's token yet;
       // the backoff itself naturally throttles us.

@@ -376,6 +376,9 @@ const ADDR = (PARAMS.get('addr') || '').toLowerCase();
 const PRE_AMOUNT = PARAMS.get('amount') || '';
 const PRE_SIDE = (PARAMS.get('side') || 'buy').toLowerCase();
 const NADFUN_API = 'https://api.nadapp.net';
+// API key for Chogi · same key used by /hub · 100 req/min keyed ceiling
+const NADFUN_KEY = 'nadfun_VxihwpWj2euHYZUHfpSqBP1r8CLi39Dv';
+const NADFUN_HEADERS = { 'X-API-Key': NADFUN_KEY };
 
 if (!ADDR || !/^0x[0-9a-f]{40}$/.test(ADDR)) location.href = '/hub';
 
@@ -478,13 +481,13 @@ function parseUnits(str, decimals=18){
 async function loadToken(){
   let data = null;
   try{
-    const r = await fetch(`${NADFUN_API}/token/${ADDR}`);
+    const r = await fetch(`${NADFUN_API}/token/${ADDR}`, { headers: NADFUN_HEADERS });
     if (r.ok) data = await r.json();
   }catch(e){}
   // augment with market info from order endpoint if needed (token/{} returns only token_info)
   if (data && !data.market_info){
     try{
-      const r2 = await fetch(`${NADFUN_API}/order/market_cap?page=1&limit=50`);
+      const r2 = await fetch(`${NADFUN_API}/order/market_cap?page=1&limit=50`, { headers: NADFUN_HEADERS });
       const j = await r2.json();
       const hit = (j.tokens||[]).find(t=>(t.token_info.token_id||'').toLowerCase()===ADDR);
       if (hit) data = hit;
