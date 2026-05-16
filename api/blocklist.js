@@ -14,33 +14,39 @@
 const BLOCKED_LIST = [
   {
     addr:      '0x9e83af29ac55bee937fbec87da0030f4fd4bc166',
-    label:     'KILLA',
+    label:     'SUBJECT-001',
     reason:    'Buy/dump cycler · damages floor',
     flaggedAt: '2026-04-28'
   },
   {
     addr:      '0xca4595193c26450a50f492003572ae96ac9dd316',
-    label:     'KILLA-2',
+    label:     'SUBJECT-002',
     reason:    'Associated wallet',
     flaggedAt: '2026-04-28'
   },
   {
     addr:      '0xabd53a08a01e4838c71a3b3ff6266a49a4f028e1',
-    label:     'KILLA-3',
+    label:     'SUBJECT-003',
     reason:    'Associated wallet',
     flaggedAt: '2026-04-28'
   },
   {
     addr:      '0x870634b470a7c87fd2824d88d8670839b860bee3',
-    label:     'KILLA-4',
+    label:     'SUBJECT-004',
     reason:    'Associated wallet',
     flaggedAt: '2026-04-28'
   },
   {
     addr:      '0x63fc704d559023a2ddb04717f6997cc98445626a',
-    label:     'FLAGGED',
+    label:     'SUBJECT-005',
     reason:    'Flagged by admin',
     flaggedAt: '2026-05-10'
+  },
+  {
+    addr:      '0xabe3f9d18a1d90e40d9e18e3b8069222a154365b',
+    label:     'SUBJECT-006',
+    reason:    'Flagged by admin',
+    flaggedAt: '2026-05-16'
   }
 ];
 

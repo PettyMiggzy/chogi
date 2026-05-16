@@ -14,11 +14,12 @@
 (function(){
   // ─── BLOCKED WALLETS (lowercase) ────────────────────────────────────────
   var BLOCKED = [
-    '0x9e83af29ac55bee937fbec87da0030f4fd4bc166', // KILLA — buy/dump cycler
-    '0xca4595193c26450a50f492003572ae96ac9dd316', // associated wallet
-    '0xabd53a08a01e4838c71a3b3ff6266a49a4f028e1', // associated wallet
-    '0x870634b470a7c87fd2824d88d8670839b860bee3', // associated wallet
-    '0x63fc704d559023a2ddb04717f6997cc98445626a'  // flagged 2026-05-10
+    '0x9e83af29ac55bee937fbec87da0030f4fd4bc166', // SUBJECT-001 — buy/dump cycler
+    '0xca4595193c26450a50f492003572ae96ac9dd316', // SUBJECT-002 — associated wallet
+    '0xabd53a08a01e4838c71a3b3ff6266a49a4f028e1', // SUBJECT-003 — associated wallet
+    '0x870634b470a7c87fd2824d88d8670839b860bee3', // SUBJECT-004 — associated wallet
+    '0x63fc704d559023a2ddb04717f6997cc98445626a', // SUBJECT-005 — flagged 2026-05-10
+    '0xabe3f9d18a1d90e40d9e18e3b8069222a154365b'  // SUBJECT-006 — flagged 2026-05-16
   ];
 
   // ─── BLOCKED DEVICE FINGERPRINTS ────────────────────────────────────────
