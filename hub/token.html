@@ -476,12 +476,34 @@ function parseUnits(str, decimals=18){
 
 // ── LOAD ────────────────────────────────────
 async function loadToken(){
+  // Fire all three calls in parallel:
+  //   /token/{addr}          → token_info (always available)
+  //   /trade/market/{addr}   → market_info (price, ATH, volume, holders, reserves) — KEY data
+  //   monorail v2/token      → fallback for symbol/image/supply where above is incomplete
+  // /trade/market is the source of OFF ATH / TOTAL VOL / ATH USD — without it those tiles render '—'.
+  const [tokenRes, marketRes, monoRes] = await Promise.allSettled([
+    fetch(`${NADFUN_API}/token/${ADDR}`),
+    fetch(`${NADFUN_API}/trade/market/${ADDR}`),
+    fetch(`https://api.monorail.xyz/v2/token/${ADDR}`),
+  ]);
+
   let data = null;
-  try{
-    const r = await fetch(`${NADFUN_API}/token/${ADDR}`);
-    if (r.ok) data = await r.json();
-  }catch(e){}
-  // augment with market info from order endpoint if needed (token/{} returns only token_info)
+  // token_info from /token/
+  if (tokenRes.status === 'fulfilled' && tokenRes.value.ok){
+    try { data = await tokenRes.value.json(); } catch(_){}
+  }
+  // market_info from /trade/market/
+  if (marketRes.status === 'fulfilled' && marketRes.value.ok){
+    try {
+      const mj = await marketRes.value.json();
+      if (mj.market_info){
+        if (!data) data = { token_info: { token_id: ADDR }, market_info: mj.market_info };
+        else data.market_info = mj.market_info;
+      }
+    } catch(_){}
+  }
+
+  // Fallback scan of /order/market_cap (covers top-50 tokens if /trade/market missed)
   if (data && !data.market_info){
     try{
       const r2 = await fetch(`${NADFUN_API}/order/market_cap?page=1&limit=50`);
@@ -490,27 +512,22 @@ async function loadToken(){
       if (hit) data = hit;
     }catch(e){}
   }
+
   if (!data){
     data = {token_info:{token_id:ADDR, symbol:ADDR.slice(0,6), name:'Unknown', is_graduated:false}, market_info:{}};
   }
-  // Always also pull Monorail — fills price/holders/supply/symbol even when
-  // nad.fun has incomplete bonding-curve data, and supplies the canonical
-  // upstream symbol so the hero matches what the rest of the ecosystem sees.
-  try{
-    const mr = await fetch(`https://api.monorail.xyz/v2/token/${ADDR}`);
-    if (mr.ok){
-      const m = await mr.json();
+
+  // Monorail enrichment for any still-missing fields
+  if (monoRes.status === 'fulfilled' && monoRes.value.ok){
+    try{
+      const m = await monoRes.value.json();
       const ti = data.token_info || (data.token_info = {});
       const mi = data.market_info || (data.market_info = {});
-      // Symbol/name — use Monorail's canonical version
       if (m.symbol)   ti.symbol   = m.symbol;
       if (m.name)     ti.name     = m.name;
       if (m.image_uri && !ti.image_uri) ti.image_uri = m.image_uri;
-      // Fill any missing market fields
       if (!mi.price_usd && m.usd_per_token)        mi.price_usd     = m.usd_per_token;
       if (!mi.holder_count && m.holders)           mi.holder_count  = parseInt(m.holders);
-      // Supply: nad.fun stores raw (with 18 decimals), Monorail returns adjusted decimal.
-      // Convert Monorail's decimal supply back into raw form so tokAmt(mi.total_supply,18) produces the right number.
       if (!mi.total_supply && m.supply){
         const s = parseFloat(m.supply);
         if (s > 0){
@@ -518,9 +535,9 @@ async function loadToken(){
           catch(_){ mi.total_supply = String(Math.round(s * 1e18)); }
         }
       }
-      data._monorail = m;  // keep for downstream use if needed
-    }
-  }catch(e){}
+      data._monorail = m;
+    }catch(e){}
+  }
   return data;
 }
 

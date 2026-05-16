@@ -2133,29 +2133,91 @@ const NADFUN_API_BASE = '/api/nad';  // Vercel proxy — rotates 3 keys, edge-ca
 // Proxy auto-injects X-API-Key per request — nadfunFetch doesn't need to add it.
 
 async function fetchTrending(){
+  // Use nad.fun's /order/market_cap which returns tokens server-sorted by
+  // market cap descending, with FULL token_info + market_info already
+  // populated. This replaces the old Monorail catalog + slow enrichment
+  // dance which was sorting by per-token USD price (not mcap) and putting
+  // tiny tokens like $123 ($7.4K mcap) above CHOG ($2.4M mcap).
   try{
-    const r = await fetch('https://api.monorail.xyz/v2/tokens/category/meme');
+    const r = await fetch(`${NADFUN_API_BASE}/order/market_cap?page=1&limit=50`);
+    if (!r.ok) throw new Error('http ' + r.status);
     const j = await r.json();
-    if (!Array.isArray(j)) throw new Error('bad response');
-    TREND.rows = j.filter(t => {
-      const s = (t.symbol || '').trim();
-      const px = parseFloat(t.usd_per_token || 0);
-      return s.length > 0 && px > 0 && t.address;
-    }).map(t => ({
-      address: t.address.toLowerCase(),
-      symbol:  (t.symbol||'').trim(),
-      name:    (t.name||'').trim() || t.symbol,
-      decimals:t.decimals || 18,
-      price:   parseFloat(t.usd_per_token || 0),
-      monPx:   parseFloat(t.mon_per_token || 0),
-      categories: t.categories || [],
-    }));
+    const list = j.tokens || [];
+    if (!list.length) throw new Error('empty response');
+
+    TREND.rows = list.map(t => {
+      const ti = t.token_info || {};
+      const mi = t.market_info || {};
+      const addr = (ti.token_id || '').toLowerCase();
+      // mcap = price_usd × (total_supply / 10^18) — supply is on-chain raw
+      const px = parseFloat(mi.price_usd || 0);
+      const supplyRaw = mi.total_supply;
+      let supply = 0;
+      if (supplyRaw){
+        try{ supply = Number(BigInt(supplyRaw) / 10n**14n) / 10000; }
+        catch(_){ supply = parseFloat(supplyRaw) / 1e18; }
+      }
+      const mcap = (px && supply) ? px * supply : 0;
+      // 24h volume — stored as raw token amount, converted to USD
+      let volUsd = 0;
+      if (mi.volume && px){
+        try{ const v = Number(BigInt(mi.volume) / 10n**14n) / 10000; volUsd = v * px; }
+        catch(_){}
+      }
+      return {
+        address: addr,
+        symbol:  (ti.symbol || '').trim(),
+        name:    (ti.name || '').trim() || ti.symbol,
+        price:   px,
+        // All the data renderTrending needs is already here — no enrichment phase
+        _preEnriched: true,
+        _enrichedData: {
+          source:    'nadfun',
+          image:     ti.image_uri || null,
+          isCto:     !!ti.is_cto,
+          isGrad:    !!ti.is_graduated,
+          twitter:   ti.twitter  || null,
+          telegram:  ti.telegram || null,
+          website:   ti.website  || null,
+          creator:   ti.creator?.account_id || null,
+          holders:   parseInt(mi.holder_count || 0),
+          supply:    supply,
+          mcap:      mcap,
+          volume24h: volUsd,
+          percent24h:parseFloat(t.percent || 0),
+        }
+      };
+    }).filter(r => r.address && r.symbol);
+
+    // Hydrate enrichment map immediately — sortedTrending() reads from it
+    for (const r of TREND.rows){
+      TREND.enriched.set(r.address, r._enrichedData);
+    }
+    saveTrendCache();
     renderTrending();
-    enrichVisibleTrending();
+    // We no longer call enrichVisibleTrending — data is complete on first paint.
+    // Still fire creator-position fetching for the wallet-status badges.
+    enrichCreatorsForVisible();
   }catch(e){
     console.warn('trending fetch failed', e);
     $('#trendingGrid').innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;color:var(--red);font-family:'JetBrains Mono',monospace;">⚠ failed to load trending feed · ${e.message}</div>`;
   }
+}
+
+// Lightweight follow-up: only fetch creator positions for visible cards.
+// Replaces the old enrichVisibleTrending which did full per-token fetching.
+async function enrichCreatorsForVisible(){
+  const rows = sortedTrending().slice(0, TREND.visible);
+  const creators = new Set();
+  for (const r of rows){
+    const e = TREND.enriched.get(r.address);
+    if (e && e.creator){
+      const c = e.creator.toLowerCase();
+      if (!TREND.creatorPos.has(c) && !TREND.creatorInflight.has(c)) creators.add(c);
+    }
+  }
+  await runWithConcurrency([...creators], 2, c => fetchCreatorPositions(c));
+  renderTrending();
 }
 
 // Enrich currently-visible cards in parallel via nad.fun (primary) + Monorail (fallback)
