@@ -710,14 +710,18 @@ function fmtPriceShort(p){
 async function loadLensState(token){
   if (!window.ethers) return null;
   try{
-    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    // ethers v6 needs an ABSOLUTE URL — '/api/rpc' silently fails as a relative path.
+    // Resolve against the current origin so the proxy is reachable on any host.
+    const rpcAbs = (typeof window !== 'undefined' && window.location)
+      ? window.location.origin + RPC_URL
+      : RPC_URL;
+    const provider = new ethers.JsonRpcProvider(rpcAbs);
     const lens = new ethers.Contract(LENS_ADDR, LENS_ABI, provider);
-    // Fire all three reads in parallel — Lens is a view-only contract,
-    // QuickNode handles batching cleanly under the hood.
+    // Fire all reads in parallel — Lens is view-only, QuickNode handles batching.
     const [isGrad, isLocked, progress, avail] = await Promise.all([
-      lens.isGraduated(token).catch(() => null),
+      lens.isGraduated(token).catch(e => { console.warn('lens isGraduated', e?.shortMessage||e?.message); return null; }),
       lens.isLocked(token).catch(() => null),
-      lens.getProgress(token).catch(() => null),
+      lens.getProgress(token).catch(e => { console.warn('lens getProgress', e?.shortMessage||e?.message); return null; }),
       lens.availableBuyTokens(token).catch(() => null),
     ]);
     return {
@@ -1483,6 +1487,32 @@ async function loadBars(reset){
       low:   Number(j.l[i]),
       close: Number(j.c[i]),
     })).filter(b => !isNaN(b.close));
+
+    // Lightweight-charts renders a single-bar series as a comically wide
+    // colored block that takes over the canvas. For pre-grad tokens with
+    // 1-2 trades total, it looks broken. Hide the chart and point to the
+    // bonding curve plot below, which renders meaningfully at any trade count.
+    if (bars.length < 3 && reset){
+      const container = $('#chartCanvas');
+      if (container){
+        container.innerHTML = `
+          <div class="chart-fallback" style="padding:50px 28px;text-align:center;">
+            <div style="font-size:38px;margin-bottom:12px;">🌀</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#fff;margin-bottom:8px;">
+              ${bars.length === 0 ? 'No trades yet' : bars.length + ' trade' + (bars.length === 1 ? '' : 's') + ' so far'}
+            </div>
+            <div style="font-size:13px;color:var(--mute);line-height:1.6;max-width:360px;margin:0 auto;">
+              Candles need a few more swaps before they're informative.
+              The <b style="color:var(--pink);">bonding curve plot below</b> shows price-vs-supply at any trade count.
+            </div>
+          </div>`;
+        CHART.chart = null;
+        CHART.series = null;
+      }
+      $('#chartToolbar').style.display = 'none';
+      return;
+    }
+
     if (reset){
       CHART.series.setData(bars);
       CHART.chart.timeScale().fitContent();
