@@ -47,11 +47,12 @@ export default async function handler(req, res) {
     }
 
     const targetUrl = `${BASE}/${upstreamPath}${upstreamQuery ? '?' + upstreamQuery : ''}`;
-    const apiKey = NAD_KEYS[Math.floor(Math.random() * NAD_KEYS.length)];
+    // 2026-05-17: nad.fun deprecated API key auth — endpoints are now public.
+    // Sending the (now-invalid) key returns HTTP 401, so we skip the header.
 
     const upstreamOpts = {
       method: req.method,
-      headers: { 'X-API-Key': apiKey, 'Accept': 'application/json' },
+      headers: { 'Accept': 'application/json' },
     };
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       upstreamOpts.headers['Content-Type'] = 'application/json';
