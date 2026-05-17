@@ -18,8 +18,14 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
 const NADFUN_BASE = 'https://api.nadapp.net';
 
-const SELL_USD_FLOOR = 100;
-const BUY_USD_FLOOR  = 100;
+// Wall thresholds:
+//   SELLS: filter on TOKEN AMOUNT (10M CHOGI). Catches real dumps, ignores
+//          small jeets. Tracks supply pressure, not dollar value (which is
+//          volatile vs the actual hand-strength signal).
+//   BUYS:  filter on USD. \$300 = real conviction at current prices. People
+//          have to ape meaningful capital to get on the diamond wall.
+const SELL_CHOGI_FLOOR = 10_000_000;  // 10M tokens
+const BUY_USD_FLOOR    = 300;
 // 2 pages × 50 = last 100 swaps. Comfortably more than 1 minute of
 // activity even on a busy day, so we never miss anything between runs.
 const PAGES_PER_RUN = 2;
@@ -92,8 +98,9 @@ export default async function handler(req, res) {
         if (!txHash) continue;
         if (side !== 'buy' && side !== 'sell') continue;
 
-        const floor = side === 'sell' ? SELL_USD_FLOOR : BUY_USD_FLOOR;
-        if (usd < floor) { belowFloor++; continue; }
+        // Side-specific floor: buys gate on USD, sells gate on token amount
+        if (side === 'sell' && amountChogi < SELL_CHOGI_FLOOR) { belowFloor++; continue; }
+        if (side === 'buy'  && usd < BUY_USD_FLOOR)            { belowFloor++; continue; }
 
         const row = {
           tx_hash: txHash,
