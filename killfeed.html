@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a0118">
+<title>💀 CHOGI KILL FEED — the wall of shame</title>
+<meta name="description" content="Every CHOGI sell over $100 immortalized as a tombstone. Paper hands enter, eternal shame remains. Forever on the wall.">
+<meta property="og:title" content="💀 CHOGI KILL FEED">
+<meta property="og:description" content="Every CHOGI seller, eternally tombstoned. The wall of shame on Monad.">
+<meta property="og:image" content="/og-banner.jpg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chogi.xyz/killfeed">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="💀 CHOGI KILL FEED">
+<meta name="twitter:description" content="The wall of shame for CHOGI sellers. Every tombstone permanent.">
+<meta name="twitter:image" content="/og-banner.jpg">
+<link rel="icon" href="/chogi.png">
+<style>
+  :root {
+    --bg: #0a0118;
+    --bg-card: #18102a;
+    --bg-card-hover: #221638;
+    --border: #2a1c44;
+    --text: #e7dcff;
+    --text-dim: #8a7aae;
+    --gold: #d4af37;
+    --purple: #b07cff;
+    --green: #00d676;
+    --red: #ff4d6d;
+    --rip: #c0a0ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at top, rgba(176, 124, 255, 0.08), transparent 60%),
+      radial-gradient(ellipse at bottom, rgba(255, 77, 109, 0.06), transparent 70%),
+      var(--bg);
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10, 1, 24, 0.85);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 700; }
+  .brand img { width: 32px; height: 32px; border-radius: 50%; }
+  .nav-links { display: flex; gap: 14px; font-size: 13px; }
+  .nav-links a { color: var(--text-dim); text-decoration: none; }
+  .nav-links a:hover { color: var(--purple); }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 48px 16px 32px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 7vw, 64px);
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--red) 0%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .hero .sub {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 580px;
+    margin: 0 auto 24px;
+    line-height: 1.5;
+  }
+
+  /* Stats strip */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    max-width: 720px;
+    margin: 0 auto 32px;
+    padding: 0 16px;
+  }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.green { color: var(--green); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 0 16px 24px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.4px;
+  }
+  .tab.active { background: var(--bg-card); border-color: var(--purple); color: var(--text); }
+  .tab[data-tab="recent"].active   { border-color: var(--purple); }
+  .tab[data-tab="biggest"].active  { border-color: var(--red); color: var(--red); }
+  .tab[data-tab="diamond"].active  { border-color: var(--green); color: var(--green); }
+
+  /* Grid */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 16px 80px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  /* Tombstone */
+  .stone {
+    background:
+      linear-gradient(180deg, #1d152e 0%, #15102a 100%);
+    border: 1px solid #3a2c5c;
+    border-radius: 14px 14px 4px 4px;
+    padding: 22px 18px 18px;
+    position: relative;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 4px 20px rgba(0, 0, 0, 0.45);
+    text-align: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+  }
+  .stone:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 6px 30px rgba(255, 77, 109, 0.2);
+  }
+  .stone.buy { border-color: #2c5c3a; }
+  .stone.buy:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 6px 30px rgba(0, 214, 118, 0.2); }
+  .stone.resurrected { opacity: 0.6; filter: grayscale(0.3); }
+
+  .stone-rip {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--rip);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .stone.buy .stone-rip { color: var(--gold); }
+  .stone-rip::before, .stone-rip::after { content: '⸻'; margin: 0 6px; opacity: 0.4; }
+
+  .stone-amount {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--red);
+    line-height: 1;
+    margin: 6px 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .stone.buy .stone-amount { color: var(--green); }
+
+  .stone-side {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .stone-wallet {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .stone-wallet a { color: inherit; text-decoration: none; }
+  .stone-wallet a:hover { color: var(--purple); }
+
+  .stone-insult {
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-dim);
+    margin: 10px 0;
+    min-height: 36px;
+  }
+
+  .stone-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  .stone-meta a { color: var(--text-dim); text-decoration: none; }
+  .stone-meta a:hover { color: var(--purple); }
+
+  .stone-share {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .stone-share:hover { color: var(--purple); border-color: var(--purple); }
+
+  .resurrected-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--gold);
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 80px 20px;
+    font-style: italic;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--text-dim);
+    font-size: 11px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  /* Loader */
+  .loading {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-dim);
+  }
+  .pulse {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--purple);
+    border-radius: 50%;
+    margin: 0 3px;
+    animation: pulse-dot 1.4s infinite ease-in-out both;
+  }
+  .pulse:nth-child(2) { animation-delay: 0.2s; }
+  .pulse:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse-dot {
+    0%, 80%, 100% { transform: scale(0.5); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <img src="/chogi.png" alt="Chogi" onerror="this.src='/chogi.jpg'">
+    <span>CHOGI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/">home</a>
+    <a href="/hub">hub</a>
+    <a href="/lore">lore</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>💀 THE KILL FEED</h1>
+  <div class="sub">
+    Every <strong>CHOGI sell over $100</strong> immortalized as a tombstone.
+    Forever on the wall. Diamond hands celebrated below.
+  </div>
+</section>
+
+<div class="stats" id="stats">
+  <div class="stat">
+    <div class="stat-label">Tombstones</div>
+    <div class="stat-value red" id="s-kills">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Total Dumped</div>
+    <div class="stat-value red" id="s-dump">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Biggest Dump</div>
+    <div class="stat-value red" id="s-biggest">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Total Bought</div>
+    <div class="stat-value green" id="s-buy">—</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="recent">⏱ RECENT</button>
+  <button class="tab" data-tab="biggest">💀 BIGGEST DUMPS</button>
+  <button class="tab" data-tab="diamond">💎 DIAMOND HANDS</button>
+</div>
+
+<div class="container">
+  <div id="wall" class="grid">
+    <div class="loading"><span class="pulse"></span><span class="pulse"></span><span class="pulse"></span></div>
+  </div>
+</div>
+
+<div class="footer">
+  CHOGI Kill Feed · powered by Monad · all sells over $100 USD recorded permanently
+  <br><br>
+  Want off the wall? Burn 2x your dump amount in CHOGI and your tombstone gets marked
+  <strong style="color:var(--gold)">REDEEMED</strong>.
+  <a href="/redemption" style="color:var(--purple)">how →</a>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let currentTab = 'recent';
+
+function shortAddr(a) {
+  if (!a) return '';
+  return a.slice(0, 6) + '…' + a.slice(-4);
+}
+function fmtUsd(n) {
+  n = Number(n) || 0;
+  if (n < 1000) return '$' + n.toFixed(0);
+  if (n < 1_000_000) return '$' + (n / 1000).toFixed(1) + 'K';
+  return '$' + (n / 1_000_000).toFixed(2) + 'M';
+}
+function fmtChogi(n) {
+  n = Number(n) || 0;
+  if (n < 1000) return n.toFixed(0);
+  if (n < 1_000_000) return (n / 1000).toFixed(1) + 'K';
+  if (n < 1_000_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+  return (n / 1_000_000_000).toFixed(2) + 'B';
+}
+function fmtAgo(iso) {
+  const t = new Date(iso).getTime();
+  if (!t) return '';
+  const s = Math.floor((Date.now() - t) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return Math.floor(s / 86400) + 'd ago';
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+}
+
+function tweetText(row) {
+  if (row.side === 'sell') {
+    return `💀 ${shortAddr(row.wallet)} just dumped ${fmtUsd(row.amount_usd)} of $CHOGI 💀\n\n"${row.insult || 'weak hands win lottery for shame'}"\n\nEternal shame: chogi.xyz/killfeed`;
+  }
+  return `💎 ${shortAddr(row.wallet)} just bought ${fmtUsd(row.amount_usd)} of $CHOGI\n\nDiamond hand confirmed.\n\nchogi.xyz/killfeed`;
+}
+function shareTweet(row) {
+  const txt = encodeURIComponent(tweetText(row));
+  const url = `https://twitter.com/intent/tweet?text=${txt}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function renderStone(row) {
+  const isBuy = row.side === 'buy';
+  const cls = `stone ${isBuy ? 'buy' : 'sell'}${row.resurrected ? ' resurrected' : ''}`;
+  const ripText = isBuy ? 'DIAMOND' : 'R.I.P.';
+  const sideLabel = isBuy ? 'BOUGHT' : 'SOLD';
+  const stone = document.createElement('div');
+  stone.className = cls;
+  stone.innerHTML = `
+    ${row.resurrected ? '<div class="resurrected-badge">REDEEMED</div>' : ''}
+    <div class="stone-rip">${ripText}</div>
+    <div class="stone-amount">${fmtUsd(row.amount_usd)}</div>
+    <div class="stone-side">${sideLabel} · ${fmtChogi(row.amount_chogi)} CHOGI</div>
+    <div class="stone-wallet">
+      <a href="https://monadexplorer.com/address/${row.wallet}" target="_blank" rel="noopener noreferrer">${shortAddr(row.wallet)}</a>
+    </div>
+    ${row.insult ? `<div class="stone-insult">"${row.insult}"</div>` : ''}
+    <div class="stone-meta">
+      <a href="https://monadexplorer.com/tx/${row.tx_hash}" target="_blank" rel="noopener noreferrer" title="${fmtDate(row.created_at)}">${fmtAgo(row.created_at)}</a>
+      <button class="stone-share" title="share to X">SHARE 𝕏</button>
+    </div>
+  `;
+  stone.querySelector('.stone-share').addEventListener('click', () => shareTweet(row));
+  return stone;
+}
+
+async function load(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  const wall = $('#wall');
+  wall.innerHTML = '<div class="loading"><span class="pulse"></span><span class="pulse"></span><span class="pulse"></span></div>';
+  try {
+    const r = await fetch(`/api/killfeed?tab=${tab}&limit=60`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if (j.stats) {
+      $('#s-kills').textContent = j.stats.totalKills.toLocaleString();
+      $('#s-dump').textContent = fmtUsd(j.stats.totalDumpUsd);
+      $('#s-biggest').textContent = fmtUsd(j.stats.biggestDump);
+      $('#s-buy').textContent = fmtUsd(j.stats.totalDiamondUsd);
+    }
+    wall.innerHTML = '';
+    if (!j.rows || j.rows.length === 0) {
+      wall.innerHTML = '<div class="empty">— no tombstones yet · check back when someone folds —</div>';
+      return;
+    }
+    for (const row of j.rows) wall.appendChild(renderStone(row));
+  } catch (e) {
+    wall.innerHTML = `<div class="empty">failed to load — ${e.message}</div>`;
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => load(t.dataset.tab));
+});
+
+load('recent');
+// Auto-refresh every 20s
+setInterval(() => load(currentTab), 20000);
+</script>
+</body>
+</html>

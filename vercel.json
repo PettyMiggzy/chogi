@@ -36,6 +36,10 @@
     {
       "source": "/banned",
       "destination": "/banned.html"
+    },
+    {
+      "source": "/killfeed",
+      "destination": "/killfeed.html"
     }
   ],
   "headers": [
@@ -99,6 +103,12 @@
           "value": "no-cache, no-store, must-revalidate"
         }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/killfeed-poll",
+      "schedule": "* * * * *"
     }
   ]
 }
