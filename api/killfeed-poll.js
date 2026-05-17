@@ -19,7 +19,7 @@ const CHOGI_TOKEN = '0x5E1b1A14c8758104B8560514e94ab8320e587777';
 const NADFUN_BASE = 'https://api.nadapp.net';
 
 const SELL_USD_FLOOR = 100;
-const BUY_USD_FLOOR  = 250;
+const BUY_USD_FLOOR  = 100;
 // 2 pages × 50 = last 100 swaps. Comfortably more than 1 minute of
 // activity even on a busy day, so we never miss anything between runs.
 const PAGES_PER_RUN = 2;
