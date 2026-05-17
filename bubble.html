@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0a0118">
+<title>🫧 CHOGI BUBBLES — wallet cluster map for any Monad token</title>
+<meta name="description" content="Visual bubble map of any Monad token's holder distribution, cluster analysis, and whale tracking. Powered by Bubblemaps.">
+<meta property="og:title" content="🫧 CHOGI BUBBLES — Monad token bubble maps">
+<meta property="og:description" content="Spot the whales. See the clusters. Check any Monad token's holder map.">
+<meta property="og:image" content="/og-banner.jpg">
+<meta property="og:url" content="https://chogi.xyz/bubble">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="🫧 CHOGI BUBBLES">
+<meta name="twitter:image" content="/og-banner.jpg">
+<link rel="icon" href="/chogi.png">
+<style>
+  :root {
+    --bg: #0a0118;
+    --bg-card: #18102a;
+    --bg-card-hover: #221638;
+    --border: #2a1c44;
+    --text: #e7dcff;
+    --text-dim: #8a7aae;
+    --gold: #d4af37;
+    --purple: #b07cff;
+    --green: #00d676;
+    --red: #ff4d6d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at top, rgba(176, 124, 255, 0.08), transparent 60%),
+      var(--bg);
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10, 1, 24, 0.85);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 700; }
+  .brand img { width: 32px; height: 32px; border-radius: 50%; }
+  .nav-links { display: flex; gap: 14px; font-size: 13px; }
+  .nav-links a { color: var(--text-dim); text-decoration: none; }
+  .nav-links a:hover { color: var(--purple); }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 32px 16px 18px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 6vw, 48px);
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .hero .sub {
+    color: var(--text-dim);
+    font-size: 14px;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* Controls */
+  .controls {
+    max-width: 1100px;
+    margin: 0 auto 14px;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .address-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .address-input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    outline: none;
+    min-width: 0;
+  }
+  .address-input:focus { border-color: var(--purple); }
+  .go-btn {
+    background: var(--purple);
+    color: var(--bg);
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .go-btn:hover { background: var(--gold); }
+
+  /* Token shortcuts */
+  .shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .shortcut {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .shortcut:hover {
+    border-color: var(--purple);
+    color: var(--text);
+    background: var(--bg-card-hover);
+  }
+  .shortcut.active {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: rgba(176, 124, 255, 0.1);
+  }
+  .shortcut.chogi.active { color: var(--gold); border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+
+  /* Iframe wrapper */
+  .frame-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+  }
+  .frame {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  iframe {
+    width: 100%;
+    height: 720px;
+    border: 0;
+    display: block;
+  }
+  @media (max-width: 640px) {
+    iframe { height: 560px; }
+  }
+
+  .meta {
+    max-width: 1100px;
+    margin: 14px auto 40px;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .meta a { color: var(--purple); text-decoration: none; }
+  .meta-key {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+  }
+
+  /* How-to */
+  .howto {
+    max-width: 720px;
+    margin: 20px auto 40px;
+    padding: 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .howto h3 {
+    font-size: 13px;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .howto ul { padding-left: 18px; color: var(--text-dim); }
+  .howto strong { color: var(--text); }
+
+  .footer {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--text-dim);
+    font-size: 11px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <img src="/chogi.png" alt="Chogi" onerror="this.src='/chogi.jpg'">
+    <span>CHOGI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/">home</a>
+    <a href="/hub">hub</a>
+    <a href="/killfeed">💀 killfeed</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>🫧 BUBBLE MAPS</h1>
+  <div class="sub">
+    Spot the whales. See the clusters. Catch the connected wallets.
+    Works on any Monad token — paste a contract or pick one below.
+  </div>
+</section>
+
+<div class="controls">
+  <div class="address-row">
+    <input id="addr" class="address-input" placeholder="0x… token contract address" spellcheck="false" autocomplete="off">
+    <button class="go-btn" onclick="goManual()">MAP IT</button>
+  </div>
+  <div class="shortcuts" id="shortcuts"></div>
+</div>
+
+<div class="frame-wrap">
+  <div class="frame">
+    <iframe id="bmap" allow="clipboard-write" src=""></iframe>
+  </div>
+  <div class="meta">
+    <div>
+      <span class="meta-key" id="metaAddr">—</span>
+    </div>
+    <div>
+      <a id="explorerLink" href="#" target="_blank" rel="noopener noreferrer">view on monadexplorer ↗</a>
+      &nbsp;·&nbsp;
+      <a id="bubbleLink" href="#" target="_blank" rel="noopener noreferrer">open full app ↗</a>
+    </div>
+  </div>
+</div>
+
+<div class="howto">
+  <h3>How to read it</h3>
+  <ul>
+    <li><strong>Bigger bubble = bigger bag.</strong> The top 250 holders by supply share.</li>
+    <li><strong>Connected lines = same hands.</strong> Bubblemaps groups wallets that have transferred to each other — those clusters are usually the same person or coordinated group.</li>
+    <li><strong>Clusters near each other = suspicious.</strong> Top 5 wallets all linked? That's a single whale with 5 wallets, not 5 independent holders.</li>
+    <li><strong>Hover</strong> to see addresses, balances, and labels (CEX wallets, contracts, etc).</li>
+  </ul>
+</div>
+
+<div class="footer">
+  Bubble maps powered by <a href="https://bubblemaps.io" target="_blank" rel="noopener noreferrer" style="color:var(--purple)">bubblemaps.io</a>
+  · embed is free · paste any Monad contract above to investigate
+</div>
+
+<script>
+const TOKENS = [
+  { sym: 'CHOGI',    addr: '0x5E1b1A14c8758104B8560514e94ab8320e587777', highlight: true },
+  { sym: 'CHOG',     addr: '0x350035555E10d9AfAF1566AaebfCeD5BA6C27777' },
+  { sym: 'MOLLY',    addr: '0xB72e6262DAE53cAF167F0966421a0B9782977777' },
+  { sym: 'RENE',     addr: '0xaCA86430cCCEdbedB35910fC8A5AFEF07dA37777' },
+  { sym: 'MONSHI',   addr: '0xB744F5CDb792d8187640214C4A1c9aCE29af7777' },
+  { sym: 'MONWOLF',  addr: '0x8361a59d340466211ad4aB41C09a32e4530a7777' },
+  { sym: 'PHUCK',    addr: '0x148a3a811979e5BF8366FC279B2d67742Fe17777' },
+];
+
+const PARTNER = 'demo'; // ← swap for King's partner id once approved by bubblemaps
+
+function isAddr(s) {
+  return /^0x[a-fA-F0-9]{40}$/.test((s || '').trim());
+}
+
+function setMap(addr, sym) {
+  if (!isAddr(addr)) return;
+  const a = addr.toLowerCase();
+  const url = `https://iframe.bubblemaps.io/map?chain=monad&address=${a}&partnerId=${PARTNER}`;
+  document.getElementById('bmap').src = url;
+  document.getElementById('metaAddr').textContent = (sym ? sym + ' · ' : '') + a;
+  document.getElementById('explorerLink').href = `https://monadexplorer.com/token/${a}`;
+  document.getElementById('bubbleLink').href = `https://v2.bubblemaps.io/?chain=monad&address=${a}`;
+  document.getElementById('addr').value = a;
+  document.querySelectorAll('.shortcut').forEach(el => {
+    el.classList.toggle('active', el.dataset.addr === a);
+  });
+  // Update URL hash so people can share specific token links
+  const newHash = sym ? `#${sym.toLowerCase()}` : `#${a}`;
+  if (location.hash !== newHash) history.replaceState(null, '', newHash);
+}
+
+function goManual() {
+  const v = document.getElementById('addr').value.trim();
+  if (!isAddr(v)) {
+    alert('Need a valid Monad token address (0x followed by 40 hex chars)');
+    return;
+  }
+  setMap(v, null);
+}
+
+document.getElementById('addr').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') goManual();
+});
+
+// Build shortcut chips
+const shortcutsEl = document.getElementById('shortcuts');
+for (const t of TOKENS) {
+  const a = document.createElement('a');
+  a.href = '#' + t.sym.toLowerCase();
+  a.className = 'shortcut' + (t.highlight ? ' chogi' : '');
+  a.dataset.addr = t.addr.toLowerCase();
+  a.textContent = '$' + t.sym;
+  a.onclick = (e) => { e.preventDefault(); setMap(t.addr, t.sym); };
+  shortcutsEl.appendChild(a);
+}
+
+// Initial load: parse hash for token, otherwise default to CHOGI
+(function init() {
+  const h = (location.hash || '').replace(/^#/, '').toLowerCase();
+  if (h) {
+    const match = TOKENS.find(t => t.sym.toLowerCase() === h);
+    if (match) { setMap(match.addr, match.sym); return; }
+    if (isAddr(h)) { setMap(h, null); return; }
+  }
+  setMap(TOKENS[0].addr, TOKENS[0].sym);
+})();
+</script>
+</body>
+</html>

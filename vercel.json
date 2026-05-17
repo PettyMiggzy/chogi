@@ -40,6 +40,10 @@
     {
       "source": "/killfeed",
       "destination": "/killfeed.html"
+    },
+    {
+      "source": "/bubble",
+      "destination": "/bubble.html"
     }
   ],
   "headers": [
