@@ -42,8 +42,8 @@
       "destination": "/killfeed.html"
     },
     {
-      "source": "/bubble",
-      "destination": "/bubble.html"
+      "source": "/chart",
+      "destination": "/chart.html"
     }
   ],
   "headers": [

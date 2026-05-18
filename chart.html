@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0a0118">
+<title>📈 CHOGI CHART — live price & volume on Monad</title>
+<meta name="description" content="Live $CHOGI chart. Real-time price, volume, candles, and trades on Monad. Powered by GeckoTerminal.">
+<meta property="og:title" content="📈 CHOGI CHART">
+<meta property="og:description" content="Live $CHOGI candles + volume on Monad. Real-time market data.">
+<meta property="og:image" content="/og-banner.jpg">
+<meta property="og:url" content="https://chogi.xyz/chart">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="📈 CHOGI CHART">
+<meta name="twitter:image" content="/og-banner.jpg">
+<link rel="icon" href="/chogi.png">
+<style>
+  :root {
+    --bg: #0a0118;
+    --bg-card: #18102a;
+    --bg-card-hover: #221638;
+    --border: #2a1c44;
+    --text: #e7dcff;
+    --text-dim: #8a7aae;
+    --gold: #d4af37;
+    --purple: #b07cff;
+    --green: #00d676;
+    --red: #ff4d6d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at top, rgba(176, 124, 255, 0.08), transparent 60%),
+      var(--bg);
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10, 1, 24, 0.85);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 700; }
+  .brand img { width: 32px; height: 32px; border-radius: 50%; }
+  .nav-links { display: flex; gap: 14px; font-size: 13px; }
+  .nav-links a { color: var(--text-dim); text-decoration: none; }
+  .nav-links a:hover { color: var(--purple); }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .hero .sub {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* Live stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* Chart */
+  .chart-frame {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  iframe {
+    width: 100%;
+    height: 640px;
+    border: 0;
+    display: block;
+  }
+  @media (max-width: 640px) {
+    iframe { height: 520px; }
+  }
+
+  /* CTA row */
+  .cta-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover { border-color: var(--purple); background: var(--bg-card-hover); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--purple), var(--gold));
+    border-color: transparent;
+    color: var(--bg);
+  }
+  .btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(176, 124, 255, 0.35); }
+
+  .footer {
+    text-align: center;
+    padding: 24px 16px 0;
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+  .footer a { color: var(--purple); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <img src="/chogi.png" alt="Chogi" onerror="this.src='/chogi.jpg'">
+    <span>CHOGI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/">home</a>
+    <a href="/hub">hub</a>
+    <a href="/killfeed">💀 killfeed</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <section class="hero">
+    <h1>📈 CHOGI CHART</h1>
+    <div class="sub">live candles · powered by GeckoTerminal</div>
+  </section>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Price</div>
+      <div class="stat-value" id="s-price">—</div>
+      <div class="stat-sub" id="s-pricechg">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">24h Volume</div>
+      <div class="stat-value" id="s-vol">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">FDV</div>
+      <div class="stat-value" id="s-fdv">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Liquidity</div>
+      <div class="stat-value" id="s-liq">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">24h Buys / Sells</div>
+      <div class="stat-value" id="s-bs">—</div>
+    </div>
+  </div>
+
+  <div class="chart-frame">
+    <iframe
+      src="https://www.geckoterminal.com/monad/pools/0x75C3Ab752e313544f00F08fC945FCe7d22EF4F0D?embed=1&info=0&swaps=1&grayscale=0&light_chart=0"
+      allow="clipboard-write"
+      allowfullscreen></iframe>
+  </div>
+
+  <div class="cta-row">
+    <a class="btn primary" href="/hub/token.html?addr=0x5E1b1A14c8758104B8560514e94ab8320e587777">💰 Buy $CHOGI</a>
+    <a class="btn" href="https://www.geckoterminal.com/monad/pools/0x75C3Ab752e313544f00F08fC945FCe7d22EF4F0D" target="_blank" rel="noopener noreferrer">open in geckoterminal ↗</a>
+    <a class="btn" href="https://nad.fun/tokens/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener noreferrer">view on nad.fun ↗</a>
+    <a class="btn" href="https://monadexplorer.com/token/0x5E1b1A14c8758104B8560514e94ab8320e587777" target="_blank" rel="noopener noreferrer">explorer ↗</a>
+  </div>
+
+  <div class="footer">
+    $CHOGI · 0x5E1b…7777 · CHOGI/WMON pool on nad.fun
+    <br>
+    chart data by <a href="https://www.geckoterminal.com" target="_blank" rel="noopener noreferrer">geckoterminal</a> · stats refresh every 30s
+  </div>
+
+</div>
+
+<script>
+const POOL = '0x75C3Ab752e313544f00F08fC945FCe7d22EF4F0D';
+const $ = (s) => document.querySelector(s);
+
+function fmtUsd(n) {
+  if (n == null) return '—';
+  n = Number(n);
+  if (!Number.isFinite(n)) return '—';
+  if (Math.abs(n) < 0.01) return '$' + n.toExponential(2);
+  if (n < 1000) return '$' + n.toFixed(2);
+  if (n < 1_000_000) return '$' + (n / 1000).toFixed(2) + 'K';
+  if (n < 1_000_000_000) return '$' + (n / 1_000_000).toFixed(2) + 'M';
+  return '$' + (n / 1_000_000_000).toFixed(2) + 'B';
+}
+function fmtPx(n) {
+  if (n == null) return '—';
+  n = Number(n);
+  if (!Number.isFinite(n)) return '—';
+  if (n < 0.0001) return '$' + n.toExponential(3);
+  if (n < 1) return '$' + n.toFixed(6);
+  return '$' + n.toFixed(4);
+}
+function fmtPct(n) {
+  if (n == null) return '—';
+  n = Number(n);
+  if (!Number.isFinite(n)) return '—';
+  const sign = n >= 0 ? '+' : '';
+  return sign + n.toFixed(2) + '%';
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch(`https://api.geckoterminal.com/api/v2/networks/monad/pools/${POOL}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const a = j.data?.attributes;
+    if (!a) return;
+
+    $('#s-price').textContent = fmtPx(a.base_token_price_usd);
+    const chg24 = Number(a.price_change_percentage?.h24);
+    if (Number.isFinite(chg24)) {
+      $('#s-pricechg').textContent = fmtPct(chg24) + ' (24h)';
+      $('#s-pricechg').style.color = chg24 >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+
+    $('#s-vol').textContent = fmtUsd(a.volume_usd?.h24);
+    $('#s-fdv').textContent = fmtUsd(a.fdv_usd);
+    $('#s-liq').textContent = fmtUsd(a.reserve_in_usd);
+
+    const buys = Number(a.transactions?.h24?.buys) || 0;
+    const sells = Number(a.transactions?.h24?.sells) || 0;
+    $('#s-bs').textContent = `${buys} / ${sells}`;
+    if (buys > sells) $('#s-bs').style.color = 'var(--green)';
+    else if (sells > buys) $('#s-bs').style.color = 'var(--red)';
+  } catch (e) {
+    console.warn('stats load failed', e);
+  }
+}
+
+loadStats();
+setInterval(loadStats, 30000);
+</script>
+
+</body>
+</html>
