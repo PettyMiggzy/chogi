@@ -881,10 +881,7 @@ main, header{position:relative;z-index:2}
     if(e.key === 'Enter') claim();
   });
 
-  // auto-connect if previously connected
-  if(window.ethereum && window.ethereum.selectedAddress){
-    setTimeout(connect, 500);
-  }
+  // auto-connect disabled
 })();
 </script>
 

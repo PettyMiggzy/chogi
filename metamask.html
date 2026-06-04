@@ -811,7 +811,7 @@ $('execute-trade').addEventListener('click', async () => {
   if (window.ethereum) {
     try {
       const accts = await window.ethereum.request({ method: 'eth_accounts' });
-      if (accts && accts.length) connect();
+      void accts; /* auto-connect disabled */
     } catch (_) {}
   }
 })();

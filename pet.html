@@ -1273,8 +1273,7 @@ main, header{position:relative;z-index:2}
   });
 
   /* ─── INIT ─── */
-  if(window.ethereum && window.ethereum.selectedAddress){
-    connect();
+  if(false){ /* auto-connect disabled */
   } else {
     // try to render whatever pet we can find from local storage
     var localPets = window.ChogiPetStore ? loadAllLocalUnfiltered() : [];

@@ -411,8 +411,8 @@ async function init(){
   // try silent auto-connect (was previously authorized)
   if (window.ethereum){
     try{
-      const accs = await window.ethereum.request({method:'eth_accounts'});
-      if (accs && accs[0]){
+      const accs = []; /* auto-connect disabled */
+      if (false){
         connectedAccount = accs[0];
         const ok = await verify(accs[0], true);
         if (ok) startRecheck();

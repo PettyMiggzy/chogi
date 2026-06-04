@@ -444,10 +444,7 @@ contract MyToken {
     if (window.ChogiConnect && window.ChogiConnect.isConnected && window.ChogiConnect.isConnected()){
       checkAccess(window.ChogiConnect.getAccount());
     } else if (window.ethereum){
-      window.ethereum.request({ method:'eth_accounts' }).then(function(accs){
-        if (accs && accs[0]) checkAccess(accs[0]);
-        else setGate('connect');
-      }).catch(function(){ setGate('connect'); });
+      setGate('connect'); /* auto-connect disabled */
     } else {
       setGate('connect');
     }

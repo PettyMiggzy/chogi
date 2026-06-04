@@ -1554,8 +1554,8 @@ async function loadBars(reset){
   // auto-connect if previously authorized
   if (window.ethereum){
     try{
-      const accs = await window.ethereum.request({method:'eth_accounts'});
-      if (accs && accs[0]){
+      const accs = []; /* auto-connect disabled */
+      if (false){
         STATE.account = accs[0];
         const pill = $('#walletPill');
         pill.classList.add('on');

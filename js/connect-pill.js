@@ -229,14 +229,8 @@
   /* ─── auto-init ─── */
   function init(){
     ensureDom();
-    // restore session if wallet was connected
-    if(window.ethereum && window.ethereum.selectedAddress){
-      account = window.ethereum.selectedAddress;
-      render();
-      window.dispatchEvent(new CustomEvent('chogi:connected', { detail:{ account: account } }));
-    } else {
-      render();
-    }
+    // NO auto-connect — wallet only touched on explicit CONNECT click.
+    render();
     // listen to changes
     if(window.ethereum && window.ethereum.on){
       window.ethereum.on('accountsChanged', function(accs){

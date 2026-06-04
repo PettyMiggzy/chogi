@@ -789,7 +789,7 @@ footer a{color:var(--pink);text-decoration:none;}
     window.ethereum.request({method:'eth_accounts'}).then(function(a){
       if(a && a.length){
         // already authorized — restore connected state without re-prompting
-        connect().catch(function(e){ console.warn('auto-connect:', e?.message); });
+        /* auto-connect disabled */
       }
     });
   }

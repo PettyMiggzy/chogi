@@ -134,10 +134,7 @@
       if (global.ChogiConnect && global.ChogiConnect.isConnected && global.ChogiConnect.isConnected()){
         checkAccess(global.ChogiConnect.getAccount());
       } else if (global.ethereum){
-        global.ethereum.request({ method:'eth_accounts' }).then(function(accs){
-          if (accs && accs[0]) checkAccess(accs[0]);
-          else setState('connect');
-        }).catch(function(){ setState('connect'); });
+        setState('connect'); /* auto-connect disabled */
       } else {
         setState('connect');
       }

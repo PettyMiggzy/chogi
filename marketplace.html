@@ -1032,8 +1032,7 @@ main, header{position:relative;z-index:2}
   /* ─── init ─── */
   renderTabs();
   renderGrid();
-  if(window.ethereum && window.ethereum.selectedAddress){
-    connect();
+  if(false){ /* auto-connect disabled */
   } else {
     // try to pick up existing pets from localStorage
     var localPets = [];
