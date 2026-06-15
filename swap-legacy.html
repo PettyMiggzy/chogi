@@ -668,7 +668,7 @@ footer a{color:var(--pink);text-decoration:none;}
         var allowance = await chogiC.allowance(wallet, BURNER);
         if(allowance < amountInBig){
           status('info','Approving CHOGI…');
-          var approveData = ERC20_IFACE.encodeFunctionData('approve', [BURNER, ethers.MaxUint256]);
+          var approveData = ERC20_IFACE.encodeFunctionData('approve', [BURNER, amountInBig]);
           var atx = await signer.sendTransaction({ to: CHOGI, data: approveData });
           await atx.wait();
         }
@@ -747,7 +747,7 @@ footer a{color:var(--pink);text-decoration:none;}
         var allowance = await chogiC.allowance(wallet, NADFUN_DEX_ROUTER);
         if(allowance < amountInBig){
           status('info','Approving nad.fun router…');
-          var approveData = ERC20_IFACE.encodeFunctionData('approve', [NADFUN_DEX_ROUTER, ethers.MaxUint256]);
+          var approveData = ERC20_IFACE.encodeFunctionData('approve', [NADFUN_DEX_ROUTER, amountInBig]);
           var atx = await signer.sendTransaction({ to: CHOGI, data: approveData });
           await atx.wait();
         }
