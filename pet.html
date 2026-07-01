@@ -1143,6 +1143,10 @@ main, header{position:relative;z-index:2}
     toast('CONFIRM IN WALLET…');
 
     try{
+      // Pre-simulate so a would-revert burn never reaches the wallet (avoids the
+      // MetaMask/Phantom 'can't verify / may be malicious' warning).
+      try{ await window.ethereum.request({method:'eth_call',params:[{from:account,to:TOKEN,data:data},'latest']}); }
+      catch(_e){ toast('Transaction would fail — check your balance.'); document.querySelectorAll('.feed-btn').forEach(function(b){b.disabled=false;}); return; }
       var txHash = await window.ethereum.request({
         method:'eth_sendTransaction',
         params:[{from:account,to:TOKEN,data:data,value:'0x0'}]

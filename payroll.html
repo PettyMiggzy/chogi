@@ -1093,6 +1093,17 @@ main, header{position:relative;z-index:2}
     if (nonce !== undefined){
       req.nonce = '0x' + BigInt(nonce).toString(16);
     }
+    // Pre-flight simulate via eth_call so a would-revert tx never reaches the
+    // wallet (a reverting tx is the #1 cause of MetaMask/Blockaid & Phantom
+    // "can't verify / may be malicious" warnings). Throw a clean error instead.
+    try {
+      await window.ethereum.request({
+        method: 'eth_call',
+        params: [{ from: req.from, to: req.to, data: req.data, value: req.value }, 'latest']
+      });
+    } catch (simErr) {
+      throw new Error('Transaction would fail — check balances/allowance and try again.');
+    }
     // Raw eth_sendTransaction returns just the hash — no further parsing
     var hash = await window.ethereum.request({
       method: 'eth_sendTransaction',
