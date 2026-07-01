@@ -1472,10 +1472,11 @@ main, header{position:relative;z-index:2}
     var current = token === CHOGI_TOKEN ? chogiAllowanceWei : allowanceWei;
     if(current >= amount) return true;
     toast('APPROVING ' + (assetCache[token] ? assetCache[token].symbol : 'TOKEN'));
-    var tx = await sendTx(erc20, "approve", [PAYROLL_ADDRESS, MAX_UINT]);
+    // Exact-amount approve (not MAX_UINT) — clears MetaMask/Blockaid spending-cap warning.
+    var tx = await sendTx(erc20, "approve", [PAYROLL_ADDRESS, amount]);
     await waitForTx(tx.hash);
-    if(token === CHOGI_TOKEN) chogiAllowanceWei = MAX_UINT;
-    else allowanceWei = MAX_UINT;
+    if(token === CHOGI_TOKEN) chogiAllowanceWei = amount;
+    else allowanceWei = amount;
     return true;
   }
 
@@ -1503,6 +1504,8 @@ main, header{position:relative;z-index:2}
       var tx = await sendTx(payrollWrite, "stake", [selectedToken, amt, selectedTier]);
       btn.textContent = 'CLOCKING IN…';
       await waitForTx(tx.hash);
+      // Exact approvals are consumed by the stake — reset cache so the next stake re-approves.
+      chogiAllowanceWei = 0n; allowanceWei = 0n;
       toast('CLOCKED IN · ' + TIERS[selectedTier].name);
       coinShower();
       $('stakeAmt').value = '';
